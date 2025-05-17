@@ -1,0 +1,364 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    background-color: #f4f6f8;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+header h1 {
+    color: #2c3e50;
+    font-weight: 700;
+    font-size: 2.2em;
+}
+
+.progress-container {
+    margin-top: 15px;
+}
+
+.progress-bar-background {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 25px;
+    height: 25px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2980b9);
+    border-radius: 25px;
+    transition: width 0.5s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+#progressText {
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+/* Configuración Fecha de Inicio */
+.start-date-config, .sync-plan-section {
+    background-color: #fdf5e6; 
+    border: 1px solid #fadcb9;
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    border-radius: 6px;
+    text-align: center;
+}
+.sync-plan-section {
+    background-color: #e6f7ff; /* Azul muy claro */
+    border-color: #b3e0ff;
+}
+
+
+.start-date-config h3, .sync-plan-section h3 {
+    color: #b8860b; 
+    font-size: 1.4em;
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+.sync-plan-section h3 {
+    color: #0077cc; /* Azul oscuro */
+}
+
+.start-date-config p, .sync-plan-section p {
+    font-size: 0.95em;
+    color: #5c4033; 
+    margin-bottom: 12px;
+}
+.sync-plan-section p {
+    color: #005fa3;
+}
+
+.start-date-config div, .sync-plan-section div {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.start-date-config label, .sync-plan-section label {
+    margin-right: 10px;
+    font-weight: 400;
+}
+.start-date-config input[type="date"], .sync-plan-section select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 10px;
+    max-width: 250px; /* Para el select */
+}
+.sync-plan-section select {
+    flex-grow: 1; /* Permitir que el select crezca */
+}
+.start-date-config button, .sync-plan-section button {
+    padding: 8px 15px;
+    background-color: #b8860b;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+.sync-plan-section button {
+    background-color: #0077cc;
+}
+
+.start-date-config button:hover {
+    background-color: #8c6c0a;
+}
+.sync-plan-section button:hover {
+    background-color: #005fa3;
+}
+#currentPlanStartDateText {
+    font-style: italic;
+    font-size: 0.9em;
+    color: #7a5230;
+}
+
+
+.suggested-reading-section {
+    background-color: #e8f4fd;
+    border: 1px solid #bde0fe;
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.suggested-reading-section h2 {
+    color: #1d6fa5;
+    font-size: 1.5em;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.suggested-reading-section p {
+    font-size: 1.1em;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+#markSuggestedAsRead {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.2s;
+}
+
+#markSuggestedAsRead:hover {
+    background-color: #229954;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 15px;
+    background-color: #ecf0f1;
+    border-radius: 6px;
+    flex-wrap: wrap;
+}
+
+.controls label {
+    margin-right: 8px;
+    font-weight: 400;
+    color: #34495e;
+}
+
+.controls select, .controls button:not(.start-date-config button):not(.sync-plan-section button) { /* Excluir botones ya estilizados */
+    padding: 10px 15px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.controls select {
+    margin-right: 15px;
+}
+
+#resetProgress {
+    background-color: #e74c3c;
+    color: white;
+    border-color: #c0392b;
+}
+#resetProgress:hover {
+    background-color: #c0392b;
+}
+
+
+.controls select:focus, .controls button:not(.start-date-config button):not(.sync-plan-section button):focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.5);
+}
+
+#bibleBooksContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.book-section {
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.book-section:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+.book-title {
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #3498db;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #ecf0f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.book-progress {
+    font-size: 0.8em;
+    font-weight: 400;
+    color: #7f8c8d;
+}
+
+.chapters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 8px;
+}
+
+.chapter-button {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    border: 1px solid #bdc3c7;
+    padding: 8px 0;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, transform 0.1s;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.chapter-button:hover {
+    background-color: #dbe4e8;
+    transform: translateY(-1px);
+}
+
+.chapter-button.read {
+    background-color: #2ecc71;
+    color: white;
+    border-color: #27ae60;
+}
+
+.chapter-button.read:hover {
+    background-color: #29b765;
+}
+
+footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    font-size: 0.9em;
+    color: #7f8c8d;
+}
+
+@media (max-width: 768px) {
+    .start-date-config div, .sync-plan-section div {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .start-date-config input[type="date"], .start-date-config button,
+    .sync-plan-section select, .sync-plan-section button {
+        width: 100%;
+        margin-bottom: 10px;
+        margin-right: 0;
+    }
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .controls select, .controls button:not(.start-date-config button):not(.sync-plan-section button) {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    .controls select:last-of-type, #resetProgress {
+        margin-bottom: 0;
+    }
+    header h1 {
+        font-size: 1.8em;
+    }
+    .suggested-reading-section h2 {
+        font-size: 1.3em;
+    }
+    #bibleBooksContainer {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        margin: 10px;
+        padding: 15px;
+    }
+    header h1 {
+        font-size: 1.6em;
+    }
+    .suggested-reading-section h2 {
+        font-size: 1.2em;
+    }
+    .suggested-reading-section p {
+        font-size: 1em;
+    }
+    .book-title {
+        font-size: 1.2em;
+    }
+    .chapter-button {
+        font-size: 0.8em;
+        padding: 6px 0;
+    }
+}
