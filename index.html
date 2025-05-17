@@ -2,22 +2,21 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mi Progreso Bíblico</title>
 
-  <!-- Hoja de estilos -->
+  <!-- Hoja de estilos (relativa) -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- Web App Manifest -->
+  <!-- Manifest (relativo) -->
   <link rel="manifest" href="manifest.json">
 
-  <!-- Configuración PWA en iOS -->
+  <!-- PWA en iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Progreso Bíblico">
 
-  <!-- Iconos -->
+  <!-- Iconos (relativos) -->
   <link rel="icon" href="icons/icon-192x192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
@@ -33,9 +32,7 @@
         </div>
       </div>
       <div class="progress-container">
-        <div class="progress-bar-overall">
-          <div id="progressBar"></div>
-        </div>
+        <div class="progress-bar-overall"><div id="progressBar"></div></div>
         <span id="progressText">0%</span>
       </div>
     </header>
@@ -76,25 +73,25 @@
       <button id="resetProgress">Reiniciar Progreso</button>
     </section>
 
-    <main id="bibleBooksContainer">
-    </main>
+    <main id="bibleBooksContainer"></main>
 
     <footer>
       <p>&copy; <span id="currentYear"></span> Tu Nombre o Proyecto</p>
     </footer>
   </div>
 
-  <!-- Script principal -->
+  <!-- Script principal (relativo) -->
   <script src="script.js"></script>
   <script>
-    // Mostrar año actual
-    document.getElementById('currentYear').textContent = new Date().getFullYear();
+    // Año dinámico
+    document.getElementById('currentYear')
+      .textContent = new Date().getFullYear();
 
-    // Registro del Service Worker
+    // Registro Service Worker (ruta relativa)
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('Service Worker registrado con scope:', reg.scope))
-        .catch(err => console.error('Error al registrar Service Worker:', err));
+        .then(reg => console.log('SW registrado:', reg.scope))
+        .catch(err => console.error('Error SW:', err));
     }
   </script>
 </body>
