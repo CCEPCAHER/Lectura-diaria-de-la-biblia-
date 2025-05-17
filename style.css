@@ -1,25 +1,35 @@
 /* style.css */
-/* Variables y reset */
+/* — Variables y reset — */
 :root {
-  --primary-color: #005f73;
-  --secondary-color: #0a9396;
-  --accent-color: #94d2bd;
-  --background-color: #f0f4f8;
+  /* Colores */
+  --primary-color: #0b3d91;
+  --secondary-color: #1e5aa8;
+  --accent-color: #f39c12;
+  --background-color: #f8fafc;
   --card-background-color: #ffffff;
-  --text-color: #333333;
-  --text-light-color: #555555;
-  --border-color: #d1d9e0;
-  --read-color: #4caf50;
-  --unread-color: #e0e0e0;
-  --button-hover-bg: #003f5c;
-  --danger-color: #d9534f;
-  --danger-hover-color: #c9302c;
+  --text-color: #2c3e50;
+  --text-light-color: #7f8c8d;
+  --border-color: #dde2e6;
+  --read-color: #27ae60;
+  --unread-color: #bdc3c7;
+  --button-hover-bg: #0a4b7a;
+  --danger-color: #c0392b;
+  --danger-hover-color: #992d22;
 
+  /* Tipografía */
   --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  --border-radius: 8px;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --line-height: 1.6;
+
+  /* Espaciado y bordes */
   --spacing: 8px;
+  --border-radius: 10px;
 }
 
+/* Reset y base */
 *,
 *::before,
 *::after {
@@ -27,23 +37,22 @@
   margin: 0;
   padding: 0;
 }
-
 html {
-  font-size: 100%;
+  font-size: var(--font-size-base);
   scroll-behavior: smooth;
 }
-
 body {
-  min-height: 100vh;
   background: var(--background-color);
   color: var(--text-color);
   font-family: var(--font-family);
-  line-height: 1.6;
+  line-height: var(--line-height);
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
   padding: calc(var(--spacing)*2);
 }
 
+/* Contenedor principal */
 .container {
   flex: 1;
   max-width: 1140px;
@@ -51,20 +60,73 @@ body {
   background: var(--card-background-color);
   padding: calc(var(--spacing)*3);
   border-radius: var(--border-radius);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing)*3);
 }
 
-/* Tipografía */
+/* — Destacado: fecha y propuesta diaria — */
+.daily-suggestion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--secondary-color);
+  color: #fff;
+  padding: calc(var(--spacing)*2);
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  text-align: center;
+  gap: var(--spacing);
+}
+
+/* Fecha grande */
+#currentDate {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+/* Texto de propuesta */
+#dailySuggestionText {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  background: var(--accent-color);
+  color: #2c3e50;
+  padding: calc(var(--spacing)*1) calc(var(--spacing)*2);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+/* Botón de marcar */
+#markSuggestedAsRead {
+  margin-top: calc(var(--spacing)*1.5);
+  background: #fff;
+  color: var(--secondary-color);
+  font-weight: 600;
+  padding: calc(var(--spacing)*0.75) calc(var(--spacing)*1.5);
+  border-radius: var(--border-radius);
+  border: 2px solid var(--secondary-color);
+  transition: background .2s, color .2s;
+}
+#markSuggestedAsRead:hover {
+  background: var(--secondary-color);
+  color: #fff;
+}
+
+/* — Tipografía secundaria — */
 h1, h2 {
   color: var(--primary-color);
-  border-bottom: 2px solid var(--secondary-color);
+  border-bottom: 2px solid var(--accent-color);
   padding-bottom: var(--spacing);
   margin-bottom: calc(var(--spacing)*2);
 }
-h1 { font-size: 2rem; }
-h2 { font-size: 1.5rem; }
+h1 { font-size: var(--font-size-2xl); }
+h2 { font-size: var(--font-size-xl); }
 
-/* Layout main + aside en tablet+ */
+/* — Layout main + aside en tablet+ — */
 @media (min-width: 768px) {
   .container > main {
     display: grid;
@@ -73,17 +135,16 @@ h2 { font-size: 1.5rem; }
   }
 }
 
-/* Progress Bar */
+/* — Progress Bar — */
 .progress-container {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--spacing);
-  margin-bottom: calc(var(--spacing)*2);
 }
 .progress-bar-overall {
   flex: 1 1 200px;
-  height: 28px;
+  height: 32px;
   background: #e9ecef;
   border-radius: var(--border-radius);
   overflow: hidden;
@@ -91,9 +152,9 @@ h2 { font-size: 1.5rem; }
 #progressBar {
   width: 0;
   height: 100%;
-  background: var(--secondary-color);
+  background: var(--primary-color);
   text-align: center;
-  line-height: 28px;
+  line-height: 32px;
   color: #fff;
   font-weight: 600;
   transition: width .5s ease-in-out;
@@ -106,9 +167,9 @@ h2 { font-size: 1.5rem; }
   color: var(--primary-color);
 }
 
-/* Formularios y grupos */
+/* — Grupos de formulario — */
 .field-group {
-  background: #f8f9fa;
+  background: #fff;
   padding: calc(var(--spacing)*1.5);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
@@ -119,46 +180,32 @@ h2 { font-size: 1.5rem; }
   margin-bottom: calc(var(--spacing)*0.75);
   font-weight: 600;
   color: var(--primary-color);
-  font-size: .9rem;
+  font-size: var(--font-size-lg);
 }
 .field-group input[type="date"],
 .field-group select {
   width: 100%;
-  padding: calc(var(--spacing)*1.25);
+  padding: calc(var(--spacing)*1);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  background: var(--card-background-color);
-  color: var(--text-color);
-  font-size: 1rem;
-}
-.field-group select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,…");
-  background-repeat: no-repeat;
-  background-position: right calc(var(--spacing)*1.25) center;
-  background-size: .65em auto;
-  padding-right: calc(var(--spacing)*3.5);
+  font-size: var(--font-size-base);
 }
 
-/* Botones */
+/* — Botones generales — */
 button {
   display: inline-block;
-  width: auto;
-  padding: calc(var(--spacing)*1) calc(var(--spacing)*2);
+  padding: calc(var(--spacing)*0.75) calc(var(--spacing)*1.5);
   background: var(--secondary-color);
   color: #fff;
   border: none;
   border-radius: var(--border-radius);
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   font-weight: 500;
   cursor: pointer;
   transition: background .2s, box-shadow .2s, transform .1s;
-  margin: var(--spacing) var(--spacing) 0 0;
+  margin: var(--spacing) 0 0 0;
 }
-button:hover {
-  background: var(--button-hover-bg);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+button:hover { background: var(--button-hover-bg); }
 button:active { transform: translateY(1px); }
 button:focus-visible {
   outline: 2px solid var(--primary-color);
@@ -170,16 +217,8 @@ button:focus-visible {
 #resetProgress:hover {
   background: var(--danger-hover-color);
 }
-#markSuggestedAsRead {
-  background: var(--accent-color);
-  color: var(--text-color);
-  font-weight: 600;
-}
-#markSuggestedAsRead:hover {
-  background: #7cbba8;
-}
 
-/* Sección de libros */
+/* — Sección de libros — */
 .book-section {
   background: var(--card-background-color);
   border: 1px solid var(--border-color);
@@ -194,7 +233,7 @@ button:focus-visible {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--spacing);
-  font-size: 1.375rem;
+  font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--primary-color);
 }
@@ -225,7 +264,7 @@ button:focus-visible {
 }
 .chapter-button.read {
   background: var(--read-color);
-  border-color: #3a8f40;
+  border-color: #1e8449;
   color: #fff;
 }
 .chapter-button:hover {
@@ -233,19 +272,8 @@ button:focus-visible {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   border-color: var(--secondary-color);
 }
-.chapter-button.read:hover {
-  background: #3e8e41;
-  border-color: #3e8e41;
-}
-.chapter-button:active {
-  transform: translateY(0);
-}
-.chapter-button:focus-visible {
-  outline: 2px solid var(--secondary-color);
-  outline-offset: 1px;
-}
 
-/* Footer */
+/* — Footer — */
 footer {
   text-align: center;
   margin-top: calc(var(--spacing)*4);
@@ -255,30 +283,21 @@ footer {
   color: var(--text-light-color);
 }
 
-/* Ajustes específicos */
-
-/* Gran escritorio */
+/* — Breakpoints específicos — */
+/* Escritorio grande */
 @media (min-width: 1024px) {
   .container { padding: 32px; }
-  h1 { font-size: 2.5rem; }
-  h2 { font-size: 2rem; }
+  h1 { font-size: var(--font-size-2xl); }
+  h2 { font-size: var(--font-size-xl); }
   .chapters-grid { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
 }
-
-/* Tabletas */
-@media (min-width: 600px) and (max-width: 1023px) {
-  .chapters-grid { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); }
-}
-
 /* Móviles muy pequeños */
 @media (max-width: 400px) {
-  body { padding: var(--spacing); }
-  .container { padding: var(--spacing); }
+  body, .container { padding: var(--spacing); }
   h1 { font-size: 1.75rem; }
   h2 { font-size: 1.25rem; }
-  .book-title { font-size: 1.125rem; }
+  .book-title { font-size: var(--font-size-lg); }
   .chapters-grid { grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 6px; }
   .chapter-button { font-size: .8rem; padding: 6px; }
-  #progressText { font-size: .8rem; }
-  #progressBar { font-size: .75rem; }
+  #progressBar { line-height: 24px; font-size: .75rem; }
 }
