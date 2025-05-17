@@ -80,18 +80,25 @@
     </footer>
   </div>
 
-  <!-- Script principal (relativo) -->
-  <script src="script.js"></script>
+  <!-- Script principal con defer para garantizar que se ejecute después del parseo del HTML -->
+  <script src="./script.js" defer></script>
   <script>
-    // Año dinámico
-    document.getElementById('currentYear')
-      .textContent = new Date().getFullYear();
+    // Esperar a que el DOM esté completamente cargado
+    document.addEventListener('DOMContentLoaded', function () {
+      // Actualizar el año dinámico
+      document.getElementById('currentYear').textContent = new Date().getFullYear();
 
-    // Registro Service Worker (ruta relativa)
+      // Aquí puedes agregar más código inicial si es necesario,
+      // por ejemplo, actualizar #currentDate o cargar los libros en #bibleBooksContainer.
+    });
+
+    // Registro del Service Worker al cargarse la ventana completa
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('SW registrado:', reg.scope))
-        .catch(err => console.error('Error SW:', err));
+      window.addEventListener('load', function(){
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('SW registrado:', reg.scope))
+          .catch(err => console.error('Error SW:', err));
+      });
     }
   </script>
 </body>
