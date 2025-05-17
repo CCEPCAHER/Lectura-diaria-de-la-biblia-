@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const bibleBooks = [ 
+    const bibleBooks = [
         { name: "Génesis", chapters: 50, testament: "Antiguo" },
         { name: "Éxodo", chapters: 40, testament: "Antiguo" },
         { name: "Levítico", chapters: 27, testament: "Antiguo" },
@@ -8,12 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Josué", chapters: 24, testament: "Antiguo" },
         { name: "Jueces", chapters: 21, testament: "Antiguo" },
         { name: "Rut", chapters: 4, testament: "Antiguo" },
-        { name: "1 Samuel", chapters: 31, testament: "Antiguo" }, 
-        { name: "2 Samuel", chapters: 24, testament: "Antiguo" }, 
-        { name: "1 Reyes", chapters: 22, testament: "Antiguo" },  
-        { name: "2 Reyes", chapters: 25, testament: "Antiguo" },  
-        { name: "1 Crónicas", chapters: 29, testament: "Antiguo" },
-        { name: "2 Crónicas", chapters: 36, testament: "Antiguo" },
+        { name: "1 Samuel", chapters: 31, testament: "Antiguo" },
+        { name: "2 Samuel", chapters: 24, testament: "Antiguo" },
+        { name: "1 Reyes", chapters: 22, testament: "Antiguo" },
+        { name: "2 Reyes", chapters: 25, testament: "Antiguo" },
+        { name: "1 Crónicas", chapters: 29, testament: "Antiguo" },
+        { name: "2 Crónicas", chapters: 36, testament: "Antiguo" },
         { name: "Esdras", chapters: 10, testament: "Antiguo" },
         { name: "Nehemías", chapters: 13, testament: "Antiguo" },
         { name: "Ester", chapters: 10, testament: "Antiguo" },
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Nahúm", chapters: 3, testament: "Antiguo" },
         { name: "Habacuc", chapters: 3, testament: "Antiguo" },
         { name: "Sofonías", chapters: 3, testament: "Antiguo" },
-        { name: "Ageo", chapters: 2, testament: "Antiguo" }, 
+        { name: "Ageo", chapters: 2, testament: "Antiguo" },
         { name: "Zacarías", chapters: 14, testament: "Antiguo" },
         { name: "Malaquías", chapters: 4, testament: "Antiguo" },
         { name: "Mateo", chapters: 28, testament: "Nuevo" },
@@ -45,29 +45,39 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Juan", chapters: 21, testament: "Nuevo" },
         { name: "Hechos", chapters: 28, testament: "Nuevo" },
         { name: "Romanos", chapters: 16, testament: "Nuevo" },
-        { name: "1 Corintios", chapters: 16, testament: "Nuevo" },
-        { name: "2 Corintios", chapters: 13, testament: "Nuevo" },
+        { name: "1 Corintios", chapters: 16, testament: "Nuevo" },
+        { name: "2 Corintios", chapters: 13, testament: "Nuevo" },
         { name: "Gálatas", chapters: 6, testament: "Nuevo" },
         { name: "Efesios", chapters: 6, testament: "Nuevo" },
         { name: "Filipenses", chapters: 4, testament: "Nuevo" },
         { name: "Colosenses", chapters: 4, testament: "Nuevo" },
-        { name: "1 Tesalonicenses", chapters: 5, testament: "Nuevo" },
-        { name: "2 Tesalonicenses", chapters: 3, testament: "Nuevo" },
-        { name: "1 Timoteo", chapters: 6, testament: "Nuevo" }, 
-        { name: "2 Timoteo", chapters: 4, testament: "Nuevo" }, 
+        { name: "1 Tesalonicenses", chapters: 5, testament: "Nuevo" },
+        { name: "2 Tesalonicenses", chapters: 3, testament: "Nuevo" },
+        { name: "1 Timoteo", chapters: 6, testament: "Nuevo" },
+        { name: "2 Timoteo", chapters: 4, testament: "Nuevo" },
         { name: "Tito", chapters: 3, testament: "Nuevo" },
         { name: "Filemón", chapters: 1, testament: "Nuevo" },
         { name: "Hebreos", chapters: 13, testament: "Nuevo" },
         { name: "Santiago", chapters: 5, testament: "Nuevo" },
-        { name: "1 Pedro", chapters: 5, testament: "Nuevo" },   
-        { name: "2 Pedro", chapters: 3, testament: "Nuevo" },   
-        { name: "1 Juan", chapters: 5, testament: "Nuevo" },    
-        { name: "2 Juan", chapters: 1, testament: "Nuevo" },    
-        { name: "3 Juan", chapters: 1, testament: "Nuevo" },    
+        { name: "1 Pedro", chapters: 5, testament: "Nuevo" },
+        { name: "2 Pedro", chapters: 3, testament: "Nuevo" },
+        { name: "1 Juan", chapters: 5, testament: "Nuevo" },
+        { name: "2 Juan", chapters: 1, testament: "Nuevo" },
+        { name: "3 Juan", chapters: 1, testament: "Nuevo" },
         { name: "Judas", chapters: 1, testament: "Nuevo" },
         { name: "Apocalipsis", chapters: 22, testament: "Nuevo" }
     ];
-    const dailyReadingPlan = [ /* ... Tu lista de 365 lecturas (userReadingPlanData) tal como la proporcionaste ... */
+
+    // Normalizar nombres de libros en bibleBooks para quitar el espacio NBSP (si existe)
+    // y asegurar consistencia con dailyReadingPlan
+    // Este paso es CRUCIAL si los nombres en dailyReadingPlan no usan exactamente "1\u00A0Samuel" sino "1 Samuel"
+    const normalizedBibleBooks = bibleBooks.map(book => ({
+        ...book,
+        name: book.name.replace(/\u00A0/g, ' ') // Reemplaza Non-breaking space con espacio normal
+    }));
+
+
+    const dailyReadingPlan = [
       { "book": "Génesis", "startChapter": 1,  "endChapter": 3,  "displayText": "Génesis 1-3"   },
       { "book": "Génesis", "startChapter": 4,  "endChapter": 7,  "displayText": "Génesis 4-7"   },
       { "book": "Génesis", "startChapter": 8,  "endChapter": 11, "displayText": "Génesis 8-11"  },
@@ -152,70 +162,70 @@ document.addEventListener('DOMContentLoaded', () => {
       { "book": "Jueces",     "startChapter": 17, "endChapter": 19, "displayText": "Jueces 17-19"},
       { "book": "Jueces",     "startChapter": 20, "endChapter": 21, "displayText": "Jueces 20-21"},
       { "book": "Rut",        "startChapter": 1,  "endChapter": 4,  "displayText": "Rut 1-4"      },
-      { "book": "1 Samuel",   "startChapter": 1,  "endChapter": 2,  "displayText": "1 Samuel 1-2" },
-      { "book": "1 Samuel",   "startChapter": 3,  "endChapter": 6,  "displayText": "1 Samuel 3-6" },
-      { "book": "1 Samuel",   "startChapter": 7,  "endChapter": 9,  "displayText": "1 Samuel 7-9" },
-      { "book": "1 Samuel",   "startChapter": 10, "endChapter": 12, "displayText": "1 Samuel 10-12"},
-      { "book": "1 Samuel",   "startChapter": 13, "endChapter": 14, "displayText": "1 Samuel 13-14"},
-      { "book": "1 Samuel",   "startChapter": 15, "endChapter": 16, "displayText": "1 Samuel 15-16"},
-      { "book": "1 Samuel",   "startChapter": 17, "endChapter": 18, "displayText": "1 Samuel 17-18"},
-      { "book": "1 Samuel",   "startChapter": 19, "endChapter": 21, "displayText": "1 Samuel 19-21"},
-      { "book": "1 Samuel",   "startChapter": 22, "endChapter": 24, "displayText": "1 Samuel 22-24"},
-      { "book": "1 Samuel",   "startChapter": 25, "endChapter": 27, "displayText": "1 Samuel 25-27"},
-      { "book": "1 Samuel",   "startChapter": 28, "endChapter": 31, "displayText": "1 Samuel 28-31"},
-      { "book": "2 Samuel",   "startChapter": 1,  "endChapter": 2,  "displayText": "2 Samuel 1-2" },
-      { "book": "2 Samuel",   "startChapter": 3,  "endChapter": 5,  "displayText": "2 Samuel 3-5" },
-      { "book": "2 Samuel",   "startChapter": 6,  "endChapter": 8,  "displayText": "2 Samuel 6-8" },
-      { "book": "2 Samuel",   "startChapter": 9,  "endChapter": 12, "displayText": "2 Samuel 9-12"},
-      { "book": "2 Samuel",   "startChapter": 13, "endChapter": 14, "displayText": "2 Samuel 13-14"},
-      { "book": "2 Samuel",   "startChapter": 15, "endChapter": 16, "displayText": "2 Samuel 15-16"},
-      { "book": "2 Samuel",   "startChapter": 17, "endChapter": 18, "displayText": "2 Samuel 17-18"},
-      { "book": "2 Samuel",   "startChapter": 19, "endChapter": 20, "displayText": "2 Samuel 19-20"},
-      { "book": "2 Samuel",   "startChapter": 21, "endChapter": 22, "displayText": "2 Samuel 21-22"},
-      { "book": "2 Samuel",   "startChapter": 23, "endChapter": 24, "displayText": "2 Samuel 23-24"},
-      { "book": "1 Reyes",    "startChapter": 1,  "endChapter": 2,  "displayText": "1 Reyes 1-2"  },
-      { "book": "1 Reyes",    "startChapter": 3,  "endChapter": 5,  "displayText": "1 Reyes 3-5"  },
-      { "book": "1 Reyes",    "startChapter": 6,  "endChapter": 7,  "displayText": "1 Reyes 6-7"  },
-      { "book": "1 Reyes",    "startChapter": 8,  "endChapter": 8,  "displayText": "1 Reyes 8"    },
-      { "book": "1 Reyes",    "startChapter": 9,  "endChapter": 10, "displayText": "1 Reyes 9-10"},
-      { "book": "1 Reyes",    "startChapter": 11, "endChapter": 12, "displayText": "1 Reyes 11-12"},
-      { "book": "1 Reyes",    "startChapter": 13, "endChapter": 14, "displayText": "1 Reyes 13-14"},
-      { "book": "1 Reyes",    "startChapter": 15, "endChapter": 17, "displayText": "1 Reyes 15-17"},
-      { "book": "1 Reyes",    "startChapter": 18, "endChapter": 19, "displayText": "1 Reyes 18-19"},
-      { "book": "1 Reyes",    "startChapter": 20, "endChapter": 21, "displayText": "1 Reyes 20-21"},
-      { "book": "1 Reyes",    "startChapter": 22, "endChapter": 22, "displayText": "1 Reyes 22"   },
-      { "book": "2 Reyes",    "startChapter": 1,  "endChapter": 3,  "displayText": "2 Reyes 1-3"  },
-      { "book": "2 Reyes",    "startChapter": 4,  "endChapter": 5,  "displayText": "2 Reyes 4-5"  },
-      { "book": "2 Reyes",    "startChapter": 6,  "endChapter": 8,  "displayText": "2 Reyes 6-8"  },
-      { "book": "2 Reyes",    "startChapter": 9,  "endChapter": 10, "displayText": "2 Reyes 9-10"},
-      { "book": "2 Reyes",    "startChapter": 11, "endChapter": 13, "displayText": "2 Reyes 11-13"},
-      { "book": "2 Reyes",    "startChapter": 14, "endChapter": 15, "displayText": "2 Reyes 14-15"},
-      { "book": "2 Reyes",    "startChapter": 16, "endChapter": 17, "displayText": "2 Reyes 16-17"},
-      { "book": "2 Reyes",    "startChapter": 18, "endChapter": 19, "displayText": "2 Reyes 18-19"},
-      { "book": "2 Reyes",    "startChapter": 20, "endChapter": 22, "displayText": "2 Reyes 20-22"},
-      { "book": "2 Reyes",    "startChapter": 23, "endChapter": 25, "displayText": "2 Reyes 23-25"},
-      { "book": "1 Crónicas","startChapter": 1,  "endChapter": 2,  "displayText": "1 Crónicas 1-2" },
-      { "book": "1 Crónicas","startChapter": 3,  "endChapter": 5,  "displayText": "1 Crónicas 3-5" },
-      { "book": "1 Crónicas","startChapter": 6,  "endChapter": 7,  "displayText": "1 Crónicas 6-7" },
-      { "book": "1 Crónicas","startChapter": 8,  "endChapter": 10, "displayText": "1 Crónicas 8-10"},
-      { "book": "1 Crónicas","startChapter": 11, "endChapter": 12, "displayText": "1 Crónicas 11-12"},
-      { "book": "1 Crónicas","startChapter": 13, "endChapter": 15, "displayText": "1 Crónicas 13-15"},
-      { "book": "1 Crónicas","startChapter": 16, "endChapter": 17, "displayText": "1 Crónicas 16-17"},
-      { "book": "1 Crónicas","startChapter": 18, "endChapter": 20, "displayText": "1 Crónicas 18-20"},
-      { "book": "1 Crónicas","startChapter": 21, "endChapter": 23, "displayText": "1 Crónicas 21-23"},
-      { "book": "1 Crónicas","startChapter": 24, "endChapter": 26, "displayText": "1 Crónicas 24-26"},
-      { "book": "1 Crónicas","startChapter": 27, "endChapter": 29, "displayText": "1 Crónicas 27-29"},
-      { "book": "2 Crónicas","startChapter": 1,  "endChapter": 3,  "displayText": "2 Crónicas 1-3"  },
-      { "book": "2 Crónicas","startChapter": 4,  "endChapter": 6,  "displayText": "2 Crónicas 4-6"  },
-      { "book": "2 Crónicas","startChapter": 7,  "endChapter": 9,  "displayText": "2 Crónicas 7-9"  },
-      { "book": "2 Crónicas","startChapter": 10, "endChapter": 14, "displayText": "2 Crónicas 10-14"},
-      { "book": "2 Crónicas","startChapter": 15, "endChapter": 18, "displayText": "2 Crónicas 15-18"},
-      { "book": "2 Crónicas","startChapter": 19, "endChapter": 22, "displayText": "2 Crónicas 19-22"},
-      { "book": "2 Crónicas","startChapter": 23, "endChapter": 25, "displayText": "2 Crónicas 23-25"},
-      { "book": "2 Crónicas","startChapter": 26, "endChapter": 28, "displayText": "2 Crónicas 26-28"},
-      { "book": "2 Crónicas","startChapter": 29, "endChapter": 30, "displayText": "2 Crónicas 29-30"},
-      { "book": "2 Crónicas","startChapter": 31, "endChapter": 33, "displayText": "2 Crónicas 31-33"},
-      { "book": "2 Crónicas","startChapter": 34, "endChapter": 36, "displayText": "2 Crónicas 34-36"},
+      { "book": "1 Samuel",   "startChapter": 1,  "endChapter": 2,  "displayText": "1 Samuel 1-2" }, //Normalizado
+      { "book": "1 Samuel",   "startChapter": 3,  "endChapter": 6,  "displayText": "1 Samuel 3-6" }, //Normalizado
+      { "book": "1 Samuel",   "startChapter": 7,  "endChapter": 9,  "displayText": "1 Samuel 7-9" }, //Normalizado
+      { "book": "1 Samuel",   "startChapter": 10, "endChapter": 12, "displayText": "1 Samuel 10-12"},//Normalizado
+      { "book": "1 Samuel",   "startChapter": 13, "endChapter": 14, "displayText": "1 Samuel 13-14"},//Normalizado
+      { "book": "1 Samuel",   "startChapter": 15, "endChapter": 16, "displayText": "1 Samuel 15-16"},//Normalizado
+      { "book": "1 Samuel",   "startChapter": 17, "endChapter": 18, "displayText": "1 Samuel 17-18"},//Normalizado
+      { "book": "1 Samuel",   "startChapter": 19, "endChapter": 21, "displayText": "1 Samuel 19-21"},//Normalizado
+      { "book": "1 Samuel",   "startChapter": 22, "endChapter": 24, "displayText": "1 Samuel 22-24"},//Normalizado
+      { "book": "1 Samuel",   "startChapter": 25, "endChapter": 27, "displayText": "1 Samuel 25-27"},//Normalizado
+      { "book": "1 Samuel",   "startChapter": 28, "endChapter": 31, "displayText": "1 Samuel 28-31"},//Normalizado
+      { "book": "2 Samuel",   "startChapter": 1,  "endChapter": 2,  "displayText": "2 Samuel 1-2" }, //Normalizado
+      { "book": "2 Samuel",   "startChapter": 3,  "endChapter": 5,  "displayText": "2 Samuel 3-5" }, //Normalizado
+      { "book": "2 Samuel",   "startChapter": 6,  "endChapter": 8,  "displayText": "2 Samuel 6-8" }, //Normalizado
+      { "book": "2 Samuel",   "startChapter": 9,  "endChapter": 12, "displayText": "2 Samuel 9-12"}, //Normalizado
+      { "book": "2 Samuel",   "startChapter": 13, "endChapter": 14, "displayText": "2 Samuel 13-14"},//Normalizado
+      { "book": "2 Samuel",   "startChapter": 15, "endChapter": 16, "displayText": "2 Samuel 15-16"},//Normalizado
+      { "book": "2 Samuel",   "startChapter": 17, "endChapter": 18, "displayText": "2 Samuel 17-18"},//Normalizado
+      { "book": "2 Samuel",   "startChapter": 19, "endChapter": 20, "displayText": "2 Samuel 19-20"},//Normalizado
+      { "book": "2 Samuel",   "startChapter": 21, "endChapter": 22, "displayText": "2 Samuel 21-22"},//Normalizado
+      { "book": "2 Samuel",   "startChapter": 23, "endChapter": 24, "displayText": "2 Samuel 23-24"},//Normalizado
+      { "book": "1 Reyes",    "startChapter": 1,  "endChapter": 2,  "displayText": "1 Reyes 1-2"  },  //Normalizado
+      { "book": "1 Reyes",    "startChapter": 3,  "endChapter": 5,  "displayText": "1 Reyes 3-5"  },  //Normalizado
+      { "book": "1 Reyes",    "startChapter": 6,  "endChapter": 7,  "displayText": "1 Reyes 6-7"  },  //Normalizado
+      { "book": "1 Reyes",    "startChapter": 8,  "endChapter": 8,  "displayText": "1 Reyes 8"    },  //Normalizado
+      { "book": "1 Reyes",    "startChapter": 9,  "endChapter": 10, "displayText": "1 Reyes 9-10" }, //Normalizado
+      { "book": "1 Reyes",    "startChapter": 11, "endChapter": 12, "displayText": "1 Reyes 11-12"}, //Normalizado
+      { "book": "1 Reyes",    "startChapter": 13, "endChapter": 14, "displayText": "1 Reyes 13-14"}, //Normalizado
+      { "book": "1 Reyes",    "startChapter": 15, "endChapter": 17, "displayText": "1 Reyes 15-17"}, //Normalizado
+      { "book": "1 Reyes",    "startChapter": 18, "endChapter": 19, "displayText": "1 Reyes 18-19"}, //Normalizado
+      { "book": "1 Reyes",    "startChapter": 20, "endChapter": 21, "displayText": "1 Reyes 20-21"}, //Normalizado
+      { "book": "1 Reyes",    "startChapter": 22, "endChapter": 22, "displayText": "1 Reyes 22"   }, //Normalizado
+      { "book": "2 Reyes",    "startChapter": 1,  "endChapter": 3,  "displayText": "2 Reyes 1-3"  },  //Normalizado
+      { "book": "2 Reyes",    "startChapter": 4,  "endChapter": 5,  "displayText": "2 Reyes 4-5"  },  //Normalizado
+      { "book": "2 Reyes",    "startChapter": 6,  "endChapter": 8,  "displayText": "2 Reyes 6-8"  },  //Normalizado
+      { "book": "2 Reyes",    "startChapter": 9,  "endChapter": 10, "displayText": "2 Reyes 9-10" }, //Normalizado
+      { "book": "2 Reyes",    "startChapter": 11, "endChapter": 13, "displayText": "2 Reyes 11-13"}, //Normalizado
+      { "book": "2 Reyes",    "startChapter": 14, "endChapter": 15, "displayText": "2 Reyes 14-15"}, //Normalizado
+      { "book": "2 Reyes",    "startChapter": 16, "endChapter": 17, "displayText": "2 Reyes 16-17"}, //Normalizado
+      { "book": "2 Reyes",    "startChapter": 18, "endChapter": 19, "displayText": "2 Reyes 18-19"}, //Normalizado
+      { "book": "2 Reyes",    "startChapter": 20, "endChapter": 22, "displayText": "2 Reyes 20-22"}, //Normalizado
+      { "book": "2 Reyes",    "startChapter": 23, "endChapter": 25, "displayText": "2 Reyes 23-25"}, //Normalizado
+      { "book": "1 Crónicas","startChapter": 1,  "endChapter": 2,  "displayText": "1 Crónicas 1-2" },//Normalizado
+      { "book": "1 Crónicas","startChapter": 3,  "endChapter": 5,  "displayText": "1 Crónicas 3-5" },//Normalizado
+      { "book": "1 Crónicas","startChapter": 6,  "endChapter": 7,  "displayText": "1 Crónicas 6-7" },//Normalizado
+      { "book": "1 Crónicas","startChapter": 8,  "endChapter": 10, "displayText": "1 Crónicas 8-10"},//Normalizado
+      { "book": "1 Crónicas","startChapter": 11, "endChapter": 12, "displayText": "1 Crónicas 11-12"},//Normalizado
+      { "book": "1 Crónicas","startChapter": 13, "endChapter": 15, "displayText": "1 Crónicas 13-15"},//Normalizado
+      { "book": "1 Crónicas","startChapter": 16, "endChapter": 17, "displayText": "1 Crónicas 16-17"},//Normalizado
+      { "book": "1 Crónicas","startChapter": 18, "endChapter": 20, "displayText": "1 Crónicas 18-20"},//Normalizado
+      { "book": "1 Crónicas","startChapter": 21, "endChapter": 23, "displayText": "1 Crónicas 21-23"},//Normalizado
+      { "book": "1 Crónicas","startChapter": 24, "endChapter": 26, "displayText": "1 Crónicas 24-26"},//Normalizado
+      { "book": "1 Crónicas","startChapter": 27, "endChapter": 29, "displayText": "1 Crónicas 27-29"},//Normalizado
+      { "book": "2 Crónicas","startChapter": 1,  "endChapter": 3,  "displayText": "2 Crónicas 1-3"  },//Normalizado
+      { "book": "2 Crónicas","startChapter": 4,  "endChapter": 6,  "displayText": "2 Crónicas 4-6"  },//Normalizado
+      { "book": "2 Crónicas","startChapter": 7,  "endChapter": 9,  "displayText": "2 Crónicas 7-9"  },//Normalizado
+      { "book": "2 Crónicas","startChapter": 10, "endChapter": 14, "displayText": "2 Crónicas 10-14"},//Normalizado
+      { "book": "2 Crónicas","startChapter": 15, "endChapter": 18, "displayText": "2 Crónicas 15-18"},//Normalizado
+      { "book": "2 Crónicas","startChapter": 19, "endChapter": 22, "displayText": "2 Crónicas 19-22"},//Normalizado
+      { "book": "2 Crónicas","startChapter": 23, "endChapter": 25, "displayText": "2 Crónicas 23-25"},//Normalizado
+      { "book": "2 Crónicas","startChapter": 26, "endChapter": 28, "displayText": "2 Crónicas 26-28"},//Normalizado
+      { "book": "2 Crónicas","startChapter": 29, "endChapter": 30, "displayText": "2 Crónicas 29-30"},//Normalizado
+      { "book": "2 Crónicas","startChapter": 31, "endChapter": 33, "displayText": "2 Crónicas 31-33"},//Normalizado
+      { "book": "2 Crónicas","startChapter": 34, "endChapter": 36, "displayText": "2 Crónicas 34-36"},//Normalizado
       { "book": "Esdras",     "startChapter": 1,  "endChapter": 3,  "displayText": "Esdras 1-3"    },
       { "book": "Esdras",     "startChapter": 4,  "endChapter": 7,  "displayText": "Esdras 4-7"    },
       { "book": "Esdras",     "startChapter": 8,  "endChapter": 10, "displayText": "Esdras 8-10"   },
@@ -260,8 +270,8 @@ document.addEventListener('DOMContentLoaded', () => {
       { "book": "Salmos",     "startChapter": 104,"endChapter": 105, "displayText": "Salmos 104-105"},
       { "book": "Salmos",     "startChapter": 106,"endChapter": 108, "displayText": "Salmos 106-108"},
       { "book": "Salmos",     "startChapter": 109,"endChapter": 115, "displayText": "Salmos 109-115"},
-      { "book": "Salmos",     "startChapter": 116,"endChapter": 119, "displayText": "Salmos 116-119 (hasta v. 63)"}, 
-      { "book": "Salmos",     "startChapter": 119,"endChapter": 119, "displayText": "Salmos 119 (desde v. 64)"}, 
+      { "book": "Salmos",     "startChapter": 116,"endChapter": 119, "displayText": "Salmos 116-119 (hasta v. 63)"},
+      { "book": "Salmos",     "startChapter": 119,"endChapter": 119, "displayText": "Salmos 119 (desde v. 64)"},
       { "book": "Salmos",     "startChapter": 120,"endChapter": 129, "displayText": "Salmos 120-129"},
       { "book": "Salmos",     "startChapter": 130,"endChapter": 138, "displayText": "Salmos 130-138"},
       { "book": "Salmos",     "startChapter": 139,"endChapter": 144, "displayText": "Salmos 139-144"},
@@ -406,32 +416,32 @@ document.addEventListener('DOMContentLoaded', () => {
       { "book": "Romanos",    "startChapter": 4,  "endChapter": 7,  "displayText": "Romanos 4-7"    },
       { "book": "Romanos",    "startChapter": 8,  "endChapter": 11, "displayText": "Romanos 8-11"   },
       { "book": "Romanos",    "startChapter": 12, "endChapter": 16, "displayText": "Romanos 12-16"  },
-      { "book": "1 Corintios","startChapter": 1,  "endChapter": 6,  "displayText": "1 Corintios 1-6"},
-      { "book": "1 Corintios","startChapter": 7,  "endChapter": 10, "displayText": "1 Corintios 7-10"},
-      { "book": "1 Corintios","startChapter": 11, "endChapter": 14, "displayText": "1 Corintios 11-14"},
-      { "book": "1 Corintios","startChapter": 15, "endChapter": 16, "displayText": "1 Corintios 15-16"},
-      { "book": "2 Corintios","startChapter": 1,  "endChapter": 6,  "displayText": "2 Corintios 1-6"},
-      { "book": "2 Corintios","startChapter": 7,  "endChapter": 10, "displayText": "2 Corintios 7-10"},
-      { "book": "2 Corintios","startChapter": 11, "endChapter": 13, "displayText": "2 Corintios 11-13"},
+      { "book": "1 Corintios","startChapter": 1,  "endChapter": 6,  "displayText": "1 Corintios 1-6"},//Normalizado
+      { "book": "1 Corintios","startChapter": 7,  "endChapter": 10, "displayText": "1 Corintios 7-10"},//Normalizado
+      { "book": "1 Corintios","startChapter": 11, "endChapter": 14, "displayText": "1 Corintios 11-14"},//Normalizado
+      { "book": "1 Corintios","startChapter": 15, "endChapter": 16, "displayText": "1 Corintios 15-16"},//Normalizado
+      { "book": "2 Corintios","startChapter": 1,  "endChapter": 6,  "displayText": "2 Corintios 1-6"},//Normalizado
+      { "book": "2 Corintios","startChapter": 7,  "endChapter": 10, "displayText": "2 Corintios 7-10"},//Normalizado
+      { "book": "2 Corintios","startChapter": 11, "endChapter": 13, "displayText": "2 Corintios 11-13"},//Normalizado
       { "book": "Gálatas",    "startChapter": 1,  "endChapter": 6,  "displayText": "Gálatas 1-6"    },
       { "book": "Efesios",    "startChapter": 1,  "endChapter": 6,  "displayText": "Efesios 1-6"    },
       { "book": "Filipenses", "startChapter": 1,  "endChapter": 4,  "displayText": "Filipenses 1-4" },
       { "book": "Colosenses", "startChapter": 1,  "endChapter": 4,  "displayText": "Colosenses 1-4"},
-      { "book": "1 Tesalonicenses","startChapter": 1,"endChapter": 5,"displayText": "1 Tesalonicenses 1-5"},
-      { "book": "2 Tesalonicenses","startChapter": 1,"endChapter": 3,"displayText": "2 Tesalonicenses 1-3"},
-      { "book": "1 Timoteo",  "startChapter": 1,  "endChapter": 6,  "displayText": "1 Timoteo 1-6"  },
-      { "book": "2 Timoteo",  "startChapter": 1,  "endChapter": 4,  "displayText": "2 Timoteo 1-4"  },
+      { "book": "1 Tesalonicenses","startChapter": 1,"endChapter": 5,"displayText": "1 Tesalonicenses 1-5"},//Normalizado
+      { "book": "2 Tesalonicenses","startChapter": 1,"endChapter": 3,"displayText": "2 Tesalonicenses 1-3"},//Normalizado
+      { "book": "1 Timoteo",  "startChapter": 1,  "endChapter": 6,  "displayText": "1 Timoteo 1-6"  },//Normalizado
+      { "book": "2 Timoteo",  "startChapter": 1,  "endChapter": 4,  "displayText": "2 Timoteo 1-4"  },//Normalizado
       { "book": "Tito",       "startChapter": 1,  "endChapter": 3,  "displayText": "Tito 1-3"       },
       { "book": "Filemón",    "startChapter": 1,  "endChapter": 1,  "displayText": "Filemón 1"      },
       { "book": "Hebreos",    "startChapter": 1,  "endChapter": 6,  "displayText": "Hebreos 1-6"    },
       { "book": "Hebreos",    "startChapter": 7,  "endChapter": 10, "displayText": "Hebreos 7-10"   },
       { "book": "Hebreos",    "startChapter": 11, "endChapter": 13, "displayText": "Hebreos 11-13"  },
       { "book": "Santiago",   "startChapter": 1,  "endChapter": 5,  "displayText": "Santiago 1-5"   },
-      { "book": "1 Pedro",    "startChapter": 1,  "endChapter": 5,  "displayText": "1 Pedro 1-5"    },
-      { "book": "2 Pedro",    "startChapter": 1,  "endChapter": 3,  "displayText": "2 Pedro 1-3"    },
-      { "book": "1 Juan",     "startChapter": 1,  "endChapter": 5,  "displayText": "1 Juan 1-5"     },
-      { "book": "2 Juan",     "startChapter": 1,  "endChapter": 1,  "displayText": "2 Juan 1"       },
-      { "book": "3 Juan",     "startChapter": 1,  "endChapter": 1,  "displayText": "3 Juan 1"       },
+      { "book": "1 Pedro",    "startChapter": 1,  "endChapter": 5,  "displayText": "1 Pedro 1-5"    },//Normalizado
+      { "book": "2 Pedro",    "startChapter": 1,  "endChapter": 3,  "displayText": "2 Pedro 1-3"    },//Normalizado
+      { "book": "1 Juan",     "startChapter": 1,  "endChapter": 5,  "displayText": "1 Juan 1-5"     },//Normalizado
+      { "book": "2 Juan",     "startChapter": 1,  "endChapter": 1,  "displayText": "2 Juan 1"       },//Normalizado
+      { "book": "3 Juan",     "startChapter": 1,  "endChapter": 1,  "displayText": "3 Juan 1"       },//Normalizado
       { "book": "Judas",      "startChapter": 1,  "endChapter": 1,  "displayText": "Judas 1"        },
       { "book": "Apocalipsis","startChapter": 1,  "endChapter": 4,  "displayText": "Apocalipsis 1-4"  },
       { "book": "Apocalipsis","startChapter": 5,  "endChapter": 9,  "displayText": "Apocalipsis 5-9"  },
@@ -439,6 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
       { "book": "Apocalipsis","startChapter": 15, "endChapter": 18, "displayText": "Apocalipsis 15-18"},
       { "book": "Apocalipsis","startChapter": 19, "endChapter": 22, "displayText": "Apocalipsis 19-22"}
     ];
+
     const bibleBooksContainer = document.getElementById('bibleBooksContainer');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
@@ -460,16 +471,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSuggestedReading = null;
     let readStatus = {}; 
 
-    // --- CÁLCULO INICIAL (depende de bibleBooks) ---
-    // Asegúrate de que bibleBooks esté cargado/definido antes de esta línea.
-    const totalBibleChapters = bibleBooks.reduce((sum, book) => sum + book.chapters, 0);
+    const totalBibleChapters = normalizedBibleBooks.reduce((sum, book) => sum + book.chapters, 0);
 
-    // --- FUNCIONES PRINCIPALES ---
     function sanitizeKey(bookName, chapterNum) {
-        // Añade un prefijo para evitar problemas si bookName es solo números o empieza con un número,
-        // aunque para nombres de libros de la Biblia es poco probable.
-        // La función original está bien para la mayoría de los casos.
-        return `key_${bookName.replace(/\s/g, '_')}_${chapterNum}`;
+        return `key_${bookName.replace(/\s/g, '_').replace(/\u00A0/g, '_')}_${chapterNum}`;
     }
     
     function loadState() { 
@@ -479,23 +484,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 readStatus = JSON.parse(savedStatus);
             } catch (e) {
                 console.error("Error al parsear readStatus desde localStorage:", e);
-                readStatus = {}; // Reiniciar si hay un error
+                readStatus = {};
             }
         }
         const savedStartDate = localStorage.getItem('planStartDate');
         if (savedStartDate) {
-            planStartDateInput.value = savedStartDate; // Establecer el valor del input
+            planStartDateInput.value = savedStartDate;
             try {
-                // Usar Z para indicar UTC y evitar ambigüedades de zona horaria al crear el objeto Date.
                 const dateObj = new Date(savedStartDate + "T00:00:00Z");
-                if (isNaN(dateObj.getTime())) { // Comprobar si la fecha es válida
+                if (isNaN(dateObj.getTime())) {
                     throw new Error("Fecha inválida generada.");
                 }
                 currentPlanStartDateText.textContent = `Tu plan de lectura actual comenzó el: ${dateObj.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric' })}`;
             } catch (e) {
                 console.error("Error al procesar la fecha de inicio guardada:", e);
                 currentPlanStartDateText.textContent = `Fecha de inicio guardada: ${savedStartDate} (formato inválido o error al procesar)`;
-                localStorage.removeItem('planStartDate'); // Eliminar la fecha inválida
+                localStorage.removeItem('planStartDate');
             }
         } else {
             currentPlanStartDateText.textContent = "Aún no has establecido una fecha de inicio para tu plan.";
@@ -508,14 +512,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function updateChapterButtonUI(bookName, chapterNum) {
         const key = sanitizeKey(bookName, chapterNum);
-        // El ID de la sección de capítulos del libro no debería tener el chapterNum si es para el libro entero.
-        const bookSectionId = `chapters_${sanitizeKey(bookName, '').substring(4)}`; // Quitamos el "key_" y el "_undefined" o similar
+        const bookSectionId = `chapters_${sanitizeKey(bookName, '').substring(4)}`;
         const chaptersGridEl = document.getElementById(bookSectionId);
 
         if (chaptersGridEl) {
-            // Escapar comillas en el nombre del libro para el selector de atributos si es necesario.
-            // Si los nombres de los libros no contienen comillas, esto es más simple.
-            const escapedBookName = bookName.replace(/"/g, '\\"');
+            const escapedBookName = bookName.replace(/"/g, '\\"').replace(/\u00A0/g, ' ');
             const button = chaptersGridEl.querySelector(`.chapter-button[data-book="${escapedBookName}"][data-chapter="${chapterNum}"]`);
             if (button) {
                 button.classList.toggle('read', !!readStatus[key]);
@@ -533,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateBookProgress(bookName) {
-        const bookData = bibleBooks.find(b => b.name === bookName);
+        const bookData = normalizedBibleBooks.find(b => b.name === bookName);
         if (!bookData) return;
 
         let chaptersReadInBook = 0;
@@ -560,7 +561,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateBookProgress(bookName);
     }
     
-    // --- LÓGICA DE FECHA DE INICIO Y SINCRONIZACIÓN ---
     setPlanStartDateButton.addEventListener('click', () => {
         const selectedDateString = planStartDateInput.value;
         if (selectedDateString) {
@@ -570,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             localStorage.setItem('planStartDate', selectedDateString);
             try {
-                const dateObj = new Date(selectedDateString + "T00:00:00Z"); // Interpretar como UTC
+                const dateObj = new Date(selectedDateString + "T00:00:00Z");
                  if (isNaN(dateObj.getTime())) {
                     throw new Error("Fecha inválida generada.");
                 }
@@ -614,7 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function displayDailySuggestion() {
-        const today = new Date(); // Fecha y hora local actual
+        const today = new Date(); 
         currentDateSpan.textContent = today.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Madrid' });
 
         const savedStartDateString = localStorage.getItem('planStartDate');
@@ -627,7 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let planStartDate;
         try {
-            planStartDate = new Date(savedStartDateString + "T00:00:00Z"); // Fecha de inicio en UTC
+            planStartDate = new Date(savedStartDateString + "T00:00:00Z"); 
             if (isNaN(planStartDate.getTime())) {
                  throw new Error("Fecha de inicio inválida en localStorage.");
             }
@@ -636,11 +636,10 @@ document.addEventListener('DOMContentLoaded', () => {
             dailySuggestionText.textContent = "Error con la fecha de inicio guardada. Por favor, establécela de nuevo.";
             markSuggestedAsReadButton.style.display = 'none';
             currentSuggestedReading = null;
-            localStorage.removeItem('planStartDate'); // Limpiar fecha inválida
+            localStorage.removeItem('planStartDate');
             return;
         }
         
-        // Normalizar 'hoy' a medianoche UTC para una comparación de días correcta
         const todayNormalized = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
 
         if (todayNormalized < planStartDate) {
@@ -669,7 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dailySuggestionText.textContent = `Día ${dayDifference + 1} de tu plan: ${currentSuggestedReading.displayText}`;
             markSuggestedAsReadButton.style.display = 'inline-block';
         } else {
-            dailySuggestionText.textContent = "No se encontró lectura para hoy. Verifica la configuración del plan.";
+            dailySuggestionText.textContent = `No se encontró lectura para el día ${dayDifference + 1}. Verifica la configuración del plan.`;
             markSuggestedAsReadButton.style.display = 'none';
         }
     }
@@ -678,7 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentSuggestedReading) {
             const { book, startChapter, endChapter } = currentSuggestedReading;
             let changed = false;
-            const bookNameForRender = book; // Asumiendo que currentSuggestedReading.book es el nombre correcto
+            const bookNameForRender = book.replace(/\u00A0/g, ' '); // Asegurar nombre normalizado
 
             for (let i = startChapter; i <= endChapter; i++) {
                 const key = sanitizeKey(bookNameForRender, i);
@@ -696,7 +695,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 alert(`Los capítulos de ${currentSuggestedReading.displayText} ya estaban marcados como leídos.`);
             }
-            // Si el filtro actual muestra este libro, o todos los libros, re-renderizar para reflejar cambios de estado (leido/no leido) si el filtro de estado está activo.
             if (bookFilter.value === bookNameForRender || bookFilter.value === 'todos') {
                 renderBooks(bookFilter.value, statusFilter.value);
             }
@@ -705,14 +703,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderBooks(filterBook = 'todos', filterStatus = 'todos') {
         bibleBooksContainer.innerHTML = ''; 
-        const filteredBooks = bibleBooks.filter(book => 
+        const filteredBooksSource = normalizedBibleBooks.filter(book => 
             filterBook === 'todos' || book.name === filterBook
         );
 
-        filteredBooks.forEach(book => {
+        filteredBooksSource.forEach(book => {
             const bookSection = document.createElement('div');
             bookSection.className = 'book-section';
-            // ID para el bookKey, quitando el prefijo "key_" y el sufijo de capítulo si sanitizeKey lo añade para "vacío"
             const bookKeyForId = sanitizeKey(book.name, '').substring(4).replace(/_undefined$|_null$|_$/, '');
 
             bookSection.innerHTML = `
@@ -725,9 +722,9 @@ document.addEventListener('DOMContentLoaded', () => {
             bibleBooksContainer.appendChild(bookSection);
             
             const currentChaptersGrid = document.getElementById(`chapters_${bookKeyForId}`);
-            if (!currentChaptersGrid) { // Comprobación por si el ID no se genera como se espera
+            if (!currentChaptersGrid) {
                 console.error(`Elemento chapters-grid no encontrado para: chapters_${bookKeyForId}`);
-                return; // Saltar este libro si no se puede encontrar su grid
+                return; 
             }
             let hasVisibleChapters = false;
 
@@ -747,7 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const chapterButton = document.createElement('button');
                     chapterButton.className = 'chapter-button';
                     chapterButton.textContent = i;
-                    chapterButton.dataset.book = book.name; 
+                    chapterButton.dataset.book = book.name; // Usa el nombre normalizado
                     chapterButton.dataset.chapter = i;
 
                     if (isRead) {
@@ -759,29 +756,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentChaptersGrid.appendChild(chapterButton);
                 }
             }
-            updateBookProgress(book.name); // Actualizar progreso del libro después de renderizar sus capítulos
+            updateBookProgress(book.name); 
 
-            // Ocultar la sección del libro si no tiene capítulos visibles debido a los filtros
-            // y no es el caso de "mostrar todos los libros" sin filtro de estado.
             if (!hasVisibleChapters && (filterStatus !== 'todos' || (filterBook !== 'todos' && filterBook === book.name))) {
-                 // Si no hay capítulos visibles y se está aplicando un filtro (de estado o de libro específico)
-                 if (book.chapters > 0) { // Solo ocultar si el libro realmente tiene capítulos pero están filtrados
+                 if (book.chapters > 0) { 
                     bookSection.style.display = 'none';
                  }
-            } else if (book.chapters === 0 && filterBook !== 'todos' && filterBook !== book.name) {
-                // Si el libro no tiene capítulos y no es el libro específicamente seleccionado, se puede ocultar
-                // (aunque esto debería ser manejado por el filterBook principal)
+            } else {
+                bookSection.style.display = ''; // Asegurar que sea visible si tiene capítulos o no hay filtro restrictivo
             }
-
         });
     }
 
     function populateFiltersAndSyncOptions() { 
-        // Limpiar opciones existentes (por si se llama múltiples veces, aunque no debería)
         bookFilter.innerHTML = '<option value="todos">Todos los Libros</option>';
-        syncReadingSelect.innerHTML = ''; // Limpiar las opciones de sincronización
+        syncReadingSelect.innerHTML = ''; 
 
-        bibleBooks.forEach(book => {
+        normalizedBibleBooks.forEach(book => {
             const option = document.createElement('option');
             option.value = book.name; 
             option.textContent = book.name;
@@ -797,12 +788,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 option.textContent = `Día ${index + 1}: ${reading.displayText}`;
                 syncReadingSelect.appendChild(option);
             });
+            syncPlanButton.disabled = false;
         } else {
             const option = document.createElement('option');
             option.textContent = "No hay plan de lectura disponible";
             option.disabled = true;
             syncReadingSelect.appendChild(option);
-            syncPlanButton.disabled = true; // Deshabilitar el botón si no hay plan
+            syncPlanButton.disabled = true;
         }
     }
 
@@ -810,7 +802,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (confirm('¿Estás seguro de que quieres reiniciar todo tu progreso de lectura de capítulos? Esta acción no se puede deshacer.')) {
             readStatus = {};
             saveState();
-            // Re-renderizar todos los libros para quitar la clase 'read' y actualizar progreso de libros individuales.
             renderBooks(bookFilter.value, statusFilter.value); 
             updateOverallProgress(); 
             alert("Progreso reiniciado.");
@@ -819,15 +810,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INICIALIZACIÓN ---
     loadState(); 
-    populateFiltersAndSyncOptions(); // Poblar filtros antes de renderizar por primera vez
+    populateFiltersAndSyncOptions();
     displayDailySuggestion(); 
-    renderBooks(); // Renderizar libros con los filtros por defecto ('todos', 'todos')
-    updateOverallProgress(); // Actualizar progreso general después de cargar el estado
+    renderBooks(); 
+    updateOverallProgress();
 
     // --- REGISTRO DEL SERVICE WORKER PARA PWA ---
+    // Movido aquí para asegurar que el DOM está completamente cargado y los scripts iniciales han corrido
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { // 'load' espera a que toda la página esté cargada
-            navigator.serviceWorker.register('/sw.js') // Asegúrate que sw.js esté en la raíz del sitio
+        window.addEventListener('load', () => { 
+            navigator.serviceWorker.register('/sw.js')
                 .then(registration => {
                     console.log('Service Worker para PWA registrado con éxito, alcance:', registration.scope);
                 })
