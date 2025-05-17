@@ -1,364 +1,383 @@
+:root {
+    --primary-color: #005f73; /* Azul petróleo oscuro */
+    --secondary-color: #0a9396; /* Turquesa medio */
+    --accent-color: #94d2bd; /* Turquesa claro / Menta */
+    --background-color: #f0f4f8; /* Un gris azulado muy claro para el fondo general */
+    --card-background-color: #ffffff; /* Blanco para las tarjetas */
+    --text-color: #333333; /* Gris oscuro para texto principal */
+    --text-light-color: #555555; /* Gris más claro para texto secundario */
+    --border-color: #d1d9e0; /* Un color de borde sutil */
+    --read-color: #4CAF50; /* Verde para leído */
+    --unread-color: #e0e0e0; /* Gris claro para no leído */
+    --button-hover-bg: #003f5c; /* Azul petróleo más oscuro para hover */
+    --danger-color: #d9534f;
+    --danger-hover-color: #c9302c;
+
+    --font-family-sans-serif: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --border-radius-base: 6px; /* Radio de borde base */
+    --spacing-unit: 8px; /* Unidad de espaciado base */
+}
+
+/* Reset básico y configuración global */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px; /* Establece una base para unidades rem */
+    scroll-behavior: smooth;
+}
+
 body {
-    font-family: 'Roboto', sans-serif;
+    font-family: var(--font-family-sans-serif);
     margin: 0;
-    background-color: #f4f6f8;
-    color: #333;
+    padding: calc(var(--spacing-unit) * 2); /* 16px */
+    background-color: var(--background-color);
+    color: var(--text-color);
     line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 .container {
-    max-width: 900px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #fff;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    border-radius: 8px;
-}
-
-header {
-    text-align: center;
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #eee;
-}
-
-header h1 {
-    color: #2c3e50;
-    font-weight: 700;
-    font-size: 2.2em;
-}
-
-.progress-container {
-    margin-top: 15px;
-}
-
-.progress-bar-background {
     width: 100%;
-    background-color: #e0e0e0;
-    border-radius: 25px;
-    height: 25px;
-    overflow: hidden;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+    max-width: 960px; /* Un poco más de espacio si es necesario */
+    margin: 0 auto;
+    background-color: var(--card-background-color);
+    padding: calc(var(--spacing-unit) * 2.5); /* 20px */
+    border-radius: var(--border-radius-base);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    flex-grow: 1; /* Para que el contenedor crezca y empuje el footer hacia abajo */
 }
 
-.progress-bar {
+header,
+section,
+main {
+    margin-bottom: calc(var(--spacing-unit) * 3); /* 24px */
+}
+
+h1, h2 {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: var(--spacing-unit); /* 8px */
+    margin-top: 0;
+    margin-bottom: calc(var(--spacing-unit) * 2); /* 16px */
+}
+
+h1 {
+    font-size: 2rem; /* 32px */
+}
+
+h2 {
+    font-size: 1.5rem; /* 24px */
+}
+
+/* Secciones de información y sugerencias */
+#current-date-suggestion,
+#daily-suggestion {
+    background-color: #f9fafb; /* Un color de fondo ligeramente diferente para estas secciones */
+    padding: calc(var(--spacing-unit) * 1.5); /* 12px */
+    border-radius: var(--border-radius-base);
+    margin-bottom: calc(var(--spacing-unit) * 2);
+    border: 1px solid var(--border-color);
+}
+
+#daily-suggestion {
+    margin-top: var(--spacing-unit);
+}
+
+/* Contenedor de la barra de progreso */
+.progress-container {
+    margin-top: calc(var(--spacing-unit) * 2);
+    display: flex;
+    flex-wrap: wrap; /* Permite que el texto pase abajo en móviles */
+    align-items: center;
+    gap: var(--spacing-unit); /* 8px */
+}
+
+.progress-bar-overall {
+    flex-grow: 1; /* Ocupa el espacio disponible */
+    min-width: 200px; /* Evita que sea demasiado pequeño */
+    background-color: #e9ecef; /* Fondo de barra de progreso más claro */
+    border-radius: var(--border-radius-base);
+    height: 28px; /* Un poco más alta */
+    overflow: hidden;
+}
+
+#progressBar {
     width: 0%;
     height: 100%;
-    background: linear-gradient(90deg, #3498db, #2980b9);
-    border-radius: 25px;
-    transition: width 0.5s ease-in-out;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background-color: var(--secondary-color);
+    text-align: center;
+    line-height: 28px;
     color: white;
-    font-weight: bold;
+    font-weight: 600; /* Semibold */
+    transition: width 0.5s ease-in-out;
+    white-space: nowrap;
+    font-size: 0.875rem; /* 14px */
 }
 
 #progressText {
-    display: block;
-    text-align: center;
-    margin-top: 8px;
-    font-size: 0.9em;
-    color: #555;
-}
-
-/* Configuración Fecha de Inicio */
-.start-date-config, .sync-plan-section {
-    background-color: #fdf5e6; 
-    border: 1px solid #fadcb9;
-    padding: 15px 20px;
-    margin-bottom: 25px;
-    border-radius: 6px;
-    text-align: center;
-}
-.sync-plan-section {
-    background-color: #e6f7ff; /* Azul muy claro */
-    border-color: #b3e0ff;
-}
-
-
-.start-date-config h3, .sync-plan-section h3 {
-    color: #b8860b; 
-    font-size: 1.4em;
-    margin-top: 0;
-    margin-bottom: 8px;
-}
-.sync-plan-section h3 {
-    color: #0077cc; /* Azul oscuro */
-}
-
-.start-date-config p, .sync-plan-section p {
-    font-size: 0.95em;
-    color: #5c4033; 
-    margin-bottom: 12px;
-}
-.sync-plan-section p {
-    color: #005fa3;
-}
-
-.start-date-config div, .sync-plan-section div {
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-.start-date-config label, .sync-plan-section label {
-    margin-right: 10px;
-    font-weight: 400;
-}
-.start-date-config input[type="date"], .sync-plan-section select {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-right: 10px;
-    max-width: 250px; /* Para el select */
-}
-.sync-plan-section select {
-    flex-grow: 1; /* Permitir que el select crezca */
-}
-.start-date-config button, .sync-plan-section button {
-    padding: 8px 15px;
-    background-color: #b8860b;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 0.9rem; /* 14.4px */
     white-space: nowrap;
 }
-.sync-plan-section button {
-    background-color: #0077cc;
+
+/* Gestión del plan y Controles */
+#plan-management .plan-group,
+#controls .filter-group {
+    margin-bottom: calc(var(--spacing-unit) * 2);
+    padding: calc(var(--spacing-unit) * 1.5);
+    background-color: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-base);
 }
 
-.start-date-config button:hover {
-    background-color: #8c6c0a;
+#plan-management label,
+#controls label {
+    display: block;
+    margin-bottom: calc(var(--spacing-unit) * 0.75); /* 6px */
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 0.9rem;
 }
-.sync-plan-section button:hover {
-    background-color: #005fa3;
+
+input[type="date"],
+select {
+    width: 100%; /* Ocupa todo el ancho disponible en su contenedor */
+    padding: calc(var(--spacing-unit) * 1.25); /* 10px */
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-base);
+    font-size: 1rem; /* 16px */
+    background-color: var(--card-background-color);
+    color: var(--text-color);
+    appearance: none; /* Quita estilos por defecto del navegador */
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }
-#currentPlanStartDateText {
-    font-style: italic;
-    font-size: 0.9em;
-    color: #7a5230;
+
+/* Estilo específico para el desplegable del select */
+select {
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007bff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right calc(var(--spacing-unit) * 1.25) center;
+    background-size: .65em auto;
+    padding-right: calc(var(--spacing-unit) * 3.5); /* Espacio para la flecha */
 }
 
 
-.suggested-reading-section {
-    background-color: #e8f4fd;
-    border: 1px solid #bde0fe;
-    padding: 15px 20px;
-    margin-bottom: 25px;
-    border-radius: 6px;
-    text-align: center;
-}
-
-.suggested-reading-section h2 {
-    color: #1d6fa5;
-    font-size: 1.5em;
-    margin-top: 0;
-    margin-bottom: 10px;
-}
-
-.suggested-reading-section p {
-    font-size: 1.1em;
-    color: #333;
-    margin-bottom: 15px;
-}
-
-#markSuggestedAsRead {
-    background-color: #27ae60;
+/* Botones */
+button {
+    width: 100%; /* Botones ocupan todo el ancho por defecto en móvil */
+    padding: calc(var(--spacing-unit) * 1.25) calc(var(--spacing-unit) * 2); /* 10px 16px */
+    background-color: var(--secondary-color);
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
+    border-radius: var(--border-radius-base);
     cursor: pointer;
-    font-size: 0.95em;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    font-size: 1rem; /* 16px, mejor para tap */
+    font-weight: 500;
+    text-align: center;
+    margin-top: var(--spacing-unit); /* Espacio entre botones si se apilan */
+}
+button:first-of-type {
+    margin-top: 0; /* Evitar doble margen si es el primer botón */
 }
 
-#markSuggestedAsRead:hover {
-    background-color: #229954;
+button:hover {
+    background-color: var(--button-hover-bg);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
-.controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-    padding: 15px;
-    background-color: #ecf0f1;
-    border-radius: 6px;
-    flex-wrap: wrap;
+button:active {
+    transform: translateY(1px);
 }
-
-.controls label {
-    margin-right: 8px;
-    font-weight: 400;
-    color: #34495e;
-}
-
-.controls select, .controls button:not(.start-date-config button):not(.sync-plan-section button) { /* Excluir botones ya estilizados */
-    padding: 10px 15px;
-    border: 1px solid #bdc3c7;
-    border-radius: 4px;
-    background-color: #fff;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: background-color 0.2s, box-shadow 0.2s;
-}
-
-.controls select {
-    margin-right: 15px;
+button:focus-visible { /* Mejor visibilidad de foco */
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
 }
 
 #resetProgress {
-    background-color: #e74c3c;
-    color: white;
-    border-color: #c0392b;
+    background-color: var(--danger-color);
 }
 #resetProgress:hover {
-    background-color: #c0392b;
+    background-color: var(--danger-hover-color);
 }
 
-
-.controls select:focus, .controls button:not(.start-date-config button):not(.sync-plan-section button):focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.5);
+#markSuggestedAsRead {
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    font-weight: 600;
+}
+#markSuggestedAsRead:hover {
+    background-color: #7cbba8; /* Un tono más oscuro del accent-color */
 }
 
-#bibleBooksContainer {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-}
-
+/* Sección de Libros */
 .book-section {
-    background-color: #ffffff;
-    padding: 15px;
-    border-radius: 6px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.book-section:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    margin-bottom: calc(var(--spacing-unit) * 2.5);
+    padding: calc(var(--spacing-unit) * 2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-base);
+    background-color: var(--card-background-color);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
 .book-title {
-    font-size: 1.4em;
-    font-weight: 700;
-    color: #3498db;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #ecf0f1;
+    font-size: 1.375rem; /* 22px */
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-unit); /* Reducido para que esté más cerca de la barra de progreso del libro */
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    gap: var(--spacing-unit);
 }
 
 .book-progress {
-    font-size: 0.8em;
-    font-weight: 400;
-    color: #7f8c8d;
+    font-size: 0.8rem; /* 12.8px */
+    color: var(--text-light-color);
+    font-weight: 500;
+    background-color: #eaf6f6; /* Un fondo suave para el progreso */
+    padding: calc(var(--spacing-unit) * 0.5) var(--spacing-unit); /* 4px 8px */
+    border-radius: 10px;
+    white-space: nowrap;
 }
 
 .chapters-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); /* Botones un poco más anchos */
+    gap: var(--spacing-unit); /* 8px */
 }
 
 .chapter-button {
-    background-color: #ecf0f1;
-    color: #2c3e50;
-    border: 1px solid #bdc3c7;
-    padding: 8px 0;
-    text-align: center;
-    border-radius: 4px;
+    padding: var(--spacing-unit); /* 8px, más cuadrado */
+    font-size: 0.875rem; /* 14px */
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-base);
+    background-color: var(--unread-color);
+    color: var(--text-color);
     cursor: pointer;
-    transition: background-color 0.2s, color 0.2s, transform 0.1s;
-    font-size: 0.9em;
-    font-weight: bold;
-}
-
-.chapter-button:hover {
-    background-color: #dbe4e8;
-    transform: translateY(-1px);
+    text-align: center;
+    transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
+    font-weight: 500;
 }
 
 .chapter-button.read {
-    background-color: #2ecc71;
+    background-color: var(--read-color);
     color: white;
-    border-color: #27ae60;
+    border-color: #3a8f40; /* Borde más oscuro para botón leído */
 }
 
-.chapter-button.read:hover {
-    background-color: #29b765;
+.chapter-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-color: var(--secondary-color); /* Resaltar borde en hover */
 }
+.chapter-button.read:hover {
+    background-color: #3e8e41; /* Verde un poco más oscuro para hover */
+    border-color: #3e8e41;
+}
+.chapter-button:active {
+    transform: translateY(0);
+}
+.chapter-button:focus-visible {
+    outline: 2px solid var(--secondary-color);
+    outline-offset: 1px;
+}
+
 
 footer {
     text-align: center;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-    font-size: 0.9em;
-    color: #7f8c8d;
+    margin-top: calc(var(--spacing-unit) * 4); /* 32px */
+    padding-top: calc(var(--spacing-unit) * 2);
+    border-top: 1px solid var(--border-color);
+    font-size: 0.875rem;
+    color: var(--text-light-color);
 }
 
-@media (max-width: 768px) {
-    .start-date-config div, .sync-plan-section div {
-        flex-direction: column;
-        align-items: stretch;
+/* === AJUSTES RESPONSIVOS === */
+
+/* Tabletas y escritorios pequeños */
+@media (min-width: 768px) {
+    h1 {
+        font-size: 2.25rem; /* 36px */
     }
-    .start-date-config input[type="date"], .start-date-config button,
-    .sync-plan-section select, .sync-plan-section button {
-        width: 100%;
-        margin-bottom: 10px;
-        margin-right: 0;
+    h2 {
+        font-size: 1.75rem; /* 28px */
     }
-    .controls {
-        flex-direction: column;
-        align-items: stretch;
+
+    /* Disposición en dos columnas para grupos de plan y filtros */
+    #plan-management, #controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: calc(var(--spacing-unit) * 2);
     }
-    .controls select, .controls button:not(.start-date-config button):not(.sync-plan-section button) {
-        width: 100%;
-        margin-bottom: 10px;
+
+    #plan-management .plan-group,
+    #controls .filter-group {
+        margin-bottom: 0; /* Quitar margen inferior ya que el gap lo maneja */
     }
-    .controls select:last-of-type, #resetProgress {
-        margin-bottom: 0;
+    
+    input[type="date"],
+    select,
+    button {
+        width: auto; /* Permite que los botones y inputs no ocupen todo el ancho */
+        min-width: 180px; /* Un mínimo para que no se vean muy pequeños */
     }
-    header h1 {
-        font-size: 1.8em;
+    button {
+         margin-top: 0; /* Reset del margen para layout en línea/grid */
     }
-    .suggested-reading-section h2 {
-        font-size: 1.3em;
+    /* Ajuste específico para botones dentro de grupos */
+    .plan-group button, .filter-group button {
+        margin-left: var(--spacing-unit); /* Espacio si están al lado de un input/select */
     }
-    #bibleBooksContainer {
-        grid-template-columns: 1fr;
+    .plan-group, .filter-group { /* Para alinear elementos */
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center; /* Alinear verticalmente label, input y button */
+    }
+    .plan-group label, .filter-group label {
+        margin-right: var(--spacing-unit); /* Espacio entre label e input */
+        margin-bottom: 0; /* Ya no necesita margen inferior en esta vista */
     }
 }
 
-@media (max-width: 480px) {
+
+/* Ajustes para pantallas muy pequeñas (menos de 400px) */
+@media (max-width: 400px) {
+    body {
+        padding: var(--spacing-unit); /* 8px */
+    }
     .container {
-        margin: 10px;
-        padding: 15px;
+        padding: var(--spacing-unit);
     }
-    header h1 {
-        font-size: 1.6em;
+    h1 {
+        font-size: 1.625rem; /* 26px */
     }
-    .suggested-reading-section h2 {
-        font-size: 1.2em;
-    }
-    .suggested-reading-section p {
-        font-size: 1em;
+    h2 {
+        font-size: 1.25rem; /* 20px */
     }
     .book-title {
-        font-size: 1.2em;
+        font-size: 1.125rem; /* 18px */
+    }
+    .chapters-grid {
+        grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+        gap: calc(var(--spacing-unit) * 0.75); /* 6px */
     }
     .chapter-button {
-        font-size: 0.8em;
-        padding: 6px 0;
+        font-size: 0.8rem; /* 12.8px */
+        padding: calc(var(--spacing-unit) * 0.75);
+    }
+    #progressText {
+        font-size: 0.8rem;
+    }
+    #progressBar {
+        font-size: 0.75rem;
     }
 }
