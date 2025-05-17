@@ -729,10 +729,12 @@ document.addEventListener('DOMContentLoaded', () => {
   renderBooks();
   updateOverallProgress();
 
-  // Inicia la aplicación al cargar el DOM
-window.addEventListener('DOMContentLoaded', initializeApp);
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
-    .then(() => console.log("Service Worker registrado"))
-    .catch(err => console.log("Error en Service Worker:", err));
-}
+  // --- Service Worker PWA ---
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('/sw.js')
+        .then(r=> console.log('SW scope:', r.scope))
+        .catch(e=> console.error('SW err:', e));
+    });
+  }
+});
