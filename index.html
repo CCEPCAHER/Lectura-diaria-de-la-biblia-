@@ -1,84 +1,101 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Progreso Bíblico</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Progreso Bíblico">
-    <link rel="icon" href="icon-192x192.png" type="image/png">
-    <link rel="apple-touch-icon" href="icon-192x192.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Mi Progreso Bíblico</title>
+
+  <!-- Hoja de estilos -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Configuración PWA en iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Progreso Bíblico">
+
+  <!-- Iconos -->
+  <link rel="icon" href="icons/icon-192x192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Mi Progreso de Lectura Bíblica</h1>
-            <div id="current-date-suggestion">
-                <p>Hoy es: <span id="currentDate"></span></p>
-                <div id="daily-suggestion">
-                    <p id="dailySuggestionText">Cargando sugerencia...</p>
-                    <button id="markSuggestedAsRead" style="display: none;">Marcar Leído</button>
-                </div>
-            </div>
-            <div class="progress-container">
-                <div class="progress-bar-overall">
-                    <div id="progressBar"></div>
-                </div>
-                <span id="progressText">0%</span>
-            </div>
-        </header>
+  <div class="container">
+    <header>
+      <h1>Mi Progreso de Lectura Bíblica</h1>
+      <div id="current-date-suggestion">
+        <p>Hoy es: <span id="currentDate"></span></p>
+        <div id="daily-suggestion">
+          <p id="dailySuggestionText">Cargando sugerencia...</p>
+          <button id="markSuggestedAsRead" style="display: none;">Marcar Leído</button>
+        </div>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar-overall">
+          <div id="progressBar"></div>
+        </div>
+        <span id="progressText">0%</span>
+      </div>
+    </header>
 
-        <section id="plan-management">
-            <h2>Gestionar Plan de Lectura</h2>
-            <div class="plan-group">
-                <label for="planStartDateInput">Fecha de inicio del plan:</label>
-                <input type="date" id="planStartDateInput">
-                <button id="setPlanStartDateButton">Establecer Inicio</button>
-                <p id="currentPlanStartDateText">Cargando fecha de inicio...</p>
-            </div>
-            <div class="plan-group">
-                <label for="syncReadingSelect">Sincronizar plan (Hoy es...):</label>
-                <select id="syncReadingSelect">
-                    <option value="">Cargando lecturas del plan...</option>
-                </select>
-                <button id="syncPlanButton">Sincronizar Plan</button>
-            </div>
-        </section>
+    <section id="plan-management">
+      <h2>Gestionar Plan de Lectura</h2>
+      <div class="plan-group">
+        <label for="planStartDateInput">Fecha de inicio del plan:</label>
+        <input type="date" id="planStartDateInput">
+        <button id="setPlanStartDateButton">Establecer Inicio</button>
+        <p id="currentPlanStartDateText">Cargando fecha de inicio...</p>
+      </div>
+      <div class="plan-group">
+        <label for="syncReadingSelect">Sincronizar plan (Hoy es...):</label>
+        <select id="syncReadingSelect">
+          <option value="">Cargando lecturas del plan...</option>
+        </select>
+        <button id="syncPlanButton">Sincronizar Plan</button>
+      </div>
+    </section>
 
-        <section id="controls">
-            <h2>Filtros y Controles</h2>
-            <div class="filter-group">
-                <label for="bookFilter">Filtrar por Libro:</label>
-                <select id="bookFilter">
-                    <option value="todos">Todos los Libros</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="statusFilter">Filtrar por Estado:</label>
-                <select id="statusFilter">
-                    <option value="todos">Todos</option>
-                    <option value="leidos">Leídos</option>
-                    <option value="no_leidos">No Leídos</option>
-                </select>
-            </div>
-            <button id="resetProgress">Reiniciar Progreso</button>
-        </section>
+    <section id="controls">
+      <h2>Filtros y Controles</h2>
+      <div class="filter-group">
+        <label for="bookFilter">Filtrar por Libro:</label>
+        <select id="bookFilter">
+          <option value="todos">Todos los Libros</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="statusFilter">Filtrar por Estado:</label>
+        <select id="statusFilter">
+          <option value="todos">Todos</option>
+          <option value="leidos">Leídos</option>
+          <option value="no_leidos">No Leídos</option>
+        </select>
+      </div>
+      <button id="resetProgress">Reiniciar Progreso</button>
+    </section>
 
-        <main id="bibleBooksContainer">
-        </main>
+    <main id="bibleBooksContainer">
+    </main>
 
-        <footer>
-            <p>&copy; <span id="currentYear"></span> Tu Nombre o Proyecto</p>
-        </footer>
-    </div>
-Corrígelos y dámelos por separados 
+    <footer>
+      <p>&copy; <span id="currentYear"></span> Tu Nombre o Proyecto</p>
+    </footer>
+  </div>
 
-    <script src="script.js"></script>
-    <script>
-        document.getElementById('currentYear').textContent = new Date().getFullYear();
-    </script>
+  <!-- Script principal -->
+  <script src="script.js"></script>
+  <script>
+    // Mostrar año actual
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+    // Registro del Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker registrado con scope:', reg.scope))
+        .catch(err => console.error('Error al registrar Service Worker:', err));
+    }
+  </script>
 </body>
 </html>
