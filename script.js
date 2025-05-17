@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const bibleBooks = [ /* ... Lista de bibleBooks sin cambios ... */ 
+    const bibleBooks = [ 
         { name: "Génesis", chapters: 50, testament: "Antiguo" },
         { name: "Éxodo", chapters: 40, testament: "Antiguo" },
         { name: "Levítico", chapters: 27, testament: "Antiguo" },
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Judas", chapters: 1, testament: "Nuevo" },
         { name: "Apocalipsis", chapters: 22, testament: "Nuevo" }
     ];
-    const dailyReadingPlan = [ /* ... Tu lista de 365 lecturas (userReadingPlanData) ... */
+    const dailyReadingPlan = [ /* ... Tu lista de 365 lecturas (userReadingPlanData) tal como la proporcionaste ... */
       { "book": "Génesis", "startChapter": 1,  "endChapter": 3,  "displayText": "Génesis 1-3"   },
       { "book": "Génesis", "startChapter": 4,  "endChapter": 7,  "displayText": "Génesis 4-7"   },
       { "book": "Génesis", "startChapter": 8,  "endChapter": 11, "displayText": "Génesis 8-11"  },
@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${bookName.replace(/\s/g, '_')}_${chapterNum}`;
     }
     
-    function loadState() { // Renombrado de loadProgress para incluir más estado
+    function loadState() { 
         const savedStatus = localStorage.getItem('bibleReadStatus');
         if (savedStatus) {
             readStatus = JSON.parse(savedStatus);
@@ -480,20 +480,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedStartDate) {
             planStartDateInput.value = savedStartDate;
             try {
-                const dateObj = new Date(savedStartDate + "T00:00:00Z"); // Interpretar como UTC para evitar desfases, luego mostrar en local
+                const dateObj = new Date(savedStartDate + "T00:00:00Z");
                 currentPlanStartDateText.textContent = `Tu plan de lectura actual comenzó el: ${dateObj.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric' })}`;
             } catch (e) {
                 currentPlanStartDateText.textContent = `Fecha de inicio guardada: ${savedStartDate} (formato inválido)`;
-                localStorage.removeItem('planStartDate'); // Limpiar si es inválida
+                localStorage.removeItem('planStartDate');
             }
         } else {
             currentPlanStartDateText.textContent = "Aún no has establecido una fecha de inicio para tu plan.";
         }
     }
 
-    function saveState() { // Renombrado de saveProgress
+    function saveState() { 
         localStorage.setItem('bibleReadStatus', JSON.stringify(readStatus));
-        // La fecha de inicio se guarda directamente en su evento
     }
     
     function updateChapterButtonUI(bookName, chapterNum) {
@@ -546,16 +545,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- LÓGICA DE FECHA DE INICIO Y SINCRONIZACIÓN ---
     setPlanStartDateButton.addEventListener('click', () => {
-        const selectedDateString = planStartDateInput.value; // YYYY-MM-DD
+        const selectedDateString = planStartDateInput.value;
         if (selectedDateString) {
-            // Validar formato de fecha simple
             if (!/^\d{4}-\d{2}-\d{2}$/.test(selectedDateString)) {
                 alert("Por favor, introduce una fecha válida en formato AAAA-MM-DD.");
                 return;
             }
             localStorage.setItem('planStartDate', selectedDateString);
             try {
-                const dateObj = new Date(selectedDateString + "T00:00:00Z"); // Interpretar como UTC para consistencia
+                const dateObj = new Date(selectedDateString + "T00:00:00Z");
                  currentPlanStartDateText.textContent = `Tu plan de lectura actual comenzó el: ${dateObj.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric' })}`;
                 alert(`Fecha de inicio del plan establecida para el ${dateObj.toLocaleDateString('es-ES', {timeZone: 'Europe/Madrid'})}.`);
             } catch (e) {
@@ -571,15 +569,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     syncPlanButton.addEventListener('click', () => {
-        const selectedReadingIndex = parseInt(syncReadingSelect.value); // 0-364
+        const selectedReadingIndex = parseInt(syncReadingSelect.value); 
 
         const today = new Date();
-        today.setUTCHours(0, 0, 0, 0); // Normalizar a medianoche UTC
+        today.setUTCHours(0, 0, 0, 0); 
 
         const newStartDate = new Date(today);
         newStartDate.setUTCDate(today.getUTCDate() - selectedReadingIndex);
 
-        const newStartDateString = newStartDate.toISOString().split('T')[0]; // YYYY-MM-DD
+        const newStartDateString = newStartDate.toISOString().split('T')[0]; 
         
         localStorage.setItem('planStartDate', newStartDateString);
         planStartDateInput.value = newStartDateString; 
@@ -602,7 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const planStartDate = new Date(savedStartDateString + "T00:00:00Z"); // Interpretar la fecha guardada como UTC
+        const planStartDate = new Date(savedStartDateString + "T00:00:00Z"); 
         const todayNormalized = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
 
 
@@ -632,7 +630,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     markSuggestedAsReadButton.addEventListener('click', () => {
-        // ... (sin cambios en esta función) ...
         if (currentSuggestedReading) {
             const { book, startChapter, endChapter } = currentSuggestedReading;
             let changed = false;
@@ -661,7 +658,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function renderBooks(filterBook = 'todos', filterStatus = 'todos') {
-        // ... (sin cambios en esta función) ...
         bibleBooksContainer.innerHTML = ''; 
         const filteredBooks = bibleBooks.filter(book => 
             filterBook === 'todos' || book.name === filterBook
@@ -720,8 +716,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function populateFiltersAndSyncOptions() { // Renombrado
-        // Filtros de libros
+    function populateFiltersAndSyncOptions() { 
         bibleBooks.forEach(book => {
             const option = document.createElement('option');
             option.value = book.name; 
@@ -731,17 +726,15 @@ document.addEventListener('DOMContentLoaded', () => {
         bookFilter.addEventListener('change', (e) => renderBooks(e.target.value, statusFilter.value));
         statusFilter.addEventListener('change', (e) => renderBooks(bookFilter.value, e.target.value));
 
-        // Opciones de Sincronización
         dailyReadingPlan.forEach((reading, index) => {
             const option = document.createElement('option');
-            option.value = index; // índice 0-364
+            option.value = index; 
             option.textContent = `Día ${index + 1}: ${reading.displayText}`;
             syncReadingSelect.appendChild(option);
         });
     }
 
     resetProgressButton.addEventListener('click', () => {
-        // ... (sin cambios en esta función) ...
         if (confirm('¿Estás seguro de que quieres reiniciar todo tu progreso de lectura de capítulos? Esta acción no se puede deshacer.')) {
             readStatus = {};
             saveState();
@@ -756,4 +749,17 @@ document.addEventListener('DOMContentLoaded', () => {
     displayDailySuggestion(); 
     renderBooks();
     updateOverallProgress();
+
+    // --- REGISTRO DEL SERVICE WORKER PARA PWA ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => { // 'load' espera a que toda la página esté cargada
+            navigator.serviceWorker.register('/sw.js') // El archivo sw.js debe estar en la raíz del sitio
+                .then(registration => {
+                    console.log('Service Worker para PWA registrado con éxito, alcance:', registration.scope);
+                })
+                .catch(error => {
+                    console.error('Error al registrar el Service Worker para PWA:', error);
+                });
+        });
+    }
 });
