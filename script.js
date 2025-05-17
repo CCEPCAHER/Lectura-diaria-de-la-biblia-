@@ -450,397 +450,291 @@ document.addEventListener('DOMContentLoaded', () => {
       { "book": "Apocalipsis","startChapter": 19, "endChapter": 22, "displayText": "Apocalipsis 19-22"}
     ];
 
-    const bibleBooksContainer = document.getElementById('bibleBooksContainer');
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    const bookFilter = document.getElementById('bookFilter');
-    const statusFilter = document.getElementById('statusFilter');
-    const resetProgressButton = document.getElementById('resetProgress');
+  const bibleBooksContainer = document.getElementById('bibleBooksContainer');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  const bookFilter = document.getElementById('bookFilter');
+  const statusFilter = document.getElementById('statusFilter');
+  const resetProgressButton = document.getElementById('resetProgress');
+  const currentDateSpan = document.getElementById('currentDate');
+  const dailySuggestionText = document.getElementById('dailySuggestionText');
+  const markSuggestedAsReadButton = document.getElementById('markSuggestedAsRead');
+  const planStartDateInput = document.getElementById('planStartDateInput');
+  const setPlanStartDateButton = document.getElementById('setPlanStartDateButton');
+  const currentPlanStartDateText = document.getElementById('currentPlanStartDateText');
+  const syncReadingSelect = document.getElementById('syncReadingSelect');
+  const syncPlanButton = document.getElementById('syncPlanButton');
 
-    const currentDateSpan = document.getElementById('currentDate');
-    const dailySuggestionText = document.getElementById('dailySuggestionText');
-    const markSuggestedAsReadButton = document.getElementById('markSuggestedAsRead');
-    
-    const planStartDateInput = document.getElementById('planStartDateInput');
-    const setPlanStartDateButton = document.getElementById('setPlanStartDateButton');
-    const currentPlanStartDateText = document.getElementById('currentPlanStartDateText');
+  let readStatus = {};
+  let currentSuggestedReading = null;
+  const totalBibleChapters = normalizedBibleBooks.reduce((sum,b)=> sum + b.chapters, 0);
 
-    const syncReadingSelect = document.getElementById('syncReadingSelect');
-    const syncPlanButton = document.getElementById('syncPlanButton');
+  function sanitizeKey(bookName, chapterNum) {
+    return `key_${bookName.replace(/\s/g, '_')}_${chapterNum}`;
+  }
 
-    let currentSuggestedReading = null;
-    let readStatus = {}; 
-
-    const totalBibleChapters = normalizedBibleBooks.reduce((sum, book) => sum + book.chapters, 0);
-
-    function sanitizeKey(bookName, chapterNum) {
-        return `key_${bookName.replace(/\s/g, '_').replace(/\u00A0/g, '_')}_${chapterNum}`;
+  function loadState() {
+    const saved = localStorage.getItem('bibleReadStatus');
+    if (saved) {
+      try { readStatus = JSON.parse(saved); }
+      catch(e) { console.error(e); readStatus = {}; }
     }
-    
-    function loadState() { 
-        const savedStatus = localStorage.getItem('bibleReadStatus');
-        if (savedStatus) {
-            try {
-                readStatus = JSON.parse(savedStatus);
-            } catch (e) {
-                console.error("Error al parsear readStatus desde localStorage:", e);
-                readStatus = {};
-            }
-        }
-        const savedStartDate = localStorage.getItem('planStartDate');
-        if (savedStartDate) {
-            planStartDateInput.value = savedStartDate;
-            try {
-                const dateObj = new Date(savedStartDate + "T00:00:00Z");
-                if (isNaN(dateObj.getTime())) {
-                    throw new Error("Fecha inválida generada.");
-                }
-                currentPlanStartDateText.textContent = `Tu plan de lectura actual comenzó el: ${dateObj.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric' })}`;
-            } catch (e) {
-                console.error("Error al procesar la fecha de inicio guardada:", e);
-                currentPlanStartDateText.textContent = `Fecha de inicio guardada: ${savedStartDate} (formato inválido o error al procesar)`;
-                localStorage.removeItem('planStartDate');
-            }
-        } else {
-            currentPlanStartDateText.textContent = "Aún no has establecido una fecha de inicio para tu plan.";
-        }
-    }
-
-    function saveState() { 
-        localStorage.setItem('bibleReadStatus', JSON.stringify(readStatus));
-    }
-    
-    function updateChapterButtonUI(bookName, chapterNum) {
-    const key = sanitizeKey(bookName, chapterNum);
-    // Limpiamos el ID como lo haces en renderBooks
-    const bookKeyForId = sanitizeKey(bookName, '').substring(4).replace(/_undefined$|_null$|_$/, '');
-    const bookSectionId = `chapters_${bookKeyForId}`;
-    const chaptersGridEl = document.getElementById(bookSectionId);
-
-    console.log(`updateChapterButtonUI: Libro "${bookName}", Cap ${chapterNum}, Clave "${key}", Estado: ${!!readStatus[key]}`); // Log 3
-    console.log(`Buscando grid con ID: "${bookSectionId}"`); // Log 4
-
-    if (chaptersGridEl) {
-        console.log("Grid de capítulos encontrado."); // Log 5
-        const escapedBookName = bookName.replace(/"/g, '\\"'); // Ya no necesitas el .replace(/\u00A0/g, ' ') si bookName ya está normalizado
-        const selector = `.chapter-button[data-book="${escapedBookName}"][data-chapter="${chapterNum}"]`;
-        console.log(`Intentando seleccionar botón con: ${selector}`); // Log 6
-        const button = chaptersGridEl.querySelector(selector);
-
-        if (button) {
-            console.log("Botón encontrado:", button); // Log 7
-            button.classList.toggle('read', !!readStatus[key]);
-            console.log("Clases del botón después de toggle:", button.className); // Log 8
-        } else {
-            console.error("Error: Botón NO encontrado con el selector."); // Log 9
-        }
+    const savedDate = localStorage.getItem('planStartDate');
+    if (savedDate) {
+      planStartDateInput.value = savedDate;
+      try {
+        const d = new Date(savedDate + "T00:00:00Z");
+        if (isNaN(d)) throw "";
+        currentPlanStartDateText.textContent =
+          `Tu plan de lectura actual comenzó el: ` +
+          d.toLocaleDateString('es-ES',
+            { timeZone: 'Europe/Madrid', day:'numeric',month:'long',year:'numeric' });
+      } catch {
+        currentPlanStartDateText.textContent =
+          `Fecha de inicio guardada inválida: ${savedDate}`;
+        localStorage.removeItem('planStartDate');
+      }
     } else {
-        console.error(`Error: Grid de capítulos con ID "${bookSectionId}" NO encontrado.`); // Log 10
+      currentPlanStartDateText.textContent =
+        "Aún no has establecido una fecha de inicio para tu plan.";
     }
-}
+  }
 
-    function updateOverallProgress() {
-        const readChaptersCount = Object.values(readStatus).filter(status => status).length;
-        const percentage = totalBibleChapters > 0 ? (readChaptersCount / totalBibleChapters) * 100 : 0;
-        
-        progressBar.style.width = `${percentage}%`;
-        progressBar.textContent = percentage > 10 ? `${Math.round(percentage)}%` : '';
-        progressText.textContent = `${Math.round(percentage)}% completado (${readChaptersCount}/${totalBibleChapters} capítulos)`;
+  function saveState() {
+    localStorage.setItem('bibleReadStatus', JSON.stringify(readStatus));
+  }
+
+  function updateChapterButtonUI(bookName, chapterNum) {
+    const key = sanitizeKey(bookName, chapterNum);
+    const bookId = sanitizeKey(bookName, '')
+                     .substring(4).replace(/_undefined$|_null$|_$/, '');
+    const grid = document.getElementById(`chapters_${bookId}`);
+    if (!grid) return console.error(`Grid no encontrado: ${bookId}`);
+    const selector = `.chapter-button[data-book="${bookName}"][data-chapter="${chapterNum}"]`;
+    const btn = grid.querySelector(selector);
+    if (!btn) return console.error(`Btn no encontrado: ${selector}`);
+    btn.classList.toggle('read', !!readStatus[key]);
+  }
+
+  function updateOverallProgress() {
+    const readCount = Object.values(readStatus).filter(v=>v).length;
+    const pct = totalBibleChapters
+      ? Math.round((readCount/totalBibleChapters)*100)
+      : 0;
+    progressBar.style.width = `${pct}%`;
+    progressBar.textContent = pct>10? `${pct}%`: '';
+    progressText.textContent =
+      `${pct}% completado (${readCount}/${totalBibleChapters} capítulos)`;
+  }
+
+  function updateBookProgress(bookName) {
+    const book = normalizedBibleBooks.find(b=>b.name===bookName);
+    if (!book) return;
+    let read = 0;
+    for (let i=1; i<=book.chapters; i++) {
+      if (readStatus[sanitizeKey(bookName,i)]) read++;
     }
-
-    function updateBookProgress(bookName) {
-        const bookData = normalizedBibleBooks.find(b => b.name === bookName);
-        if (!bookData) return;
-
-        let chaptersReadInBook = 0;
-        for (let i = 1; i <= bookData.chapters; i++) {
-            if (readStatus[sanitizeKey(bookName, i)]) {
-                chaptersReadInBook++;
-            }
-        }
-        const bookProgressElId = `progress_${sanitizeKey(bookName, '').substring(4)}`;
-        const bookProgressEl = document.getElementById(bookProgressElId);
-        if (bookProgressEl) {
-            const percentage = bookData.chapters > 0 ? (chaptersReadInBook / bookData.chapters) * 100 : 0;
-            bookProgressEl.textContent = `${Math.round(percentage)}% (${chaptersReadInBook}/${bookData.chapters})`;
-        }
+    const bookId = sanitizeKey(bookName,'')
+                     .substring(4).replace(/_undefined$|_null$|_$/,'');
+    const el = document.getElementById(`progress_${bookId}`);
+    if (el) {
+      const pct = book.chapters
+        ? Math.round((read/book.chapters)*100)
+        : 0;
+      el.textContent = `${pct}% (${read}/${book.chapters})`;
     }
-    
-    function toggleChapterRead(bookName, chapterNum) {
-        const key = sanitizeKey(bookName, chapterNum);
-        readStatus[key] = !readStatus[key];
-        
-        updateChapterButtonUI(bookName, chapterNum); 
-        saveState();
-        updateOverallProgress();
-        updateBookProgress(bookName);
-    }
-    
-    setPlanStartDateButton.addEventListener('click', () => {
-        const selectedDateString = planStartDateInput.value;
-        if (selectedDateString) {
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(selectedDateString)) {
-                alert("Por favor, introduce una fecha válida en formato AAAA-MM-DD.");
-                return;
-            }
-            localStorage.setItem('planStartDate', selectedDateString);
-            try {
-                const dateObj = new Date(selectedDateString + "T00:00:00Z");
-                 if (isNaN(dateObj.getTime())) {
-                    throw new Error("Fecha inválida generada.");
-                }
-                currentPlanStartDateText.textContent = `Tu plan de lectura actual comenzó el: ${dateObj.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric' })}`;
-                alert(`Fecha de inicio del plan establecida para el ${dateObj.toLocaleDateString('es-ES', {timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric' })}.`);
-            } catch (e) {
-                console.error("Error al establecer la fecha de inicio:", e);
-                alert("La fecha introducida no es válida o hubo un error al procesarla.");
-                localStorage.removeItem('planStartDate');
-                currentPlanStartDateText.textContent = "Error al establecer la fecha de inicio.";
-                return;
-            }
-            displayDailySuggestion();
-        } else {
-            alert("Por favor, selecciona una fecha de inicio.");
-        }
-    });
+  }
 
-    syncPlanButton.addEventListener('click', () => {
-        const selectedReadingIndex = parseInt(syncReadingSelect.value); 
-        if (isNaN(selectedReadingIndex) || selectedReadingIndex < 0 || selectedReadingIndex >= dailyReadingPlan.length) {
-            alert("Por favor, selecciona una lectura válida para sincronizar.");
-            return;
-        }
-
-        const today = new Date();
-        today.setUTCHours(0, 0, 0, 0); 
-
-        const newStartDate = new Date(today);
-        newStartDate.setUTCDate(today.getUTCDate() - selectedReadingIndex);
-
-        const newStartDateString = newStartDate.toISOString().split('T')[0]; 
-        
-        localStorage.setItem('planStartDate', newStartDateString);
-        planStartDateInput.value = newStartDateString; 
-        currentPlanStartDateText.textContent = `Plan sincronizado. Inicio ajustado al: ${newStartDate.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric' })}`;
-        
-        alert(`Plan sincronizado. Hoy (${today.toLocaleDateString('es-ES', {timeZone: 'Europe/Madrid', day: 'numeric', month: 'long'})}) corresponde a: "${dailyReadingPlan[selectedReadingIndex].displayText}". La fecha de inicio del plan se ha ajustado a ${newStartDate.toLocaleDateString('es-ES', {timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric' })}.`);
-        displayDailySuggestion(); 
-    });
-
-
-    function displayDailySuggestion() {
-        const today = new Date(); 
-        currentDateSpan.textContent = today.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Madrid' });
-
-        const savedStartDateString = localStorage.getItem('planStartDate');
-        if (!savedStartDateString) {
-            dailySuggestionText.textContent = "Establece o sincroniza una fecha de inicio para tu plan.";
-            markSuggestedAsReadButton.style.display = 'none';
-            currentSuggestedReading = null;
-            return;
-        }
-
-        let planStartDate;
-        try {
-            planStartDate = new Date(savedStartDateString + "T00:00:00Z"); 
-            if (isNaN(planStartDate.getTime())) {
-                 throw new Error("Fecha de inicio inválida en localStorage.");
-            }
-        } catch (e) {
-            console.error("Error al parsear planStartDate desde localStorage:", e);
-            dailySuggestionText.textContent = "Error con la fecha de inicio guardada. Por favor, establécela de nuevo.";
-            markSuggestedAsReadButton.style.display = 'none';
-            currentSuggestedReading = null;
-            localStorage.removeItem('planStartDate');
-            return;
-        }
-        
-        const todayNormalized = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
-
-        if (todayNormalized < planStartDate) {
-            const diffTimeAbs = planStartDate.getTime() - todayNormalized.getTime();
-            const diffDaysAbs = Math.ceil(diffTimeAbs / (1000 * 3600 * 24));
-            dailySuggestionText.textContent = `Tu plan de lectura comenzará el ${planStartDate.toLocaleDateString('es-ES', {timeZone:'Europe/Madrid', day: 'numeric', month: 'long', year: 'numeric' })}. Faltan ${diffDaysAbs} día(s).`;
-            markSuggestedAsReadButton.style.display = 'none';
-            currentSuggestedReading = null;
-            return;
-        }
-
-        const timeDiff = todayNormalized.getTime() - planStartDate.getTime();
-        const dayDifference = Math.floor(timeDiff / (1000 * 3600 * 24)); 
-        
-        if (dailyReadingPlan.length === 0) {
-            dailySuggestionText.textContent = "No hay plan de lectura definido.";
-            markSuggestedAsReadButton.style.display = 'none';
-            currentSuggestedReading = null;
-            return;
-        }
-        const readingIndex = dayDifference % dailyReadingPlan.length;
-        
-        currentSuggestedReading = dailyReadingPlan[readingIndex];
-
-        if (currentSuggestedReading) {
-            dailySuggestionText.textContent = `Día ${dayDifference + 1} de tu plan: ${currentSuggestedReading.displayText}`;
-            markSuggestedAsReadButton.style.display = 'inline-block';
-        } else {
-            dailySuggestionText.textContent = `No se encontró lectura para el día ${dayDifference + 1}. Verifica la configuración del plan.`;
-            markSuggestedAsReadButton.style.display = 'none';
-        }
-    }
-
-    markSuggestedAsReadButton.addEventListener('click', () => {
-        if (currentSuggestedReading) {
-            const { book, startChapter, endChapter } = currentSuggestedReading;
-            let changed = false;
-            const bookNameForRender = book.replace(/\u00A0/g, ' '); // Asegurar nombre normalizado
-
-            for (let i = startChapter; i <= endChapter; i++) {
-                const key = sanitizeKey(bookNameForRender, i);
-                if (!readStatus[key]) { 
-                    readStatus[key] = true;
-                    changed = true;
-                    updateChapterButtonUI(bookNameForRender, i); 
-                }
-            }
-            if (changed) {
-                saveState();
-                updateOverallProgress();
-                updateBookProgress(bookNameForRender);
-                alert(`${currentSuggestedReading.displayText} marcado(s) como leído(s).`);
-            } else {
-                alert(`Los capítulos de ${currentSuggestedReading.displayText} ya estaban marcados como leídos.`);
-            }
-            if (bookFilter.value === bookNameForRender || bookFilter.value === 'todos') {
-                renderBooks(bookFilter.value, statusFilter.value);
-            }
-        }
-    });
-
-    function renderBooks(filterBook = 'todos', filterStatus = 'todos') {
-        bibleBooksContainer.innerHTML = ''; 
-        const filteredBooksSource = normalizedBibleBooks.filter(book => 
-            filterBook === 'todos' || book.name === filterBook
-        );
-
-        filteredBooksSource.forEach(book => {
-            const bookSection = document.createElement('div');
-            bookSection.className = 'book-section';
-            const bookKeyForId = sanitizeKey(book.name, '').substring(4).replace(/_undefined$|_null$|_$/, '');
-
-            bookSection.innerHTML = `
-                <div class="book-title">
-                    ${book.name}
-                    <span class="book-progress" id="progress_${bookKeyForId}"></span>
-                </div>
-                <div class="chapters-grid" id="chapters_${bookKeyForId}"></div>
-            `;
-            bibleBooksContainer.appendChild(bookSection);
-            
-            const currentChaptersGrid = document.getElementById(`chapters_${bookKeyForId}`);
-            if (!currentChaptersGrid) {
-                console.error(`Elemento chapters-grid no encontrado para: chapters_${bookKeyForId}`);
-                return; 
-            }
-            let hasVisibleChapters = false;
-
-            for (let i = 1; i <= book.chapters; i++) {
-                const chapterKey = sanitizeKey(book.name, i);
-                const isRead = readStatus[chapterKey] || false;
-
-                let showChapter = true;
-                if (filterStatus === 'leidos' && !isRead) {
-                    showChapter = false;
-                } else if (filterStatus === 'no_leidos' && isRead) {
-                    showChapter = false;
-                }
-
-                if (showChapter) {
-                    hasVisibleChapters = true;
-                    const chapterButton = document.createElement('button');
-                    chapterButton.className = 'chapter-button';
-                    chapterButton.textContent = i;
-                    chapterButton.dataset.book = book.name; // Usa el nombre normalizado
-                    chapterButton.dataset.chapter = i;
-
-                    if (isRead) {
-                        chapterButton.classList.add('read');
-                    }
-                    chapterButton.addEventListener('click', () => {
-                        toggleChapterRead(book.name, i); 
-                    });
-                    currentChaptersGrid.appendChild(chapterButton);
-                }
-            }
-            updateBookProgress(book.name); 
-
-            if (!hasVisibleChapters && (filterStatus !== 'todos' || (filterBook !== 'todos' && filterBook === book.name))) {
-                 if (book.chapters > 0) { 
-                    bookSection.style.display = 'none';
-                 }
-            } else {
-                bookSection.style.display = ''; // Asegurar que sea visible si tiene capítulos o no hay filtro restrictivo
-            }
-        });
-    }
-
-    function populateFiltersAndSyncOptions() { 
-        bookFilter.innerHTML = '<option value="todos">Todos los Libros</option>';
-        syncReadingSelect.innerHTML = ''; 
-
-        normalizedBibleBooks.forEach(book => {
-            const option = document.createElement('option');
-            option.value = book.name; 
-            option.textContent = book.name;
-            bookFilter.appendChild(option);
-        });
-        bookFilter.addEventListener('change', (e) => renderBooks(e.target.value, statusFilter.value));
-        statusFilter.addEventListener('change', (e) => renderBooks(bookFilter.value, e.target.value));
-
-        if (dailyReadingPlan && dailyReadingPlan.length > 0) {
-            dailyReadingPlan.forEach((reading, index) => {
-                const option = document.createElement('option');
-                option.value = index; 
-                option.textContent = `Día ${index + 1}: ${reading.displayText}`;
-                syncReadingSelect.appendChild(option);
-            });
-            syncPlanButton.disabled = false;
-        } else {
-            const option = document.createElement('option');
-            option.textContent = "No hay plan de lectura disponible";
-            option.disabled = true;
-            syncReadingSelect.appendChild(option);
-            syncPlanButton.disabled = true;
-        }
-    }
-
-    resetProgressButton.addEventListener('click', () => {
-        if (confirm('¿Estás seguro de que quieres reiniciar todo tu progreso de lectura de capítulos? Esta acción no se puede deshacer.')) {
-            readStatus = {};
-            saveState();
-            renderBooks(bookFilter.value, statusFilter.value); 
-            updateOverallProgress(); 
-            alert("Progreso reiniciado.");
-        }
-    });
-
-    // --- INICIALIZACIÓN ---
-    loadState(); 
-    populateFiltersAndSyncOptions();
-    displayDailySuggestion(); 
-    renderBooks(); 
+  function toggleChapterRead(bookName, chapterNum) {
+    const key = sanitizeKey(bookName, chapterNum);
+    readStatus[key] = !readStatus[key];
+    updateChapterButtonUI(bookName, chapterNum);
+    saveState();
     updateOverallProgress();
+    updateBookProgress(bookName);
+  }
 
-    // --- REGISTRO DEL SERVICE WORKER PARA PWA ---
-    // Movido aquí para asegurar que el DOM está completamente cargado y los scripts iniciales han corrido
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { 
-            navigator.serviceWorker.register('/sw.js')
-                .then(registration => {
-                    console.log('Service Worker para PWA registrado con éxito, alcance:', registration.scope);
-                })
-                .catch(error => {
-                    console.error('Error al registrar el Service Worker para PWA:', error);
-                });
-        });
+  setPlanStartDateButton.addEventListener('click', ()=>{
+    const d = planStartDateInput.value;
+    if (!d.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return alert("Fecha inválida. Usa AAAA-MM-DD.");
     }
+    localStorage.setItem('planStartDate', d);
+    loadState();
+    displayDailySuggestion();
+    alert("Fecha de inicio establecida.");
+  });
+
+  syncPlanButton.addEventListener('click', ()=>{
+    const idx = parseInt(syncReadingSelect.value);
+    if (isNaN(idx)) return alert("Selecciona una lectura válida.");
+    const today = new Date();
+    today.setUTCHours(0,0,0,0);
+    const newStart = new Date(today);
+    newStart.setUTCDate(today.getUTCDate() - idx);
+    const s = newStart.toISOString().split('T')[0];
+    localStorage.setItem('planStartDate', s);
+    planStartDateInput.value = s;
+    loadState();
+    displayDailySuggestion();
+    alert("Plan sincronizado.");
+  });
+
+  function displayDailySuggestion() {
+    const now = new Date();
+    currentDateSpan.textContent = now.toLocaleDateString('es-ES',
+      { weekday:'long', year:'numeric', month:'long', day:'numeric',
+        timeZone:'Europe/Madrid' });
+    const sd = localStorage.getItem('planStartDate');
+    if (!sd) {
+      dailySuggestionText.textContent =
+        "Establece o sincroniza una fecha de inicio.";
+      markSuggestedAsReadButton.style.display = 'none';
+      return;
+    }
+    let ps;
+    try {
+      ps = new Date(sd + "T00:00:00Z");
+      if (isNaN(ps)) throw "";
+    } catch {
+      dailySuggestionText.textContent =
+        "Error con la fecha guardada. Reestablece.";
+      markSuggestedAsReadButton.style.display = 'none';
+      return localStorage.removeItem('planStartDate');
+    }
+    const todayUTC = new Date(Date.UTC(
+      now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()
+    ));
+    if (todayUTC < ps) {
+      const diff = Math.ceil((ps - todayUTC)/(1000*3600*24));
+      dailySuggestionText.textContent =
+        `Tu plan comenzará el ${ps.toLocaleDateString('es-ES',
+          {day:'numeric',month:'long',year:'numeric'})}. `+
+        `Faltan ${diff} día(s).`;
+      markSuggestedAsReadButton.style.display = 'none';
+      return;
+    }
+    const dayDiff = Math.floor((todayUTC - ps)/(1000*3600*24));
+    if (!dailyReadingPlan.length) {
+      dailySuggestionText.textContent = "No hay plan de lectura.";
+      markSuggestedAsReadButton.style.display = 'none';
+      return;
+    }
+    const idx = dayDiff % dailyReadingPlan.length;
+    currentSuggestedReading = dailyReadingPlan[idx];
+    dailySuggestionText.textContent =
+      `Día ${dayDiff+1}: ${currentSuggestedReading.displayText}`;
+    markSuggestedAsReadButton.style.display = 'inline-block';
+  }
+
+  markSuggestedAsReadButton.addEventListener('click', ()=>{
+    if (!currentSuggestedReading) return;
+    const { book, startChapter, endChapter } = currentSuggestedReading;
+    let changed = false;
+    for (let i=startChapter; i<=endChapter; i++) {
+      const key = sanitizeKey(book, i);
+      if (!readStatus[key]) {
+        readStatus[key] = true;
+        updateChapterButtonUI(book, i);
+        changed = true;
+      }
+    }
+    if (changed) {
+      saveState();
+      updateOverallProgress();
+      updateBookProgress(book);
+      alert(`${currentSuggestedReading.displayText} marcado como leído.`);
+    } else {
+      alert(`Ya estaban leídos.`);
+    }
+  });
+
+  function renderBooks(filterBook='todos', filterStatus='todos') {
+    bibleBooksContainer.innerHTML = '';
+    const list = normalizedBibleBooks.filter(b=>
+      filterBook==='todos'||b.name===filterBook
+    );
+    list.forEach(book=>{
+      const bookId = sanitizeKey(book.name,'')
+                       .substring(4).replace(/_undefined$|_null$|_$/,'');
+      const section = document.createElement('div');
+      section.className = 'book-section';
+      section.innerHTML = `
+        <div class="book-title">
+          ${book.name}
+          <span class="book-progress" id="progress_${bookId}"></span>
+        </div>
+        <div class="chapters-grid" id="chapters_${bookId}"></div>
+      `;
+      bibleBooksContainer.appendChild(section);
+      const grid = section.querySelector('.chapters-grid');
+      let has = false;
+      for (let i=1; i<=book.chapters; i++) {
+        const key = sanitizeKey(book.name, i);
+        const isRead = !!readStatus[key];
+        if (
+          (filterStatus==='leidos'&&!isRead) ||
+          (filterStatus==='no_leidos'&&isRead)
+        ) continue;
+        has = true;
+        const btn = document.createElement('button');
+        btn.className = 'chapter-button';
+        btn.textContent = i;
+        btn.dataset.book = book.name;
+        btn.dataset.chapter = i;
+        if (isRead) btn.classList.add('read');
+        btn.addEventListener('click', ()=> toggleChapterRead(book.name, i));
+        grid.appendChild(btn);
+      }
+      if (!has && filterStatus!=='todos') section.style.display='none';
+      updateBookProgress(book.name);
+    });
+  }
+
+  function populateFiltersAndSyncOptions() {
+    bookFilter.innerHTML = '<option value="todos">Todos los Libros</option>';
+    normalizedBibleBooks.forEach(b=>{
+      const o = document.createElement('option');
+      o.value = b.name; o.textContent = b.name;
+      bookFilter.appendChild(o);
+    });
+    bookFilter.addEventListener('change', ()=> 
+      renderBooks(bookFilter.value, statusFilter.value)
+    );
+    statusFilter.addEventListener('change', ()=> 
+      renderBooks(bookFilter.value, statusFilter.value)
+    );
+
+    syncReadingSelect.innerHTML = '';
+    dailyReadingPlan.forEach((r,i)=>{
+      const o = document.createElement('option');
+      o.value = i; o.textContent = `Día ${i+1}: ${r.displayText}`;
+      syncReadingSelect.appendChild(o);
+    });
+  }
+
+  resetProgressButton.addEventListener('click', ()=>{
+    if (!confirm('¿Reiniciar todo el progreso?')) return;
+    readStatus = {};
+    saveState();
+    renderBooks(bookFilter.value, statusFilter.value);
+    updateOverallProgress();
+    alert("Progreso reiniciado.");
+  });
+
+  // --- Inicialización ---
+  loadState();
+  populateFiltersAndSyncOptions();
+  displayDailySuggestion();
+  renderBooks();
+  updateOverallProgress();
+
+  // --- Service Worker PWA ---
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('/sw.js')
+        .then(r=> console.log('SW scope:', r.scope))
+        .catch(e=> console.error('SW err:', e));
+    });
+  }
 });
