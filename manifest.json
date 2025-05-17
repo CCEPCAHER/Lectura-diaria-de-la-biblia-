@@ -1,6 +1,6 @@
 {
     "name": "Mi Progreso Bíblico",
-    "short_name": "ProgresoBiblia",
+    "short_name": "LecturaBíblica",
     "description": "Una aplicación para seguir tu progreso de lectura de la Biblia.",
     "start_url": "/index.html",
     "display": "standalone",
