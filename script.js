@@ -356,13 +356,10 @@ document.addEventListener('DOMContentLoaded', () => {
       { "book": "Joel",       "startChapter": 1,  "endChapter": 3,  "displayText": "Joel 1-3"       },
       { "book": "Amós",       "startChapter": 1,  "endChapter": 5,  "displayText": "Amós 1-5"       },
       { "book": "Amós",       "startChapter": 6,  "endChapter": 9,  "displayText": "Amós 6-9"       },
-      { "book": "Abdías",     "startChapter": 1,  "endChapter": 1,  "displayText": "Abdías 1"       },
-      { "book": "Jonás",      "startChapter": 1,  "endChapter": 4,  "displayText": "Jonás 1-4"      },
+      { "book": "Abdías, Jonás", "startChapter": 1, "endChapter": 1, "displayText": "Abdías 1, Jonás 1-4"      },
       { "book": "Miqueas",    "startChapter": 1,  "endChapter": 7,  "displayText": "Miqueas 1-7"    },
-      { "book": "Nahúm",      "startChapter": 1,  "endChapter": 3,  "displayText": "Nahúm 1-3"      },
-      { "book": "Habacuc",    "startChapter": 1,  "endChapter": 3,  "displayText": "Habacuc 1-3"    },
-      { "book": "Sofonías",   "startChapter": 1,  "endChapter": 3,  "displayText": "Sofonías 1-3"   },
-      { "book": "Ageo",       "startChapter": 1,  "endChapter": 2,  "displayText": "Ageo 1-2"       },
+      { "book": "Nahúm, Habacuc", "startChapter": 1, "endChapter": 3, "displayText": "Nahúm 1-3, Habacuc 1-3"    },
+      { "book": "Sofonías, Ageo", "startChapter": 1, "endChapter": 3, "displayText": "Sofonías 1-3, Ageo 1-2"       },
       { "book": "Zacarías",   "startChapter": 1,  "endChapter": 7,  "displayText": "Zacarías 1-7"   },
       { "book": "Zacarías",   "startChapter": 8,  "endChapter": 11, "displayText": "Zacarías 8-11"  },
       { "book": "Zacarías",   "startChapter": 12, "endChapter": 14, "displayText": "Zacarías 12-14" },
@@ -431,8 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
       { "book": "2 Tesalonicenses","startChapter": 1,"endChapter": 3,"displayText": "2 Tesalonicenses 1-3"},//Normalizado
       { "book": "1 Timoteo",  "startChapter": 1,  "endChapter": 6,  "displayText": "1 Timoteo 1-6"  },//Normalizado
       { "book": "2 Timoteo",  "startChapter": 1,  "endChapter": 4,  "displayText": "2 Timoteo 1-4"  },//Normalizado
-      { "book": "Tito",       "startChapter": 1,  "endChapter": 3,  "displayText": "Tito 1-3"       },
-      { "book": "Filemón",    "startChapter": 1,  "endChapter": 1,  "displayText": "Filemón 1"      },
+      { "book": "Tito, Filemón", "startChapter": 1, "endChapter": 3, "displayText": "Tito 1-3, Filemón 1"      },
       { "book": "Hebreos",    "startChapter": 1,  "endChapter": 6,  "displayText": "Hebreos 1-6"    },
       { "book": "Hebreos",    "startChapter": 7,  "endChapter": 10, "displayText": "Hebreos 7-10"   },
       { "book": "Hebreos",    "startChapter": 11, "endChapter": 13, "displayText": "Hebreos 11-13"  },
@@ -440,9 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
       { "book": "1 Pedro",    "startChapter": 1,  "endChapter": 5,  "displayText": "1 Pedro 1-5"    },//Normalizado
       { "book": "2 Pedro",    "startChapter": 1,  "endChapter": 3,  "displayText": "2 Pedro 1-3"    },//Normalizado
       { "book": "1 Juan",     "startChapter": 1,  "endChapter": 5,  "displayText": "1 Juan 1-5"     },//Normalizado
-      { "book": "2 Juan",     "startChapter": 1,  "endChapter": 1,  "displayText": "2 Juan 1"       },//Normalizado
-      { "book": "3 Juan",     "startChapter": 1,  "endChapter": 1,  "displayText": "3 Juan 1"       },//Normalizado
-      { "book": "Judas",      "startChapter": 1,  "endChapter": 1,  "displayText": "Judas 1"        },
+      { "book": "2 Juan, 3 Juan, Judas", "startChapter": 1, "endChapter": 1, "displayText": "2 Juan 1, 3 Juan 1, Judas 1"        },
       { "book": "Apocalipsis","startChapter": 1,  "endChapter": 4,  "displayText": "Apocalipsis 1-4"  },
       { "book": "Apocalipsis","startChapter": 5,  "endChapter": 9,  "displayText": "Apocalipsis 5-9"  },
       { "book": "Apocalipsis","startChapter": 10, "endChapter": 14, "displayText": "Apocalipsis 10-14"},
