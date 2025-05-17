@@ -511,18 +511,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function updateChapterButtonUI(bookName, chapterNum) {
-        const key = sanitizeKey(bookName, chapterNum);
-        const bookSectionId = `chapters_${sanitizeKey(bookName, '').substring(4)}`;
-        const chaptersGridEl = document.getElementById(bookSectionId);
+    const key = sanitizeKey(bookName, chapterNum);
+    // Limpiamos el ID como lo haces en renderBooks
+    const bookKeyForId = sanitizeKey(bookName, '').substring(4).replace(/_undefined$|_null$|_$/, '');
+    const bookSectionId = `chapters_${bookKeyForId}`;
+    const chaptersGridEl = document.getElementById(bookSectionId);
 
-        if (chaptersGridEl) {
-            const escapedBookName = bookName.replace(/"/g, '\\"').replace(/\u00A0/g, ' ');
-            const button = chaptersGridEl.querySelector(`.chapter-button[data-book="${escapedBookName}"][data-chapter="${chapterNum}"]`);
-            if (button) {
-                button.classList.toggle('read', !!readStatus[key]);
-            }
+    console.log(`updateChapterButtonUI: Libro "${bookName}", Cap ${chapterNum}, Clave "${key}", Estado: ${!!readStatus[key]}`); // Log 3
+    console.log(`Buscando grid con ID: "${bookSectionId}"`); // Log 4
+
+    if (chaptersGridEl) {
+        console.log("Grid de capítulos encontrado."); // Log 5
+        const escapedBookName = bookName.replace(/"/g, '\\"'); // Ya no necesitas el .replace(/\u00A0/g, ' ') si bookName ya está normalizado
+        const selector = `.chapter-button[data-book="${escapedBookName}"][data-chapter="${chapterNum}"]`;
+        console.log(`Intentando seleccionar botón con: ${selector}`); // Log 6
+        const button = chaptersGridEl.querySelector(selector);
+
+        if (button) {
+            console.log("Botón encontrado:", button); // Log 7
+            button.classList.toggle('read', !!readStatus[key]);
+            console.log("Clases del botón después de toggle:", button.className); // Log 8
+        } else {
+            console.error("Error: Botón NO encontrado con el selector."); // Log 9
         }
+    } else {
+        console.error(`Error: Grid de capítulos con ID "${bookSectionId}" NO encontrado.`); // Log 10
     }
+}
 
     function updateOverallProgress() {
         const readChaptersCount = Object.values(readStatus).filter(status => status).length;
