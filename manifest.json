@@ -1,26 +1,20 @@
 {
-  "name": "Plan de Lectura Bíblica Anual",
-  "short_name": "LecturaBiblia",
-  "description": "Un planificador y seguidor para tu lectura bíblica anual.",
-  "lang": "es-ES",
-  "start_url": "/index.html",
+  "name": "Plan de lectura bíblica anual,",
+  "short_name": "Lectura Bíblica",
+  "start_url": "./index.html",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#f4f4f4",
-  "theme_color": "#007bff",
-  "scope": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#2980b9",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
