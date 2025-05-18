@@ -49,7 +49,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: calc(var(--spacing)*2);
+  padding: calc(var(--spacing) * 2);
 }
 
 /* Contenedor principal */
@@ -58,12 +58,12 @@ body {
   max-width: 1140px;
   margin: auto;
   background: var(--card-background-color);
-  padding: calc(var(--spacing)*3);
+  padding: calc(var(--spacing) * 3);
   border-radius: var(--border-radius);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing)*3);
+  gap: calc(var(--spacing) * 3);
 }
 
 /* — Destacado: fecha y propuesta diaria — */
@@ -73,11 +73,20 @@ body {
   align-items: center;
   background: var(--secondary-color);
   color: #fff;
-  padding: calc(var(--spacing)*2);
+  padding: calc(var(--spacing) * 2);
   border-radius: var(--border-radius);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
   gap: var(--spacing);
+}
+
+/* Indicador de días de retraso */
+#delay-indicator {
+  margin: calc(var(--spacing) * 1.5) 0;
+  font-size: var(--font-size-xl);
+  color: var(--danger-color);
+  font-weight: 600;
+  text-align: center;
 }
 
 /* Fecha grande */
@@ -87,29 +96,29 @@ body {
   text-transform: capitalize;
 }
 
-/* Texto de propuesta */
+/* Texto de propuesta diaria */
 #dailySuggestionText {
   font-size: var(--font-size-xl);
   font-weight: 600;
   background: var(--accent-color);
   color: #2c3e50;
-  padding: calc(var(--spacing)*1) calc(var(--spacing)*2);
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
   border-radius: var(--border-radius);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   max-width: 100%;
   word-wrap: break-word;
 }
 
-/* Botón de marcar */
+/* Botón de marcar (Marcar Leído) */
 #markSuggestedAsRead {
-  margin-top: calc(var(--spacing)*1.5);
+  margin-top: calc(var(--spacing) * 1.5);
   background: #fff;
   color: var(--secondary-color);
   font-weight: 600;
-  padding: calc(var(--spacing)*0.75) calc(var(--spacing)*1.5);
+  padding: calc(var(--spacing) * 0.75) calc(var(--spacing) * 1.5);
   border-radius: var(--border-radius);
   border: 2px solid var(--secondary-color);
-  transition: background .2s, color .2s;
+  transition: background 0.2s, color 0.2s;
 }
 #markSuggestedAsRead:hover {
   background: var(--secondary-color);
@@ -121,17 +130,17 @@ h1, h2 {
   color: var(--primary-color);
   border-bottom: 2px solid var(--accent-color);
   padding-bottom: var(--spacing);
-  margin-bottom: calc(var(--spacing)*2);
+  margin-bottom: calc(var(--spacing) * 2);
 }
 h1 { font-size: var(--font-size-2xl); }
 h2 { font-size: var(--font-size-xl); }
 
-/* — Layout main + aside en tablet+ — */
+/* — Layout main + aside en tablet en adelante — */
 @media (min-width: 768px) {
   .container > main {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: calc(var(--spacing)*3);
+    gap: calc(var(--spacing) * 3);
   }
 }
 
@@ -157,12 +166,12 @@ h2 { font-size: var(--font-size-xl); }
   line-height: 32px;
   color: #fff;
   font-weight: 600;
-  transition: width .5s ease-in-out;
-  font-size: .875rem;
+  transition: width 0.5s ease-in-out;
+  font-size: 0.875rem;
 }
 #progressText {
   white-space: nowrap;
-  font-size: .9rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--primary-color);
 }
@@ -170,14 +179,14 @@ h2 { font-size: var(--font-size-xl); }
 /* — Grupos de formulario — */
 .field-group {
   background: #fff;
-  padding: calc(var(--spacing)*1.5);
+  padding: calc(var(--spacing) * 1.5);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  margin-bottom: calc(var(--spacing)*2);
+  margin-bottom: calc(var(--spacing) * 2);
 }
 .field-group label {
   display: block;
-  margin-bottom: calc(var(--spacing)*0.75);
+  margin-bottom: calc(var(--spacing) * 0.75);
   font-weight: 600;
   color: var(--primary-color);
   font-size: var(--font-size-lg);
@@ -185,7 +194,7 @@ h2 { font-size: var(--font-size-xl); }
 .field-group input[type="date"],
 .field-group select {
   width: 100%;
-  padding: calc(var(--spacing)*1);
+  padding: calc(var(--spacing) * 1);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   font-size: var(--font-size-base);
@@ -194,7 +203,7 @@ h2 { font-size: var(--font-size-xl); }
 /* — Botones generales — */
 button {
   display: inline-block;
-  padding: calc(var(--spacing)*0.75) calc(var(--spacing)*1.5);
+  padding: calc(var(--spacing) * 0.75) calc(var(--spacing) * 1.5);
   background: var(--secondary-color);
   color: #fff;
   border: none;
@@ -202,7 +211,7 @@ button {
   font-size: var(--font-size-base);
   font-weight: 500;
   cursor: pointer;
-  transition: background .2s, box-shadow .2s, transform .1s;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
   margin: var(--spacing) 0 0 0;
 }
 button:hover { background: var(--button-hover-bg); }
@@ -223,9 +232,9 @@ button:focus-visible {
   background: var(--card-background-color);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  padding: calc(var(--spacing)*2);
-  margin-bottom: calc(var(--spacing)*3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: calc(var(--spacing) * 2);
+  margin-bottom: calc(var(--spacing) * 3);
 }
 .book-title {
   display: flex;
@@ -239,9 +248,9 @@ button:focus-visible {
 }
 .book-progress {
   background: #eaf6f6;
-  padding: calc(var(--spacing)*0.5) var(--spacing);
+  padding: calc(var(--spacing) * 0.5) var(--spacing);
   border-radius: 10px;
-  font-size: .8rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--text-light-color);
 }
@@ -252,7 +261,7 @@ button:focus-visible {
 }
 .chapter-button {
   padding: var(--spacing);
-  font-size: .875rem;
+  font-size: 0.875rem;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   background: var(--unread-color);
@@ -260,7 +269,7 @@ button:focus-visible {
   cursor: pointer;
   font-weight: 500;
   text-align: center;
-  transition: background .2s, transform .1s, border-color .2s;
+  transition: background 0.2s, transform 0.1s, border-color 0.2s;
 }
 .chapter-button.read {
   background: var(--read-color);
@@ -269,17 +278,17 @@ button:focus-visible {
 }
 .chapter-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border-color: var(--secondary-color);
 }
 
 /* — Footer — */
 footer {
   text-align: center;
-  margin-top: calc(var(--spacing)*4);
-  padding-top: calc(var(--spacing)*2);
+  margin-top: calc(var(--spacing) * 4);
+  padding-top: calc(var(--spacing) * 2);
   border-top: 1px solid var(--border-color);
-  font-size: .875rem;
+  font-size: 0.875rem;
   color: var(--text-light-color);
 }
 
@@ -293,11 +302,21 @@ footer {
 }
 /* Móviles muy pequeños */
 @media (max-width: 400px) {
-  body, .container { padding: var(--spacing); }
+  body,
+  .container { padding: var(--spacing); }
   h1 { font-size: 1.75rem; }
   h2 { font-size: 1.25rem; }
   .book-title { font-size: var(--font-size-lg); }
-  .chapters-grid { grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 6px; }
-  .chapter-button { font-size: .8rem; padding: 6px; }
-  #progressBar { line-height: 24px; font-size: .75rem; }
+  .chapters-grid {
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+    gap: 6px;
+  }
+  .chapter-button {
+    font-size: 0.8rem;
+    padding: 6px;
+  }
+  #progressBar {
+    line-height: 24px;
+    font-size: 0.75rem;
+  }
 }
