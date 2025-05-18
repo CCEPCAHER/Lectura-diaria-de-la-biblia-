@@ -485,10 +485,11 @@ document.addEventListener('DOMContentLoaded', () => {
       { "book": "1 Juan",     "startChapter": 1,  "endChapter": 5,  "displayText": "1 Juan 1-5"     },
       { "book": "2 Juan, 3 Juan, Judas", "startChapter": 1, "endChapter": 1, "displayText": "2 Juan 1, 3 Juan 1, Judas 1" },
       { "book": "Apocalipsis","startChapter": 1,  "endChapter": 4,  "displayText": "Apocalipsis 1-4"  },
-      { "book": "Apocalipsis","startChapter": 5,  "endChapter": 9,  "displayText": "Apocalipsis 5-9"  },
-      { "book": "Apocalipsis","startChapter": 10, "endChapter": 14, "displayText": "Apocalipsis 10-14"},
-      { "book": "Apocalipsis","startChapter": 15, "endChapter": 18, "displayText": "Apocalipsis 15-18"},
-      { "book": "Apocalipsis","startChapter": 19, "endChapter": 22, "displayText": "Apocalipsis 19-22"}
+      { "book": "Apocalipsis","startChapter": 5,  "endChapter": 8,  "displayText": "Apocalipsis 5-8"  },
+      { "book": "Apocalipsis","startChapter": 9, "endChapter": 12, "displayText": "Apocalipsis 9-12"},
+      { "book": "Apocalipsis","startChapter": 13, "endChapter": 16, "displayText": "Apocalipsis 13-16"},
+{ "book": "Apocalipsis","startChapter": 17, "endChapter": 19, "displayText": "Apocalipsis 17-18"},
+      { "book": "Apocalipsis","startChapter": 20, "endChapter": 22, "displayText": "Apocalipsis 20-22"}
     ];
 
     const bibleBooksContainer = document.getElementById('bibleBooksContainer');
