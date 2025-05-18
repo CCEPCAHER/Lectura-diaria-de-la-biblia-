@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mi Progreso Bíblico</title>
 
-  <!-- Hoja de estilos (relativa) -->
+  <!-- Hoja de estilos -->
   <link rel="stylesheet" href="style.css">
 
   <!-- Manifest (relativo) -->
@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Progreso Bíblico">
 
-  <!-- Iconos (relativos) -->
+  <!-- Iconos -->
   <link rel="icon" href="icons/icon-192x192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
@@ -24,6 +24,7 @@
   <div class="container">
     <header>
       <h1>Mi Progreso de Lectura Bíblica</h1>
+      
       <div id="current-date-suggestion">
         <p><span id="currentDate"></span></p>
         <div id="daily-suggestion">
@@ -31,8 +32,16 @@
           <button id="markSuggestedAsRead" style="display: none;">Marcar Leído</button>
         </div>
       </div>
+
+      <!-- Indicador de días de retraso -->
+      <div id="delay-indicator">
+        <p>Días de retraso: <span id="daysDelayed">0</span></p>
+      </div>
+
       <div class="progress-container">
-        <div class="progress-bar-overall"><div id="progressBar"></div></div>
+        <div class="progress-bar-overall">
+          <div id="progressBar"></div>
+        </div>
         <span id="progressText">0%</span>
       </div>
     </header>
@@ -80,19 +89,28 @@
     </footer>
   </div>
 
-  <!-- Script principal con defer para garantizar que se ejecute después del parseo del HTML -->
+  <!-- Script principal -->
   <script src="./script.js" defer></script>
   <script>
-    // Esperar a que el DOM esté completamente cargado
+    // Inicialización del DOM
     document.addEventListener('DOMContentLoaded', function () {
       // Actualizar el año dinámico
       document.getElementById('currentYear').textContent = new Date().getFullYear();
 
-      // Aquí puedes agregar más código inicial si es necesario,
-      // por ejemplo, actualizar #currentDate o cargar los libros en #bibleBooksContainer.
+      // Actualizar y mostrar la fecha actual
+      const currentDateElem = document.getElementById('currentDate');
+      currentDateElem.textContent = new Date().toLocaleDateString();
+
+      // Sugerencia diaria (puedes personalizar la lógica)
+      const dailySuggestionText = document.getElementById('dailySuggestionText');
+      dailySuggestionText.textContent = "Lee el capítulo asignado de hoy.";
+
+      // Muestra el botón para marcar la lectura como completada
+      const markAsReadButton = document.getElementById('markSuggestedAsRead');
+      markAsReadButton.style.display = 'inline-block';
     });
 
-    // Registro del Service Worker al cargarse la ventana completa
+    // Registro del Service Worker para PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function(){
         navigator.serviceWorker.register('sw.js')
