@@ -28,12 +28,9 @@ function actualizarDiasRetraso() {
             diasRetraso = calcularDiasDiferencia(ultimaLecturaSinHora, hoySinHora);
         }
     } else {
-        // Si no hay 'lastReadingDate', se considera 0 días de retraso desde la última marca,
-        // ya que nunca se ha marcado nada. Podrías cambiarlo a "N/A" o
-        // calcular desde planStartDate si prefieres "retraso del plan".
-        diasRetraso = 0; 
+        diasRetraso = 0;
     }
-    
+
     const daysDelayedEl = document.getElementById('daysDelayed');
     if (daysDelayedEl) {
         daysDelayedEl.textContent = diasRetraso;
@@ -119,378 +116,306 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const normalizedBibleBooks = bibleBooks.map(book => ({
         ...book,
-        name: book.name.replace(/\u00A0/g, ' ') 
+        name: book.name.replace(/\u00A0/g, ' ').replace(/Ι/g, 'I') // Also replace Greek Iota if present
     }));
+    
+    // Helper function to create a plan entry more easily
+    // For single book entries in the plan
+    function createStdPlanEntry(bookName, startChapter, endChapter) {
+        return { book: bookName, startChapter: startChapter, endChapter: endChapter, displayText: `${bookName} ${startChapter}-${endChapter}`};
+    }
+    // For single chapter readings or special displayText
+    function createSpecialPlanEntry(bookName, chapter, specialDisplayText) {
+         return { book: bookName, startChapter: chapter, endChapter: chapter, displayText: specialDisplayText || `${bookName} ${chapter}`};
+    }
+    // For combined books or very custom displayText
+    function createCombinedPlanEntry(compositeBookName, firstBookStartChap, firstBookEndChap, secondBookStartChap, secondBookEndChap, thirdBookStartChap, thirdBookEndChap, customDisplayText){
+        // This is simplified; actual start/end chapters for URL gen will come from parsing customDisplayText
+        return { book: compositeBookName, startChapter:1, endChapter:1, displayText: customDisplayText};
+    }
+
 
     const dailyReadingPlan = [
-      { "book": "Génesis", "startChapter": 1,  "endChapter": 3,  "displayText": "Génesis 1-3"   },
-      { "book": "Génesis", "startChapter": 4,  "endChapter": 7,  "displayText": "Génesis 4-7"   },
-      { "book": "Génesis", "startChapter": 8,  "endChapter": 11, "displayText": "Génesis 8-11"  },
-      { "book": "Génesis", "startChapter": 12, "endChapter": 15, "displayText": "Génesis 12-15" },
-      { "book": "Génesis", "startChapter": 16, "endChapter": 18, "displayText": "Génesis 16-18" },
-      { "book": "Génesis", "startChapter": 19, "endChapter": 22, "displayText": "Génesis 19-22" },
-      { "book": "Génesis", "startChapter": 23, "endChapter": 24, "displayText": "Génesis 23-24" },
-      { "book": "Génesis", "startChapter": 25, "endChapter": 27, "displayText": "Génesis 25-27" },
-      { "book": "Génesis", "startChapter": 28, "endChapter": 30, "displayText": "Génesis 28-30" },
-      { "book": "Génesis", "startChapter": 31, "endChapter": 32, "displayText": "Génesis 31-32" },
-      { "book": "Génesis", "startChapter": 33, "endChapter": 34, "displayText": "Génesis 33-34" },
-      { "book": "Génesis", "startChapter": 35, "endChapter": 37, "displayText": "Génesis 35-37" },
-      { "book": "Génesis", "startChapter": 38, "endChapter": 40, "displayText": "Génesis 38-40" },
-      { "book": "Génesis", "startChapter": 41, "endChapter": 42, "displayText": "Génesis 41-42" },
-      { "book": "Génesis", "startChapter": 43, "endChapter": 45, "displayText": "Génesis 43-45" },
-      { "book": "Génesis", "startChapter": 46, "endChapter": 48, "displayText": "Génesis 46-48" },
-      { "book": "Génesis", "startChapter": 49, "endChapter": 50, "displayText": "Génesis 49-50" },
-      { "book": "Éxodo",    "startChapter": 1,  "endChapter": 4,  "displayText": "Éxodo 1-4"   },
-      { "book": "Éxodo",    "startChapter": 5,  "endChapter": 7,  "displayText": "Éxodo 5-7"   },
-      { "book": "Éxodo",    "startChapter": 8,  "endChapter": 10, "displayText": "Éxodo 8-10"  },
-      { "book": "Éxodo",    "startChapter": 11, "endChapter": 13, "displayText": "Éxodo 11-13" },
-      { "book": "Éxodo",    "startChapter": 14, "endChapter": 15, "displayText": "Éxodo 14-15" },
-      { "book": "Éxodo",    "startChapter": 16, "endChapter": 18, "displayText": "Éxodo 16-18" },
-      { "book": "Éxodo",    "startChapter": 19, "endChapter": 21, "displayText": "Éxodo 19-21" },
-      { "book": "Éxodo",    "startChapter": 22, "endChapter": 25, "displayText": "Éxodo 22-25" },
-      { "book": "Éxodo",    "startChapter": 26, "endChapter": 28, "displayText": "Éxodo 26-28" },
-      { "book": "Éxodo",    "startChapter": 29, "endChapter": 30, "displayText": "Éxodo 29-30" },
-      { "book": "Éxodo",    "startChapter": 31, "endChapter": 33, "displayText": "Éxodo 31-33" },
-      { "book": "Éxodo",    "startChapter": 34, "endChapter": 35, "displayText": "Éxodo 34-35" },
-      { "book": "Éxodo",    "startChapter": 36, "endChapter": 38, "displayText": "Éxodo 36-38" },
-      { "book": "Éxodo",    "startChapter": 39, "endChapter": 40, "displayText": "Éxodo 39-40" },
-      { "book": "Levítico", "startChapter": 1,  "endChapter": 4,  "displayText": "Levítico 1-4"  },
-      { "book": "Levítico", "startChapter": 5,  "endChapter": 7,  "displayText": "Levítico 5-7"  },
-      { "book": "Levítico", "startChapter": 8,  "endChapter": 10, "displayText": "Levítico 8-10" },
-      { "book": "Levítico", "startChapter": 11, "endChapter": 13, "displayText": "Levítico 11-13"},
-      { "book": "Levítico", "startChapter": 14, "endChapter": 15, "displayText": "Levítico 14-15"},
-      { "book": "Levítico", "startChapter": 16, "endChapter": 18, "displayText": "Levítico 16-18"},
-      { "book": "Levítico", "startChapter": 19, "endChapter": 21, "displayText": "Levítico 19-21"},
-      { "book": "Levítico", "startChapter": 22, "endChapter": 23, "displayText": "Levítico 22-23"},
-      { "book": "Levítico", "startChapter": 24, "endChapter": 25, "displayText": "Levítico 24-25"},
-      { "book": "Levítico", "startChapter": 26, "endChapter": 27, "displayText": "Levítico 26-27"},
-      { "book": "Números",  "startChapter": 1,  "endChapter": 3,  "displayText": "Números 1-3" },
-      { "book": "Números",  "startChapter": 4,  "endChapter": 6,  "displayText": "Números 4-6" },
-      { "book": "Números",  "startChapter": 7,  "endChapter": 9,  "displayText": "Números 7-9" },
-      { "book": "Números",  "startChapter": 10, "endChapter": 12, "displayText": "Números 10-12"},
-      { "book": "Números",  "startChapter": 13, "endChapter": 15, "displayText": "Números 13-15"},
-      { "book": "Números",  "startChapter": 16, "endChapter": 18, "displayText": "Números 16-18"},
-      { "book": "Números",  "startChapter": 19, "endChapter": 21, "displayText": "Números 19-21"},
-      { "book": "Números",  "startChapter": 22, "endChapter": 24, "displayText": "Números 22-24"},
-      { "book": "Números",  "startChapter": 25, "endChapter": 27, "displayText": "Números 25-27"},
-      { "book": "Números",  "startChapter": 28, "endChapter": 30, "displayText": "Números 28-30"},
-      { "book": "Números",  "startChapter": 31, "endChapter": 32, "displayText": "Números 31-32"},
-      { "book": "Números",  "startChapter": 33, "endChapter": 36, "displayText": "Números 33-36"},
-      { "book": "Deuteronomio", "startChapter": 1,  "endChapter": 2,  "displayText": "Deuteronomio 1-2" },
-      { "book": "Deuteronomio", "startChapter": 3,  "endChapter": 4,  "displayText": "Deuteronomio 3-4" },
-      { "book": "Deuteronomio", "startChapter": 5,  "endChapter": 7,  "displayText": "Deuteronomio 5-7" },
-      { "book": "Deuteronomio", "startChapter": 8,  "endChapter": 10, "displayText": "Deuteronomio 8-10"},
-      { "book": "Deuteronomio", "startChapter": 11, "endChapter": 13, "displayText": "Deuteronomio 11-13"},
-      { "book": "Deuteronomio", "startChapter": 14, "endChapter": 16, "displayText": "Deuteronomio 14-16"},
-      { "book": "Deuteronomio", "startChapter": 17, "endChapter": 19, "displayText": "Deuteronomio 17-19"},
-      { "book": "Deuteronomio", "startChapter": 20, "endChapter": 22, "displayText": "Deuteronomio 20-22"},
-      { "book": "Deuteronomio", "startChapter": 23, "endChapter": 26, "displayText": "Deuteronomio 23-26"},
-      { "book": "Deuteronomio", "startChapter": 27, "endChapter": 28, "displayText": "Deuteronomio 27-28"},
-      { "book": "Deuteronomio", "startChapter": 29, "endChapter": 31, "displayText": "Deuteronomio 29-31"},
-      { "book": "Deuteronomio", "startChapter": 32, "endChapter": 32, "displayText": "Deuteronomio 32"    },
-      { "book": "Deuteronomio", "startChapter": 33, "endChapter": 34, "displayText": "Deuteronomio 33-34"},
-      { "book": "Josué",      "startChapter": 1,  "endChapter": 4,  "displayText": "Josué 1-4"   },
-      { "book": "Josué",      "startChapter": 5,  "endChapter": 7,  "displayText": "Josué 5-7"   },
-      { "book": "Josué",      "startChapter": 8,  "endChapter": 9,  "displayText": "Josué 8-9"   },
-      { "book": "Josué",      "startChapter": 10, "endChapter": 12, "displayText": "Josué 10-12"},
-      { "book": "Josué",      "startChapter": 13, "endChapter": 15, "displayText": "Josué 13-15"},
-      { "book": "Josué",      "startChapter": 16, "endChapter": 18, "displayText": "Josué 16-18"},
-      { "book": "Josué",      "startChapter": 19, "endChapter": 21, "displayText": "Josué 19-21"},
-      { "book": "Josué",      "startChapter": 22, "endChapter": 24, "displayText": "Josué 22-24"},
-      { "book": "Jueces",     "startChapter": 1,  "endChapter": 2,  "displayText": "Jueces 1-2"   },
-      { "book": "Jueces",     "startChapter": 3,  "endChapter": 5,  "displayText": "Jueces 3-5"   },
-      { "book": "Jueces",     "startChapter": 6,  "endChapter": 7,  "displayText": "Jueces 6-7"   },
-      { "book": "Jueces",     "startChapter": 8,  "endChapter": 9,  "displayText": "Jueces 8-9"   },
-      { "book": "Jueces",     "startChapter": 10, "endChapter": 11, "displayText": "Jueces 10-11"},
-      { "book": "Jueces",     "startChapter": 12, "endChapter": 13, "displayText": "Jueces 12-13"},
-      { "book": "Jueces",     "startChapter": 14, "endChapter": 16, "displayText": "Jueces 14-16"},
-      { "book": "Jueces",     "startChapter": 17, "endChapter": 19, "displayText": "Jueces 17-19"},
-      { "book": "Jueces",     "startChapter": 20, "endChapter": 21, "displayText": "Jueces 20-21"},
-      { "book": "Rut",        "startChapter": 1,  "endChapter": 4,  "displayText": "Rut 1-4"      },
-      { "book": "1 Samuel",   "startChapter": 1,  "endChapter": 2,  "displayText": "1 Samuel 1-2" }, 
-      { "book": "1 Samuel",   "startChapter": 3,  "endChapter": 6,  "displayText": "1 Samuel 3-6" }, 
-      { "book": "1 Samuel",   "startChapter": 7,  "endChapter": 9,  "displayText": "1 Samuel 7-9" }, 
-      { "book": "1 Samuel",   "startChapter": 10, "endChapter": 12, "displayText": "1 Samuel 10-12"},
-      { "book": "1 Samuel",   "startChapter": 13, "endChapter": 14, "displayText": "1 Samuel 13-14"},
-      { "book": "1 Samuel",   "startChapter": 15, "endChapter": 16, "displayText": "1 Samuel 15-16"},
-      { "book": "1 Samuel",   "startChapter": 17, "endChapter": 18, "displayText": "1 Samuel 17-18"},
-      { "book": "1 Samuel",   "startChapter": 19, "endChapter": 21, "displayText": "1 Samuel 19-21"},
-      { "book": "1 Samuel",   "startChapter": 22, "endChapter": 24, "displayText": "1 Samuel 22-24"},
-      { "book": "1 Samuel",   "startChapter": 25, "endChapter": 27, "displayText": "1 Samuel 25-27"},
-      { "book": "1 Samuel",   "startChapter": 28, "endChapter": 31, "displayText": "1 Samuel 28-31"},
-      { "book": "2 Samuel",   "startChapter": 1,  "endChapter": 2,  "displayText": "2 Samuel 1-2" }, 
-      { "book": "2 Samuel",   "startChapter": 3,  "endChapter": 5,  "displayText": "2 Samuel 3-5" }, 
-      { "book": "2 Samuel",   "startChapter": 6,  "endChapter": 8,  "displayText": "2 Samuel 6-8" }, 
-      { "book": "2 Samuel",   "startChapter": 9,  "endChapter": 12, "displayText": "2 Samuel 9-12"}, 
-      { "book": "2 Samuel",   "startChapter": 13, "endChapter": 14, "displayText": "2 Samuel 13-14"},
-      { "book": "2 Samuel",   "startChapter": 15, "endChapter": 16, "displayText": "2 Samuel 15-16"},
-      { "book": "2 Samuel",   "startChapter": 17, "endChapter": 18, "displayText": "2 Samuel 17-18"},
-      { "book": "2 Samuel",   "startChapter": 19, "endChapter": 20, "displayText": "2 Samuel 19-20"},
-      { "book": "2 Samuel",   "startChapter": 21, "endChapter": 22, "displayText": "2 Samuel 21-22"},
-      { "book": "2 Samuel",   "startChapter": 23, "endChapter": 24, "displayText": "2 Samuel 23-24"},
-      { "book": "1 Reyes",    "startChapter": 1,  "endChapter": 2,  "displayText": "1 Reyes 1-2"  },  
-      { "book": "1 Reyes",    "startChapter": 3,  "endChapter": 5,  "displayText": "1 Reyes 3-5"  },  
-      { "book": "1 Reyes",    "startChapter": 6,  "endChapter": 7,  "displayText": "1 Reyes 6-7"  },  
-      { "book": "1 Reyes",    "startChapter": 8,  "endChapter": 8,  "displayText": "1 Reyes 8"    },  
-      { "book": "1 Reyes",    "startChapter": 9,  "endChapter": 10, "displayText": "1 Reyes 9-10" }, 
-      { "book": "1 Reyes",    "startChapter": 11, "endChapter": 12, "displayText": "1 Reyes 11-12"}, 
-      { "book": "1 Reyes",    "startChapter": 13, "endChapter": 14, "displayText": "1 Reyes 13-14"}, 
-      { "book": "1 Reyes",    "startChapter": 15, "endChapter": 17, "displayText": "1 Reyes 15-17"}, 
-      { "book": "1 Reyes",    "startChapter": 18, "endChapter": 19, "displayText": "1 Reyes 18-19"}, 
-      { "book": "1 Reyes",    "startChapter": 20, "endChapter": 21, "displayText": "1 Reyes 20-21"}, 
-      { "book": "1 Reyes",    "startChapter": 22, "endChapter": 22, "displayText": "1 Reyes 22"   }, 
-      { "book": "2 Reyes",    "startChapter": 1,  "endChapter": 3,  "displayText": "2 Reyes 1-3"  },  
-      { "book": "2 Reyes",    "startChapter": 4,  "endChapter": 5,  "displayText": "2 Reyes 4-5"  },  
-      { "book": "2 Reyes",    "startChapter": 6,  "endChapter": 8,  "displayText": "2 Reyes 6-8"  },  
-      { "book": "2 Reyes",    "startChapter": 9,  "endChapter": 10, "displayText": "2 Reyes 9-10" }, 
-      { "book": "2 Reyes",    "startChapter": 11, "endChapter": 13, "displayText": "2 Reyes 11-13"}, 
-      { "book": "2 Reyes",    "startChapter": 14, "endChapter": 15, "displayText": "2 Reyes 14-15"}, 
-      { "book": "2 Reyes",    "startChapter": 16, "endChapter": 17, "displayText": "2 Reyes 16-17"}, 
-      { "book": "2 Reyes",    "startChapter": 18, "endChapter": 19, "displayText": "2 Reyes 18-19"}, 
-      { "book": "2 Reyes",    "startChapter": 20, "endChapter": 22, "displayText": "2 Reyes 20-22"}, 
-      { "book": "2 Reyes",    "startChapter": 23, "endChapter": 25, "displayText": "2 Reyes 23-25"}, 
-      { "book": "1 Crónicas","startChapter": 1,  "endChapter": 2,  "displayText": "1 Crónicas 1-2" },
-      { "book": "1 Crónicas","startChapter": 3,  "endChapter": 5,  "displayText": "1 Crónicas 3-5" },
-      { "book": "1 Crónicas","startChapter": 6,  "endChapter": 7,  "displayText": "1 Crónicas 6-7" },
-      { "book": "1 Crónicas","startChapter": 8,  "endChapter": 10, "displayText": "1 Crónicas 8-10"},
-      { "book": "1 Crónicas","startChapter": 11, "endChapter": 12, "displayText": "1 Crónicas 11-12"},
-      { "book": "1 Crónicas","startChapter": 13, "endChapter": 15, "displayText": "1 Crónicas 13-15"},
-      { "book": "1 Crónicas","startChapter": 16, "endChapter": 17, "displayText": "1 Crónicas 16-17"},
-      { "book": "1 Crónicas","startChapter": 18, "endChapter": 20, "displayText": "1 Crónicas 18-20"},
-      { "book": "1 Crónicas","startChapter": 21, "endChapter": 23, "displayText": "1 Crónicas 21-23"},
-      { "book": "1 Crónicas","startChapter": 24, "endChapter": 26, "displayText": "1 Crónicas 24-26"},
-      { "book": "1 Crónicas","startChapter": 27, "endChapter": 29, "displayText": "1 Crónicas 27-29"},
-      { "book": "2 Crónicas","startChapter": 1,  "endChapter": 3,  "displayText": "2 Crónicas 1-3"  },
-      { "book": "2 Crónicas","startChapter": 4,  "endChapter": 6,  "displayText": "2 Crónicas 4-6"  },
-      { "book": "2 Crónicas","startChapter": 7,  "endChapter": 9,  "displayText": "2 Crónicas 7-9"  },
-      { "book": "2 Crónicas","startChapter": 10, "endChapter": 14, "displayText": "2 Crónicas 10-14"},
-      { "book": "2 Crónicas","startChapter": 15, "endChapter": 18, "displayText": "2 Crónicas 15-18"},
-      { "book": "2 Crónicas","startChapter": 19, "endChapter": 22, "displayText": "2 Crónicas 19-22"},
-      { "book": "2 Crónicas","startChapter": 23, "endChapter": 25, "displayText": "2 Crónicas 23-25"},
-      { "book": "2 Crónicas","startChapter": 26, "endChapter": 28, "displayText": "2 Crónicas 26-28"},
-      { "book": "2 Crónicas","startChapter": 29, "endChapter": 30, "displayText": "2 Crónicas 29-30"},
-      { "book": "2 Crónicas","startChapter": 31, "endChapter": 33, "displayText": "2 Crónicas 31-33"},
-      { "book": "2 Crónicas","startChapter": 34, "endChapter": 36, "displayText": "2 Crónicas 34-36"},
-      { "book": "Esdras",     "startChapter": 1,  "endChapter": 3,  "displayText": "Esdras 1-3"    },
-      { "book": "Esdras",     "startChapter": 4,  "endChapter": 7,  "displayText": "Esdras 4-7"    },
-      { "book": "Esdras",     "startChapter": 8,  "endChapter": 10, "displayText": "Esdras 8-10"   },
-      { "book": "Nehemías",   "startChapter": 1,  "endChapter": 3,  "displayText": "Nehemías 1-3"  },
-      { "book": "Nehemías",   "startChapter": 4,  "endChapter": 6,  "displayText": "Nehemías 4-6"  },
-      { "book": "Nehemías",   "startChapter": 7,  "endChapter": 8,  "displayText": "Nehemías 7-8"  },
-      { "book": "Nehemías",   "startChapter": 9,  "endChapter": 10, "displayText": "Nehemías 9-10" },
-      { "book": "Nehemías",   "startChapter": 11, "endChapter": 13, "displayText": "Nehemías 11-13"},
-      { "book": "Ester",      "startChapter": 1,  "endChapter": 4,  "displayText": "Ester 1-4"     },
-      { "book": "Ester",      "startChapter": 5,  "endChapter": 10, "displayText": "Ester 5-10"    },
-      { "book": "Job",        "startChapter": 1,  "endChapter": 5,  "displayText": "Job 1-5"       },
-      { "book": "Job",        "startChapter": 6,  "endChapter": 9,  "displayText": "Job 6-9"       },
-      { "book": "Job",        "startChapter": 10, "endChapter": 14, "displayText": "Job 10-14"     },
-      { "book": "Job",        "startChapter": 15, "endChapter": 18, "displayText": "Job 15-18"     },
-      { "book": "Job",        "startChapter": 19, "endChapter": 20, "displayText": "Job 19-20"     },
-      { "book": "Job",        "startChapter": 21, "endChapter": 24, "displayText": "Job 21-24"     },
-      { "book": "Job",        "startChapter": 25, "endChapter": 29, "displayText": "Job 25-29"     },
-      { "book": "Job",        "startChapter": 30, "endChapter": 31, "displayText": "Job 30-31"     },
-      { "book": "Job",        "startChapter": 32, "endChapter": 34, "displayText": "Job 32-34"     },
-      { "book": "Job",        "startChapter": 35, "endChapter": 38, "displayText": "Job 35-38"     },
-      { "book": "Job",        "startChapter": 39, "endChapter": 42, "displayText": "Job 39-42"     },
-      { "book": "Salmos",     "startChapter": 1,  "endChapter": 8,   "displayText": "Salmos 1-8"    },
-      { "book": "Salmos",     "startChapter": 9,  "endChapter": 16,  "displayText": "Salmos 9-16"   },
-      { "book": "Salmos",     "startChapter": 17, "endChapter": 19,  "displayText": "Salmos 17-19"  },
-      { "book": "Salmos",     "startChapter": 20, "endChapter": 25,  "displayText": "Salmos 20-25"  },
-      { "book": "Salmos",     "startChapter": 26, "endChapter": 31,  "displayText": "Salmos 26-31"  },
-      { "book": "Salmos",     "startChapter": 32, "endChapter": 35,  "displayText": "Salmos 32-35"  },
-      { "book": "Salmos",     "startChapter": 36, "endChapter": 38,  "displayText": "Salmos 36-38"  },
-      { "book": "Salmos",     "startChapter": 39, "endChapter": 42,  "displayText": "Salmos 39-42"  },
-      { "book": "Salmos",     "startChapter": 43, "endChapter": 47,  "displayText": "Salmos 43-47"  },
-      { "book": "Salmos",     "startChapter": 48, "endChapter": 52,  "displayText": "Salmos 48-52"  },
-      { "book": "Salmos",     "startChapter": 53, "endChapter": 58,  "displayText": "Salmos 53-58"  },
-      { "book": "Salmos",     "startChapter": 59, "endChapter": 64,  "displayText": "Salmos 59-64"  },
-      { "book": "Salmos",     "startChapter": 65, "endChapter": 68,  "displayText": "Salmos 65-68"  },
-      { "book": "Salmos",     "startChapter": 69, "endChapter": 72,  "displayText": "Salmos 69-72"  },
-      { "book": "Salmos",     "startChapter": 73, "endChapter": 77,  "displayText": "Salmos 73-77"  },
-      { "book": "Salmos",     "startChapter": 78, "endChapter": 79,  "displayText": "Salmos 78-79"  },
-      { "book": "Salmos",     "startChapter": 80, "endChapter": 86,  "displayText": "Salmos 80-86"  },
-      { "book": "Salmos",     "startChapter": 87, "endChapter": 90,  "displayText": "Salmos 87-90"  },
-      { "book": "Salmos",     "startChapter": 91, "endChapter": 96,  "displayText": "Salmos 91-96"  },
-      { "book": "Salmos",     "startChapter": 97, "endChapter": 103, "displayText": "Salmos 97-103" },
-      { "book": "Salmos",     "startChapter": 104,"endChapter": 105, "displayText": "Salmos 104-105"},
-      { "book": "Salmos",     "startChapter": 106,"endChapter": 108, "displayText": "Salmos 106-108"},
-      { "book": "Salmos",     "startChapter": 109,"endChapter": 115, "displayText": "Salmos 109-115"},
-      { "book": "Salmos",     "startChapter": 116,"endChapter": 119, "displayText": "Salmos 116-119 (hasta v. 63)"}, //displayText needs specific handling if marking partial chapters
-      { "book": "Salmos",     "startChapter": 119,"endChapter": 119, "displayText": "Salmos 119 (desde v. 64)"}, //displayText needs specific handling
-      { "book": "Salmos",     "startChapter": 120,"endChapter": 129, "displayText": "Salmos 120-129"},
-      { "book": "Salmos",     "startChapter": 130,"endChapter": 138, "displayText": "Salmos 130-138"},
-      { "book": "Salmos",     "startChapter": 139,"endChapter": 144, "displayText": "Salmos 139-144"},
-      { "book": "Salmos",     "startChapter": 145,"endChapter": 150, "displayText": "Salmos 145-150"},
-      { "book": "Proverbios", "startChapter": 1,  "endChapter": 4,  "displayText": "Proverbios 1-4"   },
-      { "book": "Proverbios", "startChapter": 5,  "endChapter": 8,  "displayText": "Proverbios 5-8"   },
-      { "book": "Proverbios", "startChapter": 9,  "endChapter": 12, "displayText": "Proverbios 9-12"  },
-      { "book": "Proverbios", "startChapter": 13, "endChapter": 16, "displayText": "Proverbios 13-16" },
-      { "book": "Proverbios", "startChapter": 17, "endChapter": 19, "displayText": "Proverbios 17-19" },
-      { "book": "Proverbios", "startChapter": 20, "endChapter": 22, "displayText": "Proverbios 20-22" },
-      { "book": "Proverbios", "startChapter": 23, "endChapter": 27, "displayText": "Proverbios 23-27" },
-      { "book": "Proverbios", "startChapter": 28, "endChapter": 31, "displayText": "Proverbios 28-31" },
-      { "book": "Eclesiastés","startChapter": 1,  "endChapter": 4,  "displayText": "Eclesiastés 1-4" },
-      { "book": "Eclesiastés","startChapter": 5,  "endChapter": 8,  "displayText": "Eclesiastés 5-8" },
-      { "book": "Eclesiastés","startChapter": 9,  "endChapter": 12, "displayText": "Eclesiastés 9-12"},
-      { "book": "Cantar de los Cantares","startChapter": 1, "endChapter": 8,  "displayText": "Cantar de los Cantares 1-8"},
-      { "book": "Isaías",     "startChapter": 1,  "endChapter": 4,  "displayText": "Isaías 1-4"   },
-      { "book": "Isaías",     "startChapter": 5,  "endChapter": 7,  "displayText": "Isaías 5-7"   },
-      { "book": "Isaías",     "startChapter": 8,  "endChapter": 10, "displayText": "Isaías 8-10"  },
-      { "book": "Isaías",     "startChapter": 11, "endChapter": 14, "displayText": "Isaías 11-14" },
-      { "book": "Isaías",     "startChapter": 15, "endChapter": 19, "displayText": "Isaías 15-19" },
-      { "book": "Isaías",     "startChapter": 20, "endChapter": 24, "displayText": "Isaías 20-24" },
-      { "book": "Isaías",     "startChapter": 25, "endChapter": 28, "displayText": "Isaías 25-28" },
-      { "book": "Isaías",     "startChapter": 29, "endChapter": 31, "displayText": "Isaías 29-31" },
-      { "book": "Isaías",     "startChapter": 32, "endChapter": 35, "displayText": "Isaías 32-35" },
-      { "book": "Isaías",     "startChapter": 36, "endChapter": 37, "displayText": "Isaías 36-37" },
-      { "book": "Isaías",     "startChapter": 38, "endChapter": 40, "displayText": "Isaías 38-40" },
-      { "book": "Isaías",     "startChapter": 41, "endChapter": 43, "displayText": "Isaías 41-43" },
-      { "book": "Isaías",     "startChapter": 44, "endChapter": 47, "displayText": "Isaías 44-47" },
-      { "book": "Isaías",     "startChapter": 48, "endChapter": 50, "displayText": "Isaías 48-50" },
-      { "book": "Isaías",     "startChapter": 51, "endChapter": 55, "displayText": "Isaías 51-55" },
-      { "book": "Isaías",     "startChapter": 56, "endChapter": 58, "displayText": "Isaías 56-58" },
-      { "book": "Isaías",     "startChapter": 59, "endChapter": 62, "displayText": "Isaías 59-62" },
-      { "book": "Isaías",     "startChapter": 63, "endChapter": 66, "displayText": "Isaías 63-66" },
-      { "book": "Jeremías",   "startChapter": 1,  "endChapter": 3,  "displayText": "Jeremías 1-3"   },
-      { "book": "Jeremías",   "startChapter": 4,  "endChapter": 5,  "displayText": "Jeremías 4-5"   },
-      { "book": "Jeremías",   "startChapter": 6,  "endChapter": 7,  "displayText": "Jeremías 6-7"   },
-      { "book": "Jeremías",   "startChapter": 8,  "endChapter": 10, "displayText": "Jeremías 8-10"  },
-      { "book": "Jeremías",   "startChapter": 11, "endChapter": 13, "displayText": "Jeremías 11-13" },
-      { "book": "Jeremías",   "startChapter": 14, "endChapter": 16, "displayText": "Jeremías 14-16" },
-      { "book": "Jeremías",   "startChapter": 17, "endChapter": 20, "displayText": "Jeremías 17-20" },
-      { "book": "Jeremías",   "startChapter": 21, "endChapter": 23, "displayText": "Jeremías 21-23" },
-      { "book": "Jeremías",   "startChapter": 24, "endChapter": 26, "displayText": "Jeremías 24-26" },
-      { "book": "Jeremías",   "startChapter": 27, "endChapter": 29, "displayText": "Jeremías 27-29" },
-      { "book": "Jeremías",   "startChapter": 30, "endChapter": 31, "displayText": "Jeremías 30-31" },
-      { "book": "Jeremías",   "startChapter": 32, "endChapter": 33, "displayText": "Jeremías 32-33" },
-      { "book": "Jeremías",   "startChapter": 34, "endChapter": 36, "displayText": "Jeremías 34-36" },
-      { "book": "Jeremías",   "startChapter": 37, "endChapter": 39, "displayText": "Jeremías 37-39" },
-      { "book": "Jeremías",   "startChapter": 40, "endChapter": 42, "displayText": "Jeremías 40-42" },
-      { "book": "Jeremías",   "startChapter": 43, "endChapter": 44, "displayText": "Jeremías 43-44" },
-      { "book": "Jeremías",   "startChapter": 45, "endChapter": 48, "displayText": "Jeremías 45-48" },
-      { "book": "Jeremías",   "startChapter": 49, "endChapter": 50, "displayText": "Jeremías 49-50" },
-      { "book": "Jeremías",   "startChapter": 51, "endChapter": 52, "displayText": "Jeremías 51-52" },
-      { "book": "Lamentaciones","startChapter": 1,"endChapter": 2,  "displayText": "Lamentaciones 1-2" },
-      { "book": "Lamentaciones","startChapter": 3,"endChapter": 5,  "displayText": "Lamentaciones 3-5" },
-      { "book": "Ezequiel",   "startChapter": 1,  "endChapter": 3,  "displayText": "Ezequiel 1-3"   },
-      { "book": "Ezequiel",   "startChapter": 4,  "endChapter": 6,  "displayText": "Ezequiel 4-6"   },
-      { "book": "Ezequiel",   "startChapter": 7,  "endChapter": 9,  "displayText": "Ezequiel 7-9"   },
-      { "book": "Ezequiel",   "startChapter": 10, "endChapter": 12, "displayText": "Ezequiel 10-12"},
-      { "book": "Ezequiel",   "startChapter": 13, "endChapter": 15, "displayText": "Ezequiel 13-15"},
-      { "book": "Ezequiel",   "startChapter": 16, "endChapter": 16, "displayText": "Ezequiel 16"   },
-      { "book": "Ezequiel",   "startChapter": 17, "endChapter": 18, "displayText": "Ezequiel 17-18"},
-      { "book": "Ezequiel",   "startChapter": 19, "endChapter": 21, "displayText": "Ezequiel 19-21"},
-      { "book": "Ezequiel",   "startChapter": 22, "endChapter": 23, "displayText": "Ezequiel 22-23"},
-      { "book": "Ezequiel",   "startChapter": 24, "endChapter": 26, "displayText": "Ezequiel 24-26"},
-      { "book": "Ezequiel",   "startChapter": 27, "endChapter": 28, "displayText": "Ezequiel 27-28"},
-      { "book": "Ezequiel",   "startChapter": 29, "endChapter": 31, "displayText": "Ezequiel 29-31"},
-      { "book": "Ezequiel",   "startChapter": 32, "endChapter": 33, "displayText": "Ezequiel 32-33"},
-      { "book": "Ezequiel",   "startChapter": 34, "endChapter": 36, "displayText": "Ezequiel 34-36"},
-      { "book": "Ezequiel",   "startChapter": 37, "endChapter": 38, "displayText": "Ezequiel 37-38"},
-      { "book": "Ezequiel",   "startChapter": 39, "endChapter": 40, "displayText": "Ezequiel 39-40"},
-      { "book": "Ezequiel",   "startChapter": 41, "endChapter": 43, "displayText": "Ezequiel 41-43"},
-      { "book": "Ezequiel",   "startChapter": 44, "endChapter": 45, "displayText": "Ezequiel 44-45"},
-      { "book": "Ezequiel",   "startChapter": 46, "endChapter": 48, "displayText": "Ezequiel 46-48"},
-      { "book": "Daniel",     "startChapter": 1,  "endChapter": 2,  "displayText": "Daniel 1-2"     },
-      { "book": "Daniel",     "startChapter": 3,  "endChapter": 4,  "displayText": "Daniel 3-4"     },
-      { "book": "Daniel",     "startChapter": 5,  "endChapter": 7,  "displayText": "Daniel 5-7"     },
-      { "book": "Daniel",     "startChapter": 8,  "endChapter": 10, "displayText": "Daniel 8-10"    },
-      { "book": "Daniel",     "startChapter": 11, "endChapter": 12, "displayText": "Daniel 11-12"   },
-      { "book": "Oseas",      "startChapter": 1,  "endChapter": 7,  "displayText": "Oseas 1-7"      },
-      { "book": "Oseas",      "startChapter": 8,  "endChapter": 14, "displayText": "Oseas 8-14"     },
-      { "book": "Joel",       "startChapter": 1,  "endChapter": 3,  "displayText": "Joel 1-3"       },
-      { "book": "Amós",       "startChapter": 1,  "endChapter": 5,  "displayText": "Amós 1-5"       },
-      { "book": "Amós",       "startChapter": 6,  "endChapter": 9,  "displayText": "Amós 6-9"       },
-      // Para libros combinados, la propiedad "book" aquí es una cadena.
-      // La lógica de marcado de capítulos debe manejar esto (ver markSuggestedAsReadButton).
-      { "book": "Abdías, Jonás", "startChapter": 1, "endChapter": 4, "displayText": "Abdías 1, Jonás 1-4"      }, // Asumiendo 'endChapter' cubre el segundo libro
-      { "book": "Miqueas",    "startChapter": 1,  "endChapter": 7,  "displayText": "Miqueas 1-7"    },
-      { "book": "Nahúm, Habacuc", "startChapter": 1, "endChapter": 3, "displayText": "Nahúm 1-3, Habacuc 1-3"    },
-      { "book": "Sofonías, Ageo", "startChapter": 1, "endChapter": 3, "displayText": "Sofonías 1-3, Ageo 1-2"       },
-      { "book": "Zacarías",   "startChapter": 1,  "endChapter": 7,  "displayText": "Zacarías 1-7"   },
-      { "book": "Zacarías",   "startChapter": 8,  "endChapter": 11, "displayText": "Zacarías 8-11"  },
-      { "book": "Zacarías",   "startChapter": 12, "endChapter": 14, "displayText": "Zacarías 12-14" },
-      { "book": "Malaquías",  "startChapter": 1,  "endChapter": 4,  "displayText": "Malaquías 1-4"  },
-      { "book": "Mateo",      "startChapter": 1,  "endChapter": 4,  "displayText": "Mateo 1-4"      },
-      { "book": "Mateo",      "startChapter": 5,  "endChapter": 7,  "displayText": "Mateo 5-7"      },
-      { "book": "Mateo",      "startChapter": 8,  "endChapter": 10, "displayText": "Mateo 8-10"     },
-      { "book": "Mateo",      "startChapter": 11, "endChapter": 13, "displayText": "Mateo 11-13"    },
-      { "book": "Mateo",      "startChapter": 14, "endChapter": 17, "displayText": "Mateo 14-17"    },
-      { "book": "Mateo",      "startChapter": 18, "endChapter": 20, "displayText": "Mateo 18-20"    },
-      { "book": "Mateo",      "startChapter": 21, "endChapter": 23, "displayText": "Mateo 21-23"    },
-      { "book": "Mateo",      "startChapter": 24, "endChapter": 25, "displayText": "Mateo 24-25"    },
-      { "book": "Mateo",      "startChapter": 26, "endChapter": 26, "displayText": "Mateo 26"       },
-      { "book": "Mateo",      "startChapter": 27, "endChapter": 28, "displayText": "Mateo 27-28"    },
-      { "book": "Marcos",     "startChapter": 1,  "endChapter": 3,  "displayText": "Marcos 1-3"     },
-      { "book": "Marcos",     "startChapter": 4,  "endChapter": 5,  "displayText": "Marcos 4-5"     },
-      { "book": "Marcos",     "startChapter": 6,  "endChapter": 8,  "displayText": "Marcos 6-8"     },
-      { "book": "Marcos",     "startChapter": 9,  "endChapter": 10, "displayText": "Marcos 9-10"    },
-      { "book": "Marcos",     "startChapter": 11, "endChapter": 13, "displayText": "Marcos 11-13"   },
-      { "book": "Marcos",     "startChapter": 14, "endChapter": 16, "displayText": "Marcos 14-16"   },
-      { "book": "Lucas",      "startChapter": 1,  "endChapter": 2,  "displayText": "Lucas 1-2"      },
-      { "book": "Lucas",      "startChapter": 3,  "endChapter": 5,  "displayText": "Lucas 3-5"      },
-      { "book": "Lucas",      "startChapter": 6,  "endChapter": 7,  "displayText": "Lucas 6-7"      },
-      { "book": "Lucas",      "startChapter": 8,  "endChapter": 9,  "displayText": "Lucas 8-9"      },
-      { "book": "Lucas",      "startChapter": 10, "endChapter": 11, "displayText": "Lucas 10-11"    },
-      { "book": "Lucas",      "startChapter": 12, "endChapter": 13, "displayText": "Lucas 12-13"    },
-      { "book": "Lucas",      "startChapter": 14, "endChapter": 17, "displayText": "Lucas 14-17"    },
-      { "book": "Lucas",      "startChapter": 18, "endChapter": 19, "displayText": "Lucas 18-19"    },
-      { "book": "Lucas",      "startChapter": 20, "endChapter": 22, "displayText": "Lucas 20-22"    },
-      { "book": "Lucas",      "startChapter": 23, "endChapter": 24, "displayText": "Lucas 23-24"    },
-      { "book": "Juan",       "startChapter": 1,  "endChapter": 3,  "displayText": "Juan 1-3"       },
-      { "book": "Juan",       "startChapter": 4,  "endChapter": 5,  "displayText": "Juan 4-5"       },
-      { "book": "Juan",       "startChapter": 6,  "endChapter": 7,  "displayText": "Juan 6-7"       },
-      { "book": "Juan",       "startChapter": 8,  "endChapter": 9,  "displayText": "Juan 8-9"       },
-      { "book": "Juan",       "startChapter": 10, "endChapter": 12, "displayText": "Juan 10-12"     },
-      { "book": "Juan",       "startChapter": 13, "endChapter": 15, "displayText": "Juan 13-15"     },
-      { "book": "Juan",       "startChapter": 16, "endChapter": 18, "displayText": "Juan 16-18"     },
-      { "book": "Juan",       "startChapter": 19, "endChapter": 21, "displayText": "Juan 19-21"     },
-      { "book": "Hechos",     "startChapter": 1,  "endChapter": 3,  "displayText": "Hechos 1-3"     },
-      { "book": "Hechos",     "startChapter": 4,  "endChapter": 6,  "displayText": "Hechos 4-6"     },
-      { "book": "Hechos",     "startChapter": 7,  "endChapter": 8,  "displayText": "Hechos 7-8"     },
-      { "book": "Hechos",     "startChapter": 9,  "endChapter": 11, "displayText": "Hechos 9-11"    },
-      { "book": "Hechos",     "startChapter": 12, "endChapter": 14, "displayText": "Hechos 12-14"   },
-      { "book": "Hechos",     "startChapter": 15, "endChapter": 16, "displayText": "Hechos 15-16"   },
-      { "book": "Hechos",     "startChapter": 17, "endChapter": 19, "displayText": "Hechos 17-19"   },
-      { "book": "Hechos",     "startChapter": 20, "endChapter": 21, "displayText": "Hechos 20-21"   },
-      { "book": "Hechos",     "startChapter": 22, "endChapter": 23, "displayText": "Hechos 22-23"   },
-      { "book": "Hechos",     "startChapter": 24, "endChapter": 26, "displayText": "Hechos 24-26"   },
-      { "book": "Hechos",     "startChapter": 27, "endChapter": 28, "displayText": "Hechos 27-28"   },
-      { "book": "Romanos",    "startChapter": 1,  "endChapter": 3,  "displayText": "Romanos 1-3"    },
-      { "book": "Romanos",    "startChapter": 4,  "endChapter": 7,  "displayText": "Romanos 4-7"    },
-      { "book": "Romanos",    "startChapter": 8,  "endChapter": 11, "displayText": "Romanos 8-11"   },
-      { "book": "Romanos",    "startChapter": 12, "endChapter": 16, "displayText": "Romanos 12-16"  },
-      { "book": "1 Corintios","startChapter": 1,  "endChapter": 6,  "displayText": "1 Corintios 1-6"},
-      { "book": "1 Corintios","startChapter": 7,  "endChapter": 10, "displayText": "1 Corintios 7-10"},
-      { "book": "1 Corintios","startChapter": 11, "endChapter": 14, "displayText": "1 Corintios 11-14"},
-      { "book": "1 Corintios","startChapter": 15, "endChapter": 16, "displayText": "1 Corintios 15-16"},
-      { "book": "2 Corintios","startChapter": 1,  "endChapter": 6,  "displayText": "2 Corintios 1-6"},
-      { "book": "2 Corintios","startChapter": 7,  "endChapter": 10, "displayText": "2 Corintios 7-10"},
-      { "book": "2 Corintios","startChapter": 11, "endChapter": 13, "displayText": "2 Corintios 11-13"},
-      { "book": "Gálatas",    "startChapter": 1,  "endChapter": 6,  "displayText": "Gálatas 1-6"    },
-      { "book": "Efesios",    "startChapter": 1,  "endChapter": 6,  "displayText": "Efesios 1-6"    },
-      { "book": "Filipenses", "startChapter": 1,  "endChapter": 4,  "displayText": "Filipenses 1-4" },
-      { "book": "Colosenses", "startChapter": 1,  "endChapter": 4,  "displayText": "Colosenses 1-4"},
-      { "book": "1 Tesalonicenses","startChapter": 1,"endChapter": 5,"displayText": "1 Tesalonicenses 1-5"},
-      { "book": "2 Tesalonicenses","startChapter": 1,"endChapter": 3,"displayText": "2 Tesalonicenses 1-3"},
-      { "book": "1 Timoteo",  "startChapter": 1,  "endChapter": 6,  "displayText": "1 Timoteo 1-6"  },
-      { "book": "2 Timoteo",  "startChapter": 1,  "endChapter": 4,  "displayText": "2 Timoteo 1-4"  },
-      { "book": "Tito, Filemón", "startChapter": 1, "endChapter": 3, "displayText": "Tito 1-3, Filemón 1"      }, // Asumiendo 'endChapter' cubre el primer libro
-      { "book": "Hebreos",    "startChapter": 1,  "endChapter": 6,  "displayText": "Hebreos 1-6"    },
-      { "book": "Hebreos",    "startChapter": 7,  "endChapter": 10, "displayText": "Hebreos 7-10"   },
-      { "book": "Hebreos",    "startChapter": 11, "endChapter": 13, "displayText": "Hebreos 11-13"  },
-      { "book": "Santiago",   "startChapter": 1,  "endChapter": 5,  "displayText": "Santiago 1-5"   },
-      { "book": "1 Pedro",    "startChapter": 1,  "endChapter": 5,  "displayText": "1 Pedro 1-5"    },
-      { "book": "2 Pedro",    "startChapter": 1,  "endChapter": 3,  "displayText": "2 Pedro 1-3"    },
-      { "book": "1 Juan",     "startChapter": 1,  "endChapter": 5,  "displayText": "1 Juan 1-5"     },
-      { "book": "2 Juan, 3 Juan, Judas", "startChapter": 1, "endChapter": 1, "displayText": "2 Juan 1, 3 Juan 1, Judas 1" },
-      { "book": "Apocalipsis","startChapter": 1,  "endChapter": 4,  "displayText": "Apocalipsis 1-4"  },
-      { "book": "Apocalipsis","startChapter": 5,  "endChapter": 8,  "displayText": "Apocalipsis 5-8"  },
-      { "book": "Apocalipsis","startChapter": 9, "endChapter": 12, "displayText": "Apocalipsis 9-12"},
-      { "book": "Apocalipsis","startChapter": 13, "endChapter": 16, "displayText": "Apocalipsis 13-16"},
-{ "book": "Apocalipsis","startChapter": 17, "endChapter": 19, "displayText": "Apocalipsis 17-18"},
-      { "book": "Apocalipsis","startChapter": 20, "endChapter": 22, "displayText": "Apocalipsis 20-22"}
+        // ESCRITOS DE MOISÉS
+        createStdPlanEntry("Génesis", 1, 3), createStdPlanEntry("Génesis", 4, 7), createStdPlanEntry("Génesis", 8, 11),
+        createStdPlanEntry("Génesis", 12, 15), createStdPlanEntry("Génesis", 16, 18), createStdPlanEntry("Génesis", 19, 22),
+        createStdPlanEntry("Génesis", 23, 24), createStdPlanEntry("Génesis", 25, 27), createStdPlanEntry("Génesis", 28, 30),
+        createStdPlanEntry("Génesis", 31, 32), createStdPlanEntry("Génesis", 33, 34), createStdPlanEntry("Génesis", 35, 37),
+        createStdPlanEntry("Génesis", 38, 40), createStdPlanEntry("Génesis", 41, 42), createStdPlanEntry("Génesis", 43, 45),
+        createStdPlanEntry("Génesis", 46, 48), createStdPlanEntry("Génesis", 49, 50),
+        createStdPlanEntry("Éxodo", 1, 4), createStdPlanEntry("Éxodo", 5, 7), createStdPlanEntry("Éxodo", 8, 10),
+        createStdPlanEntry("Éxodo", 11, 13), createStdPlanEntry("Éxodo", 14, 15), createStdPlanEntry("Éxodo", 16, 18),
+        createStdPlanEntry("Éxodo", 19, 21), createStdPlanEntry("Éxodo", 22, 25), createStdPlanEntry("Éxodo", 26, 28),
+        createStdPlanEntry("Éxodo", 29, 30), createStdPlanEntry("Éxodo", 31, 33), createStdPlanEntry("Éxodo", 34, 35),
+        createStdPlanEntry("Éxodo", 36, 38), createStdPlanEntry("Éxodo", 39, 40),
+        createStdPlanEntry("Levítico", 1, 4), createStdPlanEntry("Levítico", 5, 7), createStdPlanEntry("Levítico", 8, 10),
+        createStdPlanEntry("Levítico", 11, 13), createStdPlanEntry("Levítico", 14, 15), createStdPlanEntry("Levítico", 16, 18),
+        createStdPlanEntry("Levítico", 19, 21), createStdPlanEntry("Levítico", 22, 23), createStdPlanEntry("Levítico", 24, 25),
+        createStdPlanEntry("Levítico", 26, 27),
+        createStdPlanEntry("Números", 1, 3), createStdPlanEntry("Números", 4, 6), createStdPlanEntry("Números", 7, 9),
+        createStdPlanEntry("Números", 10, 12), createStdPlanEntry("Números", 13, 15), createStdPlanEntry("Números", 16, 18),
+        createStdPlanEntry("Números", 19, 21), createStdPlanEntry("Números", 22, 24), createStdPlanEntry("Números", 25, 27),
+        createStdPlanEntry("Números", 28, 30), createStdPlanEntry("Números", 31, 32), createStdPlanEntry("Números", 33, 36),
+        createStdPlanEntry("Deuteronomio", 1, 2), createStdPlanEntry("Deuteronomio", 3, 4), createStdPlanEntry("Deuteronomio", 5, 7),
+        createStdPlanEntry("Deuteronomio", 8, 10), createStdPlanEntry("Deuteronomio", 11, 13), createStdPlanEntry("Deuteronomio", 14, 16),
+        createStdPlanEntry("Deuteronomio", 17, 19), createStdPlanEntry("Deuteronomio", 20, 22), createStdPlanEntry("Deuteronomio", 23, 26),
+        createStdPlanEntry("Deuteronomio", 27, 28), createStdPlanEntry("Deuteronomio", 29, 31),
+        createSpecialPlanEntry("Deuteronomio", 32, "Deuteronomio 32"), createStdPlanEntry("Deuteronomio", 33, 34),
+        // ENTRADA DE ISRAEL EN LA TIERRA PROMETIDA
+        createStdPlanEntry("Josué", 1, 4), createStdPlanEntry("Josué", 5, 7), createStdPlanEntry("Josué", 8, 9),
+        createStdPlanEntry("Josué", 10, 12), createStdPlanEntry("Josué", 13, 15), createStdPlanEntry("Josué", 16, 18),
+        createStdPlanEntry("Josué", 19, 21), createStdPlanEntry("Josué", 22, 24),
+        createStdPlanEntry("Jueces", 1, 2), createStdPlanEntry("Jueces", 3, 5), createStdPlanEntry("Jueces", 6, 7),
+        createStdPlanEntry("Jueces", 8, 9), createStdPlanEntry("Jueces", 10, 11), createStdPlanEntry("Jueces", 12, 13),
+        createStdPlanEntry("Jueces", 14, 16), createStdPlanEntry("Jueces", 17, 19), createStdPlanEntry("Jueces", 20, 21),
+        createStdPlanEntry("Rut", 1, 4),
+        // ÉPOCA DE LOS REYES
+        createStdPlanEntry("1 Samuel", 1, 2), createStdPlanEntry("1 Samuel", 3, 6), createStdPlanEntry("1 Samuel", 7, 9),
+        createStdPlanEntry("1 Samuel", 10, 12), createStdPlanEntry("1 Samuel", 13, 14), createStdPlanEntry("1 Samuel", 15, 16),
+        createStdPlanEntry("1 Samuel", 17, 18), createStdPlanEntry("1 Samuel", 19, 21), createStdPlanEntry("1 Samuel", 22, 24),
+        createStdPlanEntry("1 Samuel", 25, 27), createStdPlanEntry("1 Samuel", 28, 31),
+        createStdPlanEntry("2 Samuel", 1, 2), createStdPlanEntry("2 Samuel", 3, 5), createStdPlanEntry("2 Samuel", 6, 8),
+        createStdPlanEntry("2 Samuel", 9, 12), createStdPlanEntry("2 Samuel", 13, 14), createStdPlanEntry("2 Samuel", 15, 16),
+        createStdPlanEntry("2 Samuel", 17, 18), createStdPlanEntry("2 Samuel", 19, 20), createStdPlanEntry("2 Samuel", 21, 22),
+        createStdPlanEntry("2 Samuel", 23, 24),
+        createStdPlanEntry("1 Reyes", 1, 2), createStdPlanEntry("1 Reyes", 3, 5), createStdPlanEntry("1 Reyes", 6, 7),
+        createSpecialPlanEntry("1 Reyes", 8, "1 Reyes 8"), createStdPlanEntry("1 Reyes", 9, 10), createStdPlanEntry("1 Reyes", 11, 12),
+        createStdPlanEntry("1 Reyes", 13, 14), createStdPlanEntry("1 Reyes", 15, 17), createStdPlanEntry("1 Reyes", 18, 19),
+        createStdPlanEntry("1 Reyes", 20, 21), createSpecialPlanEntry("1 Reyes", 22, "1 Reyes 22"),
+        createStdPlanEntry("2 Reyes", 1, 3), createStdPlanEntry("2 Reyes", 4, 5), createStdPlanEntry("2 Reyes", 6, 8),
+        createStdPlanEntry("2 Reyes", 9, 10), createStdPlanEntry("2 Reyes", 11, 13), createStdPlanEntry("2 Reyes", 14, 15),
+        createStdPlanEntry("2 Reyes", 16, 17), createStdPlanEntry("2 Reyes", 18, 19), createStdPlanEntry("2 Reyes", 20, 22),
+        createStdPlanEntry("2 Reyes", 23, 25),
+        createStdPlanEntry("1 Crónicas", 1, 2), createStdPlanEntry("1 Crónicas", 3, 5), createStdPlanEntry("1 Crónicas", 6, 7),
+        createStdPlanEntry("1 Crónicas", 8, 10), createStdPlanEntry("1 Crónicas", 11, 12), createStdPlanEntry("1 Crónicas", 13, 15),
+        createStdPlanEntry("1 Crónicas", 16, 17), createStdPlanEntry("1 Crónicas", 18, 20), createStdPlanEntry("1 Crónicas", 21, 23),
+        createStdPlanEntry("1 Crónicas", 24, 26), createStdPlanEntry("1 Crónicas", 27, 29),
+        createStdPlanEntry("2 Crónicas", 1, 3), createStdPlanEntry("2 Crónicas", 4, 6), createStdPlanEntry("2 Crónicas", 7, 9),
+        createStdPlanEntry("2 Crónicas", 10, 14), createStdPlanEntry("2 Crónicas", 15, 18), createStdPlanEntry("2 Crónicas", 19, 22),
+        createStdPlanEntry("2 Crónicas", 23, 25), createStdPlanEntry("2 Crónicas", 26, 28), createStdPlanEntry("2 Crónicas", 29, 30),
+        createStdPlanEntry("2 Crónicas", 31, 33), createStdPlanEntry("2 Crónicas", 34, 36),
+        // REGRESO DEL DESTIERRO
+        createStdPlanEntry("Esdras", 1, 3), createStdPlanEntry("Esdras", 4, 7), createStdPlanEntry("Esdras", 8, 10),
+        createStdPlanEntry("Nehemías", 1, 3), createStdPlanEntry("Nehemías", 4, 6), createStdPlanEntry("Nehemías", 7, 8),
+        createStdPlanEntry("Nehemías", 9, 10), createStdPlanEntry("Nehemías", 11, 13),
+        createStdPlanEntry("Ester", 1, 4), createStdPlanEntry("Ester", 5, 10),
+        // LIBROS DE CANCIONES Y CONSEJOS
+        createStdPlanEntry("Job", 1, 5), createStdPlanEntry("Job", 6, 9), createStdPlanEntry("Job", 10, 14),
+        createStdPlanEntry("Job", 15, 18), createStdPlanEntry("Job", 19, 20), createStdPlanEntry("Job", 21, 24),
+        createStdPlanEntry("Job", 25, 29), createStdPlanEntry("Job", 30, 31), createStdPlanEntry("Job", 32, 34),
+        createStdPlanEntry("Job", 35, 38), createStdPlanEntry("Job", 39, 42),
+        createStdPlanEntry("Salmos", 1, 8), createStdPlanEntry("Salmos", 9, 16), createStdPlanEntry("Salmos", 17, 19),
+        createStdPlanEntry("Salmos", 20, 25), createStdPlanEntry("Salmos", 26, 31), createStdPlanEntry("Salmos", 32, 35),
+        createStdPlanEntry("Salmos", 36, 38), createStdPlanEntry("Salmos", 39, 42), createStdPlanEntry("Salmos", 43, 47),
+        createStdPlanEntry("Salmos", 48, 52), createStdPlanEntry("Salmos", 53, 58), createStdPlanEntry("Salmos", 59, 64),
+        createStdPlanEntry("Salmos", 65, 68), createStdPlanEntry("Salmos", 69, 72), createStdPlanEntry("Salmos", 73, 77),
+        createStdPlanEntry("Salmos", 78, 79), createStdPlanEntry("Salmos", 80, 86), createStdPlanEntry("Salmos", 87, 90),
+        createStdPlanEntry("Salmos", 91, 96), createStdPlanEntry("Salmos", 97, 103), createStdPlanEntry("Salmos", 104, 105),
+        createStdPlanEntry("Salmos", 106, 108), createStdPlanEntry("Salmos", 109, 115),
+        createSpecialPlanEntry("Salmos", 119, "Salmos 116-119 (hasta v. 63)"), // Special display for verse range
+        createSpecialPlanEntry("Salmos", 119, "Salmos 119 (desde v. 64)"),   // Special display for verse range
+        createStdPlanEntry("Salmos", 120, 129), createStdPlanEntry("Salmos", 130, 138),
+        createStdPlanEntry("Salmos", 139, 144), createStdPlanEntry("Salmos", 145, 150),
+        createStdPlanEntry("Proverbios", 1, 4), createStdPlanEntry("Proverbios", 5, 8), createStdPlanEntry("Proverbios", 9, 12),
+        createStdPlanEntry("Proverbios", 13, 16), createStdPlanEntry("Proverbios", 17, 19), createStdPlanEntry("Proverbios", 20, 22),
+        createStdPlanEntry("Proverbios", 23, 27), createStdPlanEntry("Proverbios", 28, 31),
+        createStdPlanEntry("Eclesiastés", 1, 4), createStdPlanEntry("Eclesiastés", 5, 8), createStdPlanEntry("Eclesiastés", 9, 12),
+        createStdPlanEntry("Cantar de los Cantares", 1, 8),
+        // LOS PROFETAS
+        createStdPlanEntry("Isaías", 1, 4), createStdPlanEntry("Isaías", 5, 7), createStdPlanEntry("Isaías", 8, 10),
+        createStdPlanEntry("Isaías", 11, 14), createStdPlanEntry("Isaías", 15, 19), createStdPlanEntry("Isaías", 20, 24),
+        createStdPlanEntry("Isaías", 25, 28), createStdPlanEntry("Isaías", 29, 31), createStdPlanEntry("Isaías", 32, 35),
+        createStdPlanEntry("Isaías", 36, 37), createStdPlanEntry("Isaías", 38, 40), createStdPlanEntry("Isaías", 41, 43),
+        createStdPlanEntry("Isaías", 44, 47), createStdPlanEntry("Isaías", 48, 50), createStdPlanEntry("Isaías", 51, 55),
+        createStdPlanEntry("Isaías", 56, 58), createStdPlanEntry("Isaías", 59, 62), createStdPlanEntry("Isaías", 63, 66),
+        createStdPlanEntry("Jeremías", 1, 3), createStdPlanEntry("Jeremías", 4, 5), createStdPlanEntry("Jeremías", 6, 7),
+        createStdPlanEntry("Jeremías", 8, 10), createStdPlanEntry("Jeremías", 11, 13), createStdPlanEntry("Jeremías", 14, 16),
+        createStdPlanEntry("Jeremías", 17, 20), createStdPlanEntry("Jeremías", 21, 23), createStdPlanEntry("Jeremías", 24, 26),
+        createStdPlanEntry("Jeremías", 27, 29), createStdPlanEntry("Jeremías", 30, 31), createStdPlanEntry("Jeremías", 32, 33),
+        createStdPlanEntry("Jeremías", 34, 36), createStdPlanEntry("Jeremías", 37, 39), createStdPlanEntry("Jeremías", 40, 42),
+        createStdPlanEntry("Jeremías", 43, 44), createStdPlanEntry("Jeremías", 45, 48), createStdPlanEntry("Jeremías", 49, 50),
+        createStdPlanEntry("Jeremías", 51, 52),
+        createStdPlanEntry("Lamentaciones", 1, 2), createStdPlanEntry("Lamentaciones", 3, 5),
+        createStdPlanEntry("Ezequiel", 1, 3), createStdPlanEntry("Ezequiel", 4, 6), createStdPlanEntry("Ezequiel", 7, 9),
+        createStdPlanEntry("Ezequiel", 10, 12), createStdPlanEntry("Ezequiel", 13, 15), createSpecialPlanEntry("Ezequiel", 16, "Ezequiel 16"),
+        createStdPlanEntry("Ezequiel", 17, 18), createStdPlanEntry("Ezequiel", 19, 21), createStdPlanEntry("Ezequiel", 22, 23),
+        createStdPlanEntry("Ezequiel", 24, 26), createStdPlanEntry("Ezequiel", 27, 28), createStdPlanEntry("Ezequiel", 29, 31),
+        createStdPlanEntry("Ezequiel", 32, 33), createStdPlanEntry("Ezequiel", 34, 36), createStdPlanEntry("Ezequiel", 37, 38),
+        createStdPlanEntry("Ezequiel", 39, 40), createStdPlanEntry("Ezequiel", 41, 43), createStdPlanEntry("Ezequiel", 44, 45),
+        createStdPlanEntry("Ezequiel", 46, 48),
+        createStdPlanEntry("Daniel", 1, 2), createStdPlanEntry("Daniel", 3, 4), createStdPlanEntry("Daniel", 5, 7),
+        createStdPlanEntry("Daniel", 8, 10), createStdPlanEntry("Daniel", 11, 12),
+        createStdPlanEntry("Oseas", 1, 7), createStdPlanEntry("Oseas", 8, 14),
+        createStdPlanEntry("Joel", 1, 3),
+        createStdPlanEntry("Amós", 1, 5), createStdPlanEntry("Amós", 6, 9),
+        createCombinedPlanEntry("Abdías, Jonás", 1,1,1,4,0,0, "Abdías 1, Jonás 1-4"),
+        createStdPlanEntry("Miqueas", 1, 7),
+        createCombinedPlanEntry("Nahúm, Habacuc",1,3,1,3,0,0, "Nahúm 1-3, Habacuc 1-3"),
+        createCombinedPlanEntry("Sofonías, Ageo",1,3,1,2,0,0, "Sofonías 1-3, Ageo 1-2"),
+        createStdPlanEntry("Zacarías", 1, 7), createStdPlanEntry("Zacarías", 8, 11), createStdPlanEntry("Zacarías", 12, 14),
+        createStdPlanEntry("Malaquías", 1, 4),
+        // RELATOS DE LA VIDA Y MINISTERIO DE JESÚS
+        createStdPlanEntry("Mateo", 1, 4), createStdPlanEntry("Mateo", 5, 7), createStdPlanEntry("Mateo", 8, 10),
+        createStdPlanEntry("Mateo", 11, 13), createStdPlanEntry("Mateo", 14, 17), createStdPlanEntry("Mateo", 18, 20),
+        createStdPlanEntry("Mateo", 21, 23), createStdPlanEntry("Mateo", 24, 25), createSpecialPlanEntry("Mateo", 26, "Mateo 26"),
+        createStdPlanEntry("Mateo", 27, 28),
+        createStdPlanEntry("Marcos", 1, 3), createStdPlanEntry("Marcos", 4, 5), createStdPlanEntry("Marcos", 6, 8),
+        createStdPlanEntry("Marcos", 9, 10), createStdPlanEntry("Marcos", 11, 13), createStdPlanEntry("Marcos", 14, 16),
+        createStdPlanEntry("Lucas", 1, 2), createStdPlanEntry("Lucas", 3, 5), createStdPlanEntry("Lucas", 6, 7),
+        createStdPlanEntry("Lucas", 8, 9), createStdPlanEntry("Lucas", 10, 11), createStdPlanEntry("Lucas", 12, 13),
+        createStdPlanEntry("Lucas", 14, 17), createStdPlanEntry("Lucas", 18, 19), createStdPlanEntry("Lucas", 20, 22),
+        createStdPlanEntry("Lucas", 23, 24),
+        createStdPlanEntry("Juan", 1, 3), createStdPlanEntry("Juan", 4, 5), createStdPlanEntry("Juan", 6, 7),
+        createStdPlanEntry("Juan", 8, 9), createStdPlanEntry("Juan", 10, 12), createStdPlanEntry("Juan", 13, 15),
+        createStdPlanEntry("Juan", 16, 18), createStdPlanEntry("Juan", 19, 21),
+        // LOS COMIENZOS DE LA CONGREGACIÓN CRISTIANA
+        createStdPlanEntry("Hechos", 1, 3), createStdPlanEntry("Hechos", 4, 6), createStdPlanEntry("Hechos", 7, 8),
+        createStdPlanEntry("Hechos", 9, 11), createStdPlanEntry("Hechos", 12, 14), createStdPlanEntry("Hechos", 15, 16),
+        createStdPlanEntry("Hechos", 17, 19), createStdPlanEntry("Hechos", 20, 21), createStdPlanEntry("Hechos", 22, 23),
+        createStdPlanEntry("Hechos", 24, 26), createStdPlanEntry("Hechos", 27, 28),
+        // CARTAS DE PABLO
+        createStdPlanEntry("Romanos", 1, 3), createStdPlanEntry("Romanos", 4, 7), createStdPlanEntry("Romanos", 8, 11),
+        createStdPlanEntry("Romanos", 12, 16),
+        createStdPlanEntry("1 Corintios", 1, 6), createStdPlanEntry("1 Corintios", 7, 10),
+        createStdPlanEntry("1 Corintios", 11, 14), createStdPlanEntry("1 Corintios", 15, 16),
+        createStdPlanEntry("2 Corintios", 1, 6), createStdPlanEntry("2 Corintios", 7, 10), createStdPlanEntry("2 Corintios", 11, 13),
+        createStdPlanEntry("Gálatas", 1, 6),
+        createStdPlanEntry("Efesios", 1, 6),
+        createStdPlanEntry("Filipenses", 1, 4),
+        createStdPlanEntry("Colosenses", 1, 4),
+        createStdPlanEntry("1 Tesalonicenses", 1, 5),
+        createStdPlanEntry("2 Tesalonicenses", 1, 3),
+        createStdPlanEntry("1 Timoteo", 1, 6),
+        createStdPlanEntry("2 Timoteo", 1, 4),
+        createCombinedPlanEntry("Tito, Filemón",1,3,1,1,0,0, "Tito 1-3, Filemón 1"),
+        createStdPlanEntry("Hebreos", 1, 6), createStdPlanEntry("Hebreos", 7, 10), createStdPlanEntry("Hebreos", 11, 13),
+        // ESCRITOS DE OTROS APÓSTOLES Y DISCÍPULOS
+        createStdPlanEntry("Santiago", 1, 5),
+        createStdPlanEntry("1 Pedro", 1, 5),
+        createStdPlanEntry("2 Pedro", 1, 3),
+        createStdPlanEntry("1 Juan", 1, 5),
+        createCombinedPlanEntry("2 Juan, 3 Juan, Judas",1,1,1,1,1,1, "2 Juan 1, 3 Juan 1, Judas 1"),
+        createStdPlanEntry("Apocalipsis", 1, 4), createStdPlanEntry("Apocalipsis", 5, 8),
+        createStdPlanEntry("Apocalipsis", 9, 12), 
+createStdPlanEntry("Apocalipsis", 13, 16),
+createStdPlanEntry("Apocalipsis", 17, 19),
+        createStdPlanEntry("Apocalipsis", 20, 22)
     ];
+
+
+    // --- START: Código para generar URLs ---
+
+    function getBookInfoForUrl(bookName, allBibleBooks) {
+        const normalizedName = bookName.trim();
+        const bookData = allBibleBooks.find(b => b.name === normalizedName);
+        if (!bookData) {
+            return null;
+        }
+        const bookIndexInArray = allBibleBooks.indexOf(bookData);
+        return {
+            name: bookData.name,
+            code: (bookIndexInArray + 1).toString().padStart(2, '0'),
+            totalChapters: bookData.chapters
+        };
+    }
+
+    function padChapterOrVerse(num, size = 3) {
+        return num.toString().padStart(size, '0');
+    }
+
+    const generatedReadingUrls = dailyReadingPlan.map((planEntry, index) => {
+        if (planEntry.url && typeof planEntry.url === 'string' && planEntry.url.startsWith('http')) {
+            return planEntry.url;
+        }
+
+        const displayText = planEntry.displayText;
+        if (!displayText) {
+            console.error(`https://stackoverflow.com/questions/36235578/how-can-i-include-the-genindex-in-a-sphinx-toc displayText está vacío o no definido para la entrada del plan:`, planEntry);
+            return `ERROR_EMPTY_DISPLAY_TEXT: Index ${index}`;
+        }
+
+        const readingParts = displayText.split(',').map(p => p.trim());
+        let startBookName, startChapterNum, startVerseNum = 1;
+        let endBookName, endChapterNum, endVerseNum = 999;
+
+        const readingPartRegex = /([\w\s\dÁÉÍÓÚáéíóúÑñ]+?)\s+(\d+)(?:-(\d+))?/;
+
+        const firstPartText = readingParts[0];
+        const firstPartMatch = firstPartText.match(readingPartRegex);
+
+        if (!firstPartMatch) {
+            console.error(`https://stackoverflow.com/questions/36235578/how-can-i-include-the-genindex-in-a-sphinx-toc No se pudo parsear libro/capítulo de la primera parte: "${firstPartText}" en "${displayText}"`);
+            return `ERROR_PARSING_FIRST_PART: ${displayText}`;
+        }
+        startBookName = firstPartMatch[1].trim();
+        startChapterNum = parseInt(firstPartMatch[2]);
+
+        const desdeVerseMatch = firstPartText.match(/desde v\.\s*(\d+)/i);
+        if (desdeVerseMatch) {
+            startVerseNum = parseInt(desdeVerseMatch[1]);
+             // If "desde v. X" is present, and it's a single chapter part like "Salmos 119 (desde v. 64)"
+             // the end chapter should be the same as the start chapter.
+            if (!firstPartMatch[3]) { // No chapter range like X-Y
+                endChapterNum = startChapterNum;
+            }
+        }
+        
+        const lastPartText = readingParts[readingParts.length - 1];
+        const lastPartMatch = lastPartText.match(readingPartRegex);
+
+        if (!lastPartMatch) {
+            console.error(`https://stackoverflow.com/questions/36235578/how-can-i-include-the-genindex-in-a-sphinx-toc No se pudo parsear libro/capítulo de la última parte: "${lastPartText}" en "${displayText}"`);
+            return `ERROR_PARSING_LAST_PART: ${displayText}`;
+        }
+        endBookName = lastPartMatch[1].trim();
+        // If a chapter range X-Y is specified in the last part, use Y. Otherwise, use X.
+        endChapterNum = parseInt(lastPartMatch[3] || lastPartMatch[2]);
+
+
+        const hastaVerseMatch = lastPartText.match(/hasta v\.\s*(\d+)/i);
+        if (hastaVerseMatch) {
+            endVerseNum = parseInt(hastaVerseMatch[1]);
+        }
+        
+        // Special case for "Salmos 119 (desde v. 64)" -> endChapterNum should be 119
+        if (startBookName === "Salmos" && startChapterNum === 119 && desdeVerseMatch) {
+            endBookName = "Salmos";
+            endChapterNum = 119;
+        }
+         // Special case for "Salmos 116-119 (hasta v. 63)" -> startBook remains Salmos
+        if (endBookName === "Salmos" && endChapterNum === 119 && hastaVerseMatch) {
+             startBookName = "Salmos"; // ensure start book is also Salmos
+        }
+
+
+        const startBookInfo = getBookInfoForUrl(startBookName, normalizedBibleBooks);
+        const endBookInfo = getBookInfoForUrl(endBookName, normalizedBibleBooks);
+
+        if (!startBookInfo) {
+            console.error(`https://stackoverflow.com/questions/36235578/how-can-i-include-the-genindex-in-a-sphinx-toc No se encontró información para el libro inicial: "${startBookName}" en "${displayText}"`);
+            return `ERROR_START_BOOK_NOT_FOUND: ${startBookName} in ${displayText}`;
+        }
+        if (!endBookInfo) {
+            console.error(`https://stackoverflow.com/questions/36235578/how-can-i-include-the-genindex-in-a-sphinx-toc No se encontró información para el libro final: "${endBookName}" en "${displayText}"`);
+            return `ERROR_END_BOOK_NOT_FOUND: ${endBookName} in ${displayText}`;
+        }
+
+        const bibleParam = `${startBookInfo.code}${padChapterOrVerse(startChapterNum)}${padChapterOrVerse(startVerseNum)}-${endBookInfo.code}${padChapterOrVerse(endChapterNum)}${padChapterOrVerse(endVerseNum)}`;
+        return `https://www.jw.org/finder?wtlocale=S&bible=${bibleParam}`;
+    });
+
+    dailyReadingPlan.forEach((entry, i) => {
+        if (generatedReadingUrls[i] && !generatedReadingUrls[i].startsWith('ERROR_')) {
+            entry.url = generatedReadingUrls[i];
+        } else if (generatedReadingUrls[i] && generatedReadingUrls[i].startsWith('ERROR_')) {
+            console.warn(`No se pudo generar URL para el plan [${i}]: ${entry.displayText}. Error: ${generatedReadingUrls[i]}`);
+            entry.url = '#ERROR'; // Marcar que hubo un error
+        }
+    });
+    // console.log(JSON.stringify(dailyReadingPlan, null, 2)); // For debugging the final plan with URLs
+
+    // --- FIN: Código para generar URLs ---
+
 
     const bibleBooksContainer = document.getElementById('bibleBooksContainer');
     const progressBar = document.getElementById('progressBar');
@@ -509,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let readStatus = {};
     let currentSuggestedReading = null;
-    const totalBibleChapters = normalizedBibleBooks.reduce((sum,b)=> sum + b.chapters, 0);
+    const totalBibleChapters = normalizedBibleBooks.reduce((sum, b) => sum + b.chapters, 0);
 
     function sanitizeKey(bookName, chapterNum) {
         return `key_${bookName.replace(/\s/g, '_')}_${chapterNum}`;
@@ -519,27 +444,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const saved = localStorage.getItem('bibleReadStatus');
         if (saved) {
             try { readStatus = JSON.parse(saved); }
-            catch(e) { console.error("Error parsing bibleReadStatus:", e); readStatus = {}; }
+            catch (e) { console.error("Error parsing bibleReadStatus:", e); readStatus = {}; }
         }
         const savedDate = localStorage.getItem('planStartDate');
         if (savedDate) {
             planStartDateInput.value = savedDate;
             try {
-                const d = new Date(savedDate + "T00:00:00Z"); // Asegurar que se trata como UTC
+                const d = new Date(savedDate + "T00:00:00Z");
                 if (isNaN(d.getTime())) throw new Error("Invalid date value");
                 currentPlanStartDateText.textContent =
-                `Tu plan de lectura actual comenzó el: ` +
-                d.toLocaleDateString('es-ES',
-                    { timeZone: 'UTC', day:'numeric',month:'long',year:'numeric' }); // Mostrar en UTC o ajustar a local si es necesario
-            } catch(e) {
+                    `Tu plan de lectura actual comenzó el: ` +
+                    d.toLocaleDateString('es-ES', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' });
+            } catch (e) {
                 console.error("Error parsing planStartDate:", e);
-                currentPlanStartDateText.textContent =
-                `Fecha de inicio guardada inválida: ${savedDate}`;
+                currentPlanStartDateText.textContent = `Fecha de inicio guardada inválida: ${savedDate}`;
                 localStorage.removeItem('planStartDate');
             }
         } else {
-            currentPlanStartDateText.textContent =
-                "Aún no has establecido una fecha de inicio para tu plan.";
+            currentPlanStartDateText.textContent = "Aún no has establecido una fecha de inicio para tu plan.";
         }
     }
 
@@ -549,50 +471,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateChapterButtonUI(bookName, chapterNum) {
         const key = sanitizeKey(bookName, chapterNum);
-        const bookId = sanitizeKey(bookName, '')
-                        .substring(4).replace(/_undefined$|_null$|_$/, '');
+        const bookId = sanitizeKey(bookName, '').substring(4).replace(/_undefined$|_null$|_$/, '');
         const grid = document.getElementById(`chapters_${bookId}`);
         if (!grid) {
-            // console.warn(`Grid no encontrado para actualizar UI: chapters_${bookId} (libro: ${bookName})`);
             return;
         }
         const selector = `.chapter-button[data-book="${bookName}"][data-chapter="${chapterNum}"]`;
         const btn = grid.querySelector(selector);
         if (!btn) {
-            // console.warn(`Botón de capítulo no encontrado para UI: ${selector}`);
             return;
         }
         btn.classList.toggle('read', !!readStatus[key]);
     }
 
     function updateOverallProgress() {
-        const readCount = Object.values(readStatus).filter(v=>v).length;
-        const pct = totalBibleChapters
-        ? Math.round((readCount/totalBibleChapters)*100)
-        : 0;
+        const readCount = Object.values(readStatus).filter(v => v).length;
+        const pct = totalBibleChapters ? Math.round((readCount / totalBibleChapters) * 100) : 0;
         progressBar.style.width = `${pct}%`;
-        progressBar.textContent = pct>10? `${pct}%`: '';
-        progressText.textContent =
-        `${pct}% completado (${readCount}/${totalBibleChapters} capítulos)`;
+        progressBar.textContent = pct > 10 ? `${pct}%` : '';
+        progressText.textContent = `${pct}% completado (${readCount}/${totalBibleChapters} capítulos)`;
     }
 
     function updateBookProgress(bookName) {
-        const book = normalizedBibleBooks.find(b=>b.name===bookName);
+        const book = normalizedBibleBooks.find(b => b.name === bookName);
         if (!book) {
-            // console.warn(`Libro no encontrado para actualizar progreso: ${bookName}`);
             return;
         }
         let read = 0;
-        for (let i=1; i<=book.chapters; i++) {
-            if (readStatus[sanitizeKey(bookName,i)]) read++;
+        for (let i = 1; i <= book.chapters; i++) {
+            if (readStatus[sanitizeKey(bookName, i)]) read++;
         }
-        const bookId = sanitizeKey(bookName,'')
-                        .substring(4).replace(/_undefined$|_null$|_$/,'');
+        const bookId = sanitizeKey(bookName, '').substring(4).replace(/_undefined$|_null$|_$/, '');
         const el = document.getElementById(`progress_${bookId}`);
         if (el) {
-            const pct = book.chapters
-                ? Math.round((read/book.chapters)*100)
-                : 0;
+            const pct = book.chapters ? Math.round((read / book.chapters) * 100) : 0;
             el.textContent = `${pct}% (${read}/${book.chapters})`;
         }
     }
@@ -606,86 +518,73 @@ document.addEventListener('DOMContentLoaded', () => {
         updateBookProgress(bookName);
     }
 
-    setPlanStartDateButton.addEventListener('click', ()=>{
+    setPlanStartDateButton.addEventListener('click', () => {
         const d = planStartDateInput.value;
         if (!d.match(/^\d{4}-\d{2}-\d{2}$/)) {
             return alert("Fecha inválida. Usa AAAA-MM-DD.");
         }
         localStorage.setItem('planStartDate', d);
-        loadState(); // Recarga el estado, incluyendo la fecha mostrada
+        loadState();
         displayDailySuggestion();
-        actualizarDiasRetraso(); // Actualiza el contador de retraso si la fecha de inicio afecta
+        actualizarDiasRetraso();
         alert("Fecha de inicio establecida.");
     });
 
-    syncPlanButton.addEventListener('click', ()=>{
+    syncPlanButton.addEventListener('click', () => {
         const idx = parseInt(syncReadingSelect.value);
-        if (isNaN(idx) || idx < 0 || idx >= dailyReadingPlan.length) { // Validar índice
+        if (isNaN(idx) || idx < 0 || idx >= dailyReadingPlan.length) {
             return alert("Selecciona una lectura válida.");
         }
-        const today = new Date(); // Hora local actual
-        // Queremos que la nueva fecha de inicio sea tal que `idx` sea la lectura de `today`
-        // Las fechas deben manejarse consistentemente, preferiblemente en UTC para los cálculos de días.
+        const today = new Date();
         const todayUTC = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
-        
         const newStartDateUTC = new Date(todayUTC);
-        newStartDateUTC.setUTCDate(todayUTC.getUTCDate() - idx); // Resta `idx` días
-        
+        newStartDateUTC.setUTCDate(todayUTC.getUTCDate() - idx);
         const s = newStartDateUTC.toISOString().split('T')[0];
         localStorage.setItem('planStartDate', s);
         planStartDateInput.value = s;
-        loadState(); // Recarga el estado
+        loadState();
         displayDailySuggestion();
-        actualizarDiasRetraso(); // Actualiza el contador de retraso
+        actualizarDiasRetraso();
         alert("Plan sincronizado.");
     });
 
     function displayDailySuggestion() {
-        const now = new Date(); // Hora local
-        currentDateSpan.textContent = now.toLocaleDateString('es-ES',
-        { weekday:'long', year:'numeric', month:'long', day:'numeric',
-            timeZone:'Europe/Madrid' }); // Especificar zona horaria para consistencia
+        const now = new Date();
+        currentDateSpan.textContent = now.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Madrid' });
 
         const sd = localStorage.getItem('planStartDate');
         if (!sd) {
-            dailySuggestionText.textContent =
-                "Establece o sincroniza una fecha de inicio.";
+            dailySuggestionText.textContent = "Establece o sincroniza una fecha de inicio.";
             markSuggestedAsReadButton.style.display = 'none';
+            currentSuggestedReading = null;
             return;
         }
-        
-        let ps; // planStartDate en UTC
+
+        let ps;
         try {
-            // La fecha se guarda como YYYY-MM-DD. Al añadir T00:00:00Z, se interpreta como medianoche UTC.
             ps = new Date(sd + "T00:00:00Z");
             if (isNaN(ps.getTime())) throw new Error("Invalid stored date");
-        } catch(e) {
-            dailySuggestionText.textContent =
-                "Error con la fecha guardada. Reestablece.";
+        } catch (e) {
+            dailySuggestionText.textContent = "Error con la fecha guardada. Reestablece.";
             markSuggestedAsReadButton.style.display = 'none';
-            localStorage.removeItem('planStartDate'); // Limpiar fecha inválida
+            localStorage.removeItem('planStartDate');
             console.error("Error parsing plan start date for displayDailySuggestion:", e);
+            currentSuggestedReading = null;
             return;
         }
 
-        // todayUTC es hoy a medianoche UTC
-        const todayUTC = new Date(Date.UTC(
-            now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()
-        ));
+        const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
         if (todayUTC < ps) {
-            const diff = Math.ceil((ps.getTime() - todayUTC.getTime())/(1000*3600*24)); // getTime() para asegurar que son números
-            dailySuggestionText.textContent =
-                `Tu plan comenzará el ${ps.toLocaleDateString('es-ES',
-                {day:'numeric',month:'long',year:'numeric', timeZone: 'UTC'})}. `+ // Mostrar en UTC o ajustar
-                `Faltan ${diff} día(s).`;
+            const diff = Math.ceil((ps.getTime() - todayUTC.getTime()) / (1000 * 3600 * 24));
+            dailySuggestionText.textContent = `Tu plan comenzará el ${ps.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}. Faltan ${diff} día(s).`;
             markSuggestedAsReadButton.style.display = 'none';
-            currentSuggestedReading = null; // No hay sugerencia aún
+            currentSuggestedReading = null;
             return;
         }
 
-        const dayDiff = Math.floor((todayUTC.getTime() - ps.getTime())/(1000*3600*24)); // 0-indexed day number
-        
+        const dayDiff = Math.floor((todayUTC.getTime() - ps.getTime()) / (1000 * 3600 * 24));
+
         if (!dailyReadingPlan.length) {
             dailySuggestionText.textContent = "No hay plan de lectura.";
             markSuggestedAsReadButton.style.display = 'none';
@@ -693,22 +592,32 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const planEffectiveLength = dailyReadingPlan.length; // Podría ser un ciclo de 365 días, etc.
-        const idx = dayDiff % planEffectiveLength; // Asegura que el índice está dentro del plan
-        
+        const planEffectiveLength = dailyReadingPlan.length;
+        const idx = dayDiff % planEffectiveLength;
+
         if (idx >= 0 && idx < dailyReadingPlan.length) {
             currentSuggestedReading = dailyReadingPlan[idx];
-            dailySuggestionText.textContent =
-                `Día ${dayDiff+1}: ${currentSuggestedReading.displayText}`;
+            dailySuggestionText.innerHTML = ''; 
+
+            const textNode = document.createTextNode(`Día ${dayDiff + 1}: ${currentSuggestedReading.displayText} `);
+            dailySuggestionText.appendChild(textNode);
+
+            if (currentSuggestedReading.url && currentSuggestedReading.url !== '#ERROR' && !currentSuggestedReading.url.startsWith('ERROR_')) {
+                const link = document.createElement('a');
+                link.href = currentSuggestedReading.url;
+                link.textContent = "(Leer en jw.org)";
+                link.target = "_blank";
+                link.style.marginLeft = "5px";
+                dailySuggestionText.appendChild(link);
+            }
             markSuggestedAsReadButton.style.display = 'inline-block';
         } else {
-             dailySuggestionText.textContent = "Lectura del plan no encontrada para hoy.";
-             markSuggestedAsReadButton.style.display = 'none';
-             currentSuggestedReading = null;
+            dailySuggestionText.textContent = "Lectura del plan no encontrada para hoy.";
+            markSuggestedAsReadButton.style.display = 'none';
+            currentSuggestedReading = null;
         }
     }
-    
-    // Función para marcar capítulos de un libro específico
+
     function markChaptersForBook(bookName, startChap, endChap) {
         let changedSomething = false;
         const bookData = normalizedBibleBooks.find(b => b.name === bookName);
@@ -717,93 +626,104 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
         for (let i = startChap; i <= endChap; i++) {
+            // Asegurarse de que el capítulo esté dentro del rango válido para el libro
             if (i >= 1 && i <= bookData.chapters) {
                 const key = sanitizeKey(bookName, i);
                 if (!readStatus[key]) {
                     readStatus[key] = true;
-                    updateChapterButtonUI(bookName, i);
+                    updateChapterButtonUI(bookName, i); // Asumiendo que esta función existe y está correcta
                     changedSomething = true;
                 }
+            } else {
+                console.warn(`Capítulo ${i} fuera de rango para ${bookName} (Total: ${bookData.chapters})`);
             }
         }
         if (changedSomething) {
-            updateBookProgress(bookName);
+            updateBookProgress(bookName); // Asumiendo que esta función existe y está correcta
         }
         return changedSomething;
     }
 
-
-    markSuggestedAsReadButton.addEventListener('click', ()=>{
+    markSuggestedAsReadButton.addEventListener('click', () => {
         if (!currentSuggestedReading) return;
-    
+
         let overallChanged = false;
-        const { book: planBookEntry, startChapter: planStartChapter, endChapter: planEndChapter, displayText } = currentSuggestedReading;
-    
-        // Manejar libros combinados en la entrada del plan (ej. "Abdías, Jonás")
-        // Esto requiere parsear el displayText o tener una estructura más detallada en dailyReadingPlan
-        // Ejemplo simplificado: Asumimos que displayText es la fuente de verdad para los capítulos.
-        // "Abdías 1, Jonás 1-4" -> marca Abdías 1 y Jonás 1-4
-        // "Tito 1-3, Filemón 1" -> marca Tito 1-3 y Filemón 1
+        const { book: planBookEntry, displayText } = currentSuggestedReading; // No necesitamos planStartChapter/EndChapter si displayText es la fuente de verdad
         
         const readingParts = displayText.split(',').map(part => part.trim());
-        // Esta regex intenta extraer "Libro X-Y" o "Libro Z"
-        const regex = /([\w\s]+?)\s*(\d+)(?:-(\d+))?$/; 
+        const regex = /([\w\s\dÁÉÍÓÚáéíóúÑñ]+?)\s*(\d+)(?:-(\d+))?(?:\s*\(.*v\.\s*(\d+)\))?/;
+
 
         readingParts.forEach(part => {
             const match = part.match(regex);
             if (match) {
-                const bookName = match[1].trim(); // Nombre del libro, ej: "Génesis", "1 Samuel"
+                const bookName = match[1].trim();
                 const startChap = parseInt(match[2]);
-                const endChap = match[3] ? parseInt(match[3]) : startChap; // Si no hay rango, endChapter = startChapter
+                // Si displayText es "Libro X", endChap es startChap. Si es "Libro X-Y", endChap es Y.
+                // Ignorar los detalles de versos (grupo 4) para marcar capítulos enteros.
+                const endChap = match[3] ? parseInt(match[3]) : startChap; 
                 
-                // Validar que el libro extraído existe en normalizedBibleBooks
                 const actualBook = normalizedBibleBooks.find(b => b.name === bookName);
                 if (actualBook) {
                     if (markChaptersForBook(actualBook.name, startChap, endChap)) {
                         overallChanged = true;
                     }
                 } else {
-                    console.warn(`Libro "${bookName}" de displayText no encontrado para marcar.`);
+                    console.warn(`Libro "${bookName}" de displayText no encontrado para marcar: "${part}"`);
                 }
             } else {
-                 // Si el formato no coincide, intentar con el `book` y `startChapter`/`endChapter` del plan
-                 // Esto puede ser problemático si `planBookEntry` es una cadena combinada.
-                 const singleBookTarget = normalizedBibleBooks.find(b => b.name === planBookEntry);
-                 if(singleBookTarget){ // Si el book del plan es un libro válido y único
-                    if (markChaptersForBook(singleBookTarget.name, planStartChapter, planEndChapter)) {
+                 // Fallback si la regex no funciona para una parte, podría ser un libro único del plan original
+                 // Esto es menos probable si displayText siempre está bien formateado.
+                const singleBookTarget = normalizedBibleBooks.find(b => b.name === planBookEntry);
+                if(singleBookTarget && currentSuggestedReading.startChapter && currentSuggestedReading.endChapter){
+                    if (markChaptersForBook(singleBookTarget.name, currentSuggestedReading.startChapter, currentSuggestedReading.endChapter)) {
                         overallChanged = true;
                     }
-                 } else {
-                    console.warn(`Formato de parte de lectura no reconocido: "${part}" y planBookEntry "${planBookEntry}" no es un libro individual válido.`);
-                 }
+                } else {
+                    console.warn(`Formato de parte de lectura no reconocido: "${part}" y planBookEntry "${planBookEntry}" no es un libro individual válido o faltan capítulos.`);
+                }
             }
         });
     
         if (overallChanged) {
             saveState();
-            updateOverallProgress(); // Actualiza el progreso general
-            // La actualización del progreso por libro ya se hace en markChaptersForBook
+            updateOverallProgress();
             alert(`${displayText} marcado como leído.`);
-            actualizarUltimaLectura(); // Actualiza la fecha de última lectura y el contador de retraso
-            if (dailySuggestionText) dailySuggestionText.textContent = "¡Lectura completada por hoy!";
+            actualizarUltimaLectura(); 
+            if (dailySuggestionText) { 
+                 if (dailySuggestionText.firstChild && dailySuggestionText.firstChild.nodeType === Node.TEXT_NODE) {
+                    dailySuggestionText.firstChild.textContent = "¡Lectura completada por hoy! ";
+                 } else {
+                     dailySuggestionText.textContent = "¡Lectura completada por hoy! ";
+                 }
+                 const existingLink = dailySuggestionText.querySelector('a');
+                 if(existingLink) existingLink.remove();
+            }
             if (markSuggestedAsReadButton) markSuggestedAsReadButton.style.display = 'none';
+
+
         } else {
             alert(`Ya estaban leídos los capítulos de: ${displayText}.`);
-            actualizarUltimaLectura(); // Aun así, actualiza la fecha como actividad reciente
-             if (dailySuggestionText) dailySuggestionText.textContent = "Lectura de hoy ya estaba completada.";
-            // if (markSuggestedAsReadButton) markSuggestedAsReadButton.style.display = 'none'; // Opcional: ocultar igual
+            actualizarUltimaLectura(); 
+            if (dailySuggestionText) {
+                 if (dailySuggestionText.firstChild && dailySuggestionText.firstChild.nodeType === Node.TEXT_NODE) {
+                    dailySuggestionText.firstChild.textContent = "Lectura de hoy ya estaba completada. ";
+                 } else {
+                     dailySuggestionText.textContent = "Lectura de hoy ya estaba completada. ";
+                 }
+                 const existingLink = dailySuggestionText.querySelector('a');
+                 if(existingLink) existingLink.remove();
+            }
+            if (markSuggestedAsReadButton) markSuggestedAsReadButton.style.display = 'none'; 
         }
     });
-    
 
-    function renderBooks(filterBook='todos', filterStatus='todos') {
+
+    function renderBooks(filterBook = 'todos', filterStatus = 'todos') {
         bibleBooksContainer.innerHTML = '';
-        const list = normalizedBibleBooks.filter(b=>
-        filterBook==='todos'||b.name===filterBook
-        );
-        list.forEach(book=>{
-            const bookId = sanitizeKey(book.name,'')
-                            .substring(4).replace(/_undefined$|_null$|_$/,'');
+        const list = normalizedBibleBooks.filter(b => filterBook === 'todos' || b.name === filterBook);
+        list.forEach(book => {
+            const bookId = sanitizeKey(book.name, '').substring(4).replace(/_undefined$|_null$|_$/, '');
             const section = document.createElement('div');
             section.className = 'book-section';
             section.innerHTML = `
@@ -816,12 +736,12 @@ document.addEventListener('DOMContentLoaded', () => {
             bibleBooksContainer.appendChild(section);
             const grid = section.querySelector('.chapters-grid');
             let hasVisibleChapters = false;
-            for (let i=1; i<=book.chapters; i++) {
+            for (let i = 1; i <= book.chapters; i++) {
                 const key = sanitizeKey(book.name, i);
                 const isRead = !!readStatus[key];
                 if (
-                    (filterStatus==='leidos'&&!isRead) ||
-                    (filterStatus==='no_leidos'&&isRead)
+                    (filterStatus === 'leidos' && !isRead) ||
+                    (filterStatus === 'no_leidos' && isRead)
                 ) continue;
                 hasVisibleChapters = true;
                 const btn = document.createElement('button');
@@ -830,11 +750,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.dataset.book = book.name;
                 btn.dataset.chapter = i;
                 if (isRead) btn.classList.add('read');
-                btn.addEventListener('click', ()=> toggleChapterRead(book.name, i));
+                btn.addEventListener('click', () => toggleChapterRead(book.name, i));
                 grid.appendChild(btn);
             }
-            if (!hasVisibleChapters && filterStatus!=='todos') {
-                section.style.display='none';
+            if (!hasVisibleChapters && filterStatus !== 'todos') {
+                section.style.display = 'none';
             }
             updateBookProgress(book.name);
         });
@@ -842,53 +762,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function populateFiltersAndSyncOptions() {
         bookFilter.innerHTML = '<option value="todos">Todos los Libros</option>';
-        normalizedBibleBooks.forEach(b=>{
+        normalizedBibleBooks.forEach(b => {
             const o = document.createElement('option');
             o.value = b.name; o.textContent = b.name;
             bookFilter.appendChild(o);
         });
-        bookFilter.addEventListener('change', ()=> 
-            renderBooks(bookFilter.value, statusFilter.value)
-        );
-        statusFilter.addEventListener('change', ()=> 
-            renderBooks(bookFilter.value, statusFilter.value)
-        );
+        bookFilter.addEventListener('change', () => renderBooks(bookFilter.value, statusFilter.value));
+        statusFilter.addEventListener('change', () => renderBooks(bookFilter.value, statusFilter.value));
 
-        syncReadingSelect.innerHTML = ''; // Limpiar opciones previas
-        dailyReadingPlan.forEach((r,i)=>{
+        syncReadingSelect.innerHTML = '';
+        dailyReadingPlan.forEach((r, i) => {
             const o = document.createElement('option');
-            o.value = i; // El valor es el índice del plan
-            o.textContent = `Día ${i+1}: ${r.displayText}`;
+            o.value = i;
+            o.textContent = `Día ${i + 1}: ${r.displayText}`;
             syncReadingSelect.appendChild(o);
         });
     }
 
-    resetProgressButton.addEventListener('click', ()=>{
+    resetProgressButton.addEventListener('click', () => {
         if (!confirm('¿Reiniciar todo el progreso?')) return;
         readStatus = {};
         saveState();
-        // También reiniciar la fecha de última lectura y el contador de retraso
         localStorage.removeItem('lastReadingDate');
-        actualizarDiasRetraso(); 
-        renderBooks(bookFilter.value, statusFilter.value); // Re-renderizar con filtros actuales
+        actualizarDiasRetraso();
+        renderBooks(bookFilter.value, statusFilter.value);
         updateOverallProgress();
+        displayDailySuggestion();
         alert("Progreso reiniciado.");
     });
 
     // --- Inicialización ---
     loadState();
     populateFiltersAndSyncOptions();
-    renderBooks(); // Render inicial sin filtros específicos o con los por defecto
+    renderBooks();
     updateOverallProgress();
-    displayDailySuggestion(); // Mostrar sugerencia diaria
-    actualizarDiasRetraso(); // Actualizar contador de días de retraso al cargar
+    displayDailySuggestion(); 
+    actualizarDiasRetraso();
 
     // --- Service Worker PWA ---
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', ()=>{
-        navigator.serviceWorker.register('/sw.js') // Asegúrate que la ruta a sw.js es correcta
-            .then(r=> console.log('ServiceWorker registrado con scope:', r.scope))
-            .catch(e=> console.error('Error al registrar ServiceWorker:', e));
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js') 
+                .then(r => console.log('ServiceWorker registrado con scope:', r.scope))
+                .catch(e => console.error('Error al registrar ServiceWorker:', e));
         });
     }
 });
