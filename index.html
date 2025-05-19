@@ -24,18 +24,35 @@
   <div class="container">
     <header>
       <h1>Mi Progreso de Lectura Bíblica</h1>
-      
-      <div id="current-date-suggestion">
-        <p><span id="currentDate"></span></p>
-        <div id="daily-suggestion">
-          <p id="dailySuggestionText">Cargando sugerencia...</p>
-          <button id="markSuggestedAsRead" style="display: none;">Marcar Leído</button>
-        </div>
-      </div>
 
-      <!-- Indicador de días de retraso -->
-      <div id="delay-indicator">
-        <p>Días de retraso: <span id="daysDelayed">0</span></p>
+      <div class="daily-suggestion">
+        <p class="daily-suggestion__date" id="currentDate">
+          <!-- Fecha actual inyectada por JS -->
+        </p>
+
+        <p class="daily-suggestion__text" id="dailySuggestionText">
+          Cargando sugerencia...
+        </p>
+
+        <a
+          class="daily-suggestion__link"
+          id="dailySuggestionLink"
+          href="#"
+          target="_blank"
+          style="display: none;"
+        ></a>
+
+        <p class="daily-suggestion__delay-indicator">
+          Días de retraso: <span id="daysDelayed">0</span>
+        </p>
+
+        <button
+          class="daily-suggestion__button"
+          id="markSuggestedAsRead"
+          style="display: none;"
+        >
+          Marcar Leído
+        </button>
       </div>
 
       <div class="progress-container">
@@ -48,14 +65,16 @@
 
     <section id="plan-management">
       <h2>Gestionar Plan de Lectura</h2>
-      <div class="plan-group">
+
+      <div class="field-group">
         <label for="planStartDateInput">Fecha de inicio del plan:</label>
         <input type="date" id="planStartDateInput">
         <button id="setPlanStartDateButton">Establecer Inicio</button>
         <p id="currentPlanStartDateText">Cargando fecha de inicio...</p>
       </div>
-      <div class="plan-group">
-        <label for="syncReadingSelect">Sincronizar plan (Hoy es...):</label>
+
+      <div class="field-group">
+        <label for="syncReadingSelect">Sincronizar plan:</label>
         <select id="syncReadingSelect">
           <option value="">Cargando lecturas del plan...</option>
         </select>
@@ -65,13 +84,15 @@
 
     <section id="controls">
       <h2>Filtros y Controles</h2>
-      <div class="filter-group">
+
+      <div class="field-group">
         <label for="bookFilter">Filtrar por Libro:</label>
         <select id="bookFilter">
           <option value="todos">Todos los Libros</option>
         </select>
       </div>
-      <div class="filter-group">
+
+      <div class="field-group">
         <label for="statusFilter">Filtrar por Estado:</label>
         <select id="statusFilter">
           <option value="todos">Todos</option>
@@ -79,6 +100,7 @@
           <option value="no_leidos">No Leídos</option>
         </select>
       </div>
+
       <button id="resetProgress">Reiniciar Progreso</button>
     </section>
 
@@ -92,28 +114,31 @@
   <!-- Script principal -->
   <script src="./script.js" defer></script>
   <script>
-    // Inicialización del DOM
     document.addEventListener('DOMContentLoaded', function () {
-      // Actualizar el año dinámico
-      document.getElementById('currentYear').textContent = new Date().getFullYear();
+      // Año dinámico
+      document.getElementById('currentYear').textContent =
+        new Date().toLocaleDateString('es-ES', {
+          year: 'numeric',
+          timeZone: 'Europe/Madrid'
+        });
 
-      // Actualizar y mostrar la fecha actual
-      const currentDateElem = document.getElementById('currentDate');
-      currentDateElem.textContent = new Date().toLocaleDateString();
+      // Fecha actual
+      document.getElementById('currentDate').textContent =
+        new Date().toLocaleDateString('es-ES', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          timeZone: 'Europe/Madrid'
+        });
 
-      // Sugerencia diaria (puedes personalizar la lógica)
-      const dailySuggestionText = document.getElementById('dailySuggestionText');
-      dailySuggestionText.textContent = "Lee el capítulo asignado de hoy.";
-
-      // Muestra el botón para marcar la lectura como completada
-      const markAsReadButton = document.getElementById('markSuggestedAsRead');
-      markAsReadButton.style.display = 'inline-block';
+      // El resto de la lógica (sugerencias, enlaces, retraso…) en script.js
     });
 
-    // Registro del Service Worker para PWA
+    // Registro del Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function(){
-        navigator.serviceWorker.register('sw.js')
+        navigator.serviceWorker
+          .register('sw.js')
           .then(reg => console.log('SW registrado:', reg.scope))
           .catch(err => console.error('Error SW:', err));
       });
