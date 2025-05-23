@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>Mi Progreso Bíblico</title>
 
   <!-- Hoja de estilos -->
@@ -26,31 +27,20 @@
       <h1>Mi Progreso de Lectura Bíblica</h1>
 
       <div class="daily-suggestion">
-        <p class="daily-suggestion__date" id="currentDate">
-          <!-- Fecha actual inyectada por JS -->
-        </p>
+        <p class="daily-suggestion__date" id="currentDate"></p>
+        <p class="daily-suggestion__text" id="dailySuggestionText">Cargando sugerencia...</p>
 
-        <p class="daily-suggestion__text" id="dailySuggestionText">
-          Cargando sugerencia...
-        </p>
+        <a class="daily-suggestion__link" id="dailySuggestionLink" href="#" target="_blank" style="display: none;"></a>
 
-        <a
-          class="daily-suggestion__link"
-          id="dailySuggestionLink"
-          href="#"
-          target="_blank"
-          style="display: none;"
-        ></a>
+        <button class="daily-suggestion__button" id="addToCalendarButton" style="display: none; margin-left: 10px;">
+          Añadir a Calendario
+        </button>
 
         <p class="daily-suggestion__delay-indicator">
           Días de retraso: <span id="daysDelayed">0</span>
         </p>
 
-        <button
-          class="daily-suggestion__button"
-          id="markSuggestedAsRead"
-          style="display: none;"
-        >
+        <button class="daily-suggestion__button" id="markSuggestedAsRead" style="display: none;">
           Marcar Leído
         </button>
       </div>
@@ -65,14 +55,12 @@
 
     <section id="plan-management">
       <h2>Gestionar Plan de Lectura</h2>
-
       <div class="field-group">
         <label for="planStartDateInput">Fecha de inicio del plan:</label>
         <input type="date" id="planStartDateInput">
         <button id="setPlanStartDateButton">Establecer Inicio</button>
         <p id="currentPlanStartDateText">Cargando fecha de inicio...</p>
       </div>
-
       <div class="field-group">
         <label for="syncReadingSelect">Sincronizar plan:</label>
         <select id="syncReadingSelect">
@@ -84,14 +72,12 @@
 
     <section id="controls">
       <h2>Filtros y Controles</h2>
-
       <div class="field-group">
         <label for="bookFilter">Filtrar por Libro:</label>
         <select id="bookFilter">
           <option value="todos">Todos los Libros</option>
         </select>
       </div>
-
       <div class="field-group">
         <label for="statusFilter">Filtrar por Estado:</label>
         <select id="statusFilter">
@@ -100,7 +86,6 @@
           <option value="no_leidos">No Leídos</option>
         </select>
       </div>
-
       <button id="resetProgress">Reiniciar Progreso</button>
     </section>
 
@@ -111,32 +96,102 @@
     </footer>
   </div>
 
-  <!-- Script principal -->
   <script src="./script.js" defer></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      // Año dinámico
-      document.getElementById('currentYear').textContent =
-        new Date().toLocaleDateString('es-ES', {
-          year: 'numeric',
-          timeZone: 'Europe/Madrid'
-        });
 
-      // Fecha actual
+  <!-- Generación del .ics y extensión displayDailySuggestion -->
+  <script>
+    function downloadICS({ title, description, startDate, endDate }) {
+      function fmt(d) {
+        const y = d.getFullYear(),
+              m = String(d.getMonth() + 1).padStart(2, '0'),
+              dd = String(d.getDate()).padStart(2, '0');
+        return `${y}${m}${dd}`;
+      }
+      const dtStart = fmt(startDate),
+            dtEnd = fmt(endDate),
+            lines = [
+              'BEGIN:VCALENDAR',
+              'VERSION:2.0',
+              'PRODID:-//TuApp//LecturaDiaria//ES',
+              'BEGIN:VEVENT',
+              `UID:${Date.now()}@tubiblia.app`,
+              `DTSTAMP:${dtStart}T080000Z`,
+              `DTSTART;VALUE=DATE:${dtStart}`,
+              `DTEND;VALUE=DATE:${dtEnd}`,
+              `SUMMARY:${title}`,
+              `DESCRIPTION:${description}`,
+              'END:VEVENT',
+              'END:VCALENDAR'
+            ];
+      const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' }),
+            url = URL.createObjectURL(blob),
+            a = document.createElement('a');
+      a.href = url;
+      a.download = `${title.replace(/\s+/g, '_')}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('currentYear').textContent =
+        new Date().toLocaleDateString('es-ES', { year: 'numeric', timeZone: 'Europe/Madrid' });
+
       document.getElementById('currentDate').textContent =
         new Date().toLocaleDateString('es-ES', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          timeZone: 'Europe/Madrid'
+          weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Madrid'
         });
 
-      // El resto de la lógica (sugerencias, enlaces, retraso…) en script.js
-    });
+      const addCalBtn = document.getElementById('addToCalendarButton');
+      const dailyLink = document.getElementById('dailySuggestionLink');
+      const markReadBtn = document.getElementById('markSuggestedAsRead');
 
-    // Registro del Service Worker
+      const originalDisplay = window.displayDailySuggestion;
+
+      window.displayDailySuggestion = function () {
+        originalDisplay();
+
+        if (window.currentSuggestedReading && window.todayUTC) {
+          const suggestionText = document.getElementById('dailySuggestionText');
+
+          if (currentSuggestedReading.url && !currentSuggestedReading.url.startsWith('#ERROR')) {
+            addCalBtn.style.display = 'inline-block';
+            addCalBtn.onclick = () => {
+              const title = `Lectura día ${dayDiff + 1}: ${currentSuggestedReading.displayText}`;
+              const desc = `Leer en jw.org: ${currentSuggestedReading.url}`;
+              const start = todayUTC;
+              const end = new Date(todayUTC);
+              end.setDate(end.getDate() + 1);
+              downloadICS({ title, description: desc, startDate: start, endDate: end });
+            };
+            dailyLink.style.marginLeft = '10px';
+          } else {
+            addCalBtn.style.display = 'none';
+          }
+
+          const isAndroid = /Android/i.test(navigator.userAgent);
+          if (isAndroid && !document.getElementById('jwAppSuggestion')) {
+            const note = document.createElement('small');
+            note.id = 'jwAppSuggestion';
+            note.textContent = 'Si tienes la app JW Library instalada, abre esta lectura desde allí manualmente.';
+            note.style.display = 'block';
+            note.style.marginTop = '5px';
+            note.style.fontStyle = 'italic';
+            note.style.color = 'gray';
+            suggestionText.appendChild(note);
+          }
+        }
+      };
+
+      displayDailySuggestion();
+    });
+  </script>
+
+  <!-- Service Worker -->
+  <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function(){
+      window.addEventListener('load', () => {
         navigator.serviceWorker
           .register('sw.js')
           .then(reg => console.log('SW registrado:', reg.scope))
