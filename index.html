@@ -3,53 +3,120 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Aplicación para seguir el progreso de lectura bíblica personal.">
 
   <title>Mi Progreso Bíblico</title>
 
-  <!-- Hoja de estilos -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- Manifest (relativo) -->
   <link rel="manifest" href="manifest.json">
 
-  <!-- PWA en iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Progreso Bíblico">
 
-  <!-- Iconos -->
   <link rel="icon" href="icons/icon-192x192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+
 </head>
 <body>
+  <script>
+    function applyCustomTheme(primary, accent) {
+      document.documentElement.style.setProperty('--primary-color', primary);
+      document.documentElement.style.setProperty('--accent-color', accent);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const primaryPicker = document.getElementById('primaryColorPicker');
+      const accentPicker = document.getElementById('accentColorPicker');
+
+      // Valores por defecto que coinciden con el tema "Deep Ocean" del CSS
+      const defaultPrimaryColor = '#0A2342';
+      const defaultAccentColor = '#F4B942';
+
+      const savedPrimary = localStorage.getItem('theme-primary');
+      const savedAccent = localStorage.getItem('theme-accent');
+
+      if (savedPrimary && savedAccent) {
+        applyCustomTheme(savedPrimary, savedAccent);
+        if(primaryPicker) primaryPicker.value = savedPrimary;
+        if(accentPicker) accentPicker.value = savedAccent;
+      } else {
+        // Aplicar tema por defecto si no hay nada guardado
+        applyCustomTheme(defaultPrimaryColor, defaultAccentColor);
+        if(primaryPicker) primaryPicker.value = defaultPrimaryColor;
+        if(accentPicker) accentPicker.value = defaultAccentColor;
+      }
+
+      const saveThemeButton = document.getElementById('saveThemeButton');
+      if(saveThemeButton) {
+        saveThemeButton.addEventListener('click', () => {
+          const primary = primaryPicker.value;
+          const accent = accentPicker.value;
+          applyCustomTheme(primary, accent);
+          localStorage.setItem('theme-primary', primary);
+          localStorage.setItem('theme-accent', accent);
+        });
+      }
+
+      const resetThemeButton = document.getElementById('resetThemeButton');
+      if(resetThemeButton) {
+        resetThemeButton.addEventListener('click', () => {
+          applyCustomTheme(defaultPrimaryColor, defaultAccentColor);
+          primaryPicker.value = defaultPrimaryColor;
+          accentPicker.value = defaultAccentColor;
+          localStorage.removeItem('theme-primary');
+          localStorage.removeItem('theme-accent');
+        });
+      }
+      
+      document.querySelectorAll('.theme-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const primary = btn.getAttribute('data-primary');
+          const accent = btn.getAttribute('data-accent');
+          applyCustomTheme(primary, accent);
+          primaryPicker.value = primary;
+          accentPicker.value = accent;
+          localStorage.setItem('theme-primary', primary);
+          localStorage.setItem('theme-accent', accent);
+        });
+      });
+    });
+  </script>
+
   <div class="container">
     <header>
       <h1>Mi Progreso de Lectura Bíblica</h1>
 
       <div class="daily-suggestion">
-        <p class="daily-suggestion__date" id="currentDate"></p>
-        <p class="daily-suggestion__text" id="dailySuggestionText">Cargando sugerencia...</p>
-
-        <a class="daily-suggestion__link" id="dailySuggestionLink" href="#" target="_blank" style="display: none;"></a>
-
-        <button class="daily-suggestion__button" id="addToCalendarButton" style="display: none; margin-left: 10px;">
-          Añadir a Calendario
-        </button>
-
-        <p class="daily-suggestion__delay-indicator">
-          Días de retraso: <span id="daysDelayed">0</span>
-        </p>
-
-        <button class="daily-suggestion__button" id="markSuggestedAsRead" style="display: none;">
-          Marcar Leído
-        </button>
+        <div class="suggestion-block suggestion-block--date">
+          <h3 class="suggestion-block__title">Fecha Actual</h3>
+          <p class="daily-suggestion__date" id="currentDate">[La fecha se cargará aquí]</p>
+        </div>
+      
+        <div class="suggestion-block suggestion-block--reading">
+          <h3 class="suggestion-block__title">Lectura Sugerida</h3>
+          <p class="daily-suggestion__text" id="dailySuggestionText" aria-live="polite">Cargando sugerencia...</p>
+          <a class="daily-suggestion__link" id="dailySuggestionLink" href="#" target="_blank" style="display: none;" aria-label="Abrir lectura sugerida">Ver lectura online</a>
+          <div class="suggestion-block__actions">
+              <button type="button" class="daily-suggestion__button" id="markSuggestedAsRead" style="display: none;">Marcar como Leído</button>
+              <button type="button" class="daily-suggestion__button" id="addToCalendarButton" style="display: none;">Añadir al Calendario</button>
+          </div>
+        </div>
+      
+        <div class="suggestion-block suggestion-block--status">
+          <h3 class="suggestion-block__title">Estado del Plan</h3>
+          <p class="daily-suggestion__delay-indicator">
+            Días de retraso: <span id="daysDelayed" aria-live="polite">0</span>
+          </p>
+        </div>
       </div>
 
       <div class="progress-container">
-        <div class="progress-bar-overall">
+        <div class="progress-bar-overall" role="progressbar" aria-labelledby="progressText" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
           <div id="progressBar"></div>
         </div>
-        <span id="progressText">0%</span>
+        <span id="progressText" aria-live="polite">0%</span>
       </div>
     </header>
 
@@ -58,15 +125,39 @@
       <div class="field-group">
         <label for="planStartDateInput">Fecha de inicio del plan:</label>
         <input type="date" id="planStartDateInput">
-        <button id="setPlanStartDateButton">Establecer Inicio</button>
-        <p id="currentPlanStartDateText">Cargando fecha de inicio...</p>
+        <button type="button" id="setPlanStartDateButton">Establecer Inicio</button>
+        <p id="currentPlanStartDateText" aria-live="polite">Cargando fecha de inicio...</p>
       </div>
       <div class="field-group">
         <label for="syncReadingSelect">Sincronizar plan:</label>
         <select id="syncReadingSelect">
           <option value="">Cargando lecturas del plan...</option>
         </select>
-        <button id="syncPlanButton">Sincronizar Plan</button>
+        <button type="button" id="syncPlanButton">Sincronizar Plan</button>
+      </div>
+    </section>
+
+    <section id="theme-customizer">
+      <h2>Personaliza los Colores</h2>
+      <div class="field-group">
+        <label for="primaryColorPicker">Color principal:</label>
+        <input type="color" id="primaryColorPicker" value="#0A2342" title="Selector de color principal">
+        
+        <label for="accentColorPicker">Color de acento:</label>
+        <input type="color" id="accentColorPicker" value="#F4B942" title="Selector de color de acento">
+        
+        <button type="button" id="saveThemeButton">Guardar Estilo</button>
+        <button type="button" id="resetThemeButton">Restaurar Colores por Defecto</button>
+      </div>
+
+      <div class="field-group">
+        <label>O elige una paleta predefinida:</label>
+        <div id="presetThemes" class="suggestion-block__actions"> <button type="button" class="theme-preset daily-suggestion__button" data-primary="#0A2342" data-accent="#F4B942" style="background:#0A2342; color:#F4B942;">Abismo</button>
+          <button type="button" class="theme-preset daily-suggestion__button" data-primary="#0b3d91" data-accent="#f39c12" style="background:#0b3d91; color:#f39c12;">Clásico</button>
+          <button type="button" class="theme-preset daily-suggestion__button" data-primary="#2c3e50" data-accent="#e67e22" style="background:#2c3e50; color:#e67e22;">Oscuro</button>
+          <button type="button" class="theme-preset daily-suggestion__button" data-primary="#16a085" data-accent="#f1c40f" style="background:#16a085; color:#f1c40f;">Tropical</button>
+          <button type="button" class="theme-preset daily-suggestion__button" data-primary="#8e44ad" data-accent="#3498db" style="background:#8e44ad; color:#3498db;">Vibrante</button>
+        </div>
       </div>
     </section>
 
@@ -86,10 +177,11 @@
           <option value="no_leidos">No Leídos</option>
         </select>
       </div>
-      <button id="resetProgress">Reiniciar Progreso</button>
+      <button type="button" id="resetProgress">Reiniciar Progreso</button>
     </section>
 
-    <main id="bibleBooksContainer"></main>
+    <main id="bibleBooksContainer">
+      </main>
 
     <footer>
       <p>&copy; <span id="currentYear"></span> Tu Nombre o Proyecto</p>
@@ -98,7 +190,6 @@
 
   <script src="./script.js" defer></script>
 
-  <!-- Generación del .ics y extensión displayDailySuggestion -->
   <script>
     function downloadICS({ title, description, startDate, endDate }) {
       function fmt(d) {
@@ -109,17 +200,21 @@
       }
       const dtStart = fmt(startDate),
             dtEnd = fmt(endDate),
-            lines = [
+            // Generar DTSTAMP con formato correcto UTC
+            now = new Date(),
+            dtStamp = `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, '0')}${String(now.getUTCDate()).padStart(2, '0')}T${String(now.getUTCHours()).padStart(2, '0')}${String(now.getUTCMinutes()).padStart(2, '0')}${String(now.getUTCSeconds()).padStart(2, '0')}Z`;
+
+      const lines = [
               'BEGIN:VCALENDAR',
               'VERSION:2.0',
               'PRODID:-//TuApp//LecturaDiaria//ES',
               'BEGIN:VEVENT',
               `UID:${Date.now()}@tubiblia.app`,
-              `DTSTAMP:${dtStart}T080000Z`,
+              `DTSTAMP:${dtStamp}`,
               `DTSTART;VALUE=DATE:${dtStart}`,
-              `DTEND;VALUE=DATE:${dtEnd}`,
+              `DTEND;VALUE=DATE:${dtEnd}`, // Evento de día completo termina al día siguiente
               `SUMMARY:${title}`,
-              `DESCRIPTION:${description}`,
+              `DESCRIPTION:${description.replace(/\n/g, '\\n')}`, // Escapar saltos de línea
               'END:VEVENT',
               'END:VCALENDAR'
             ];
@@ -127,7 +222,8 @@
             url = URL.createObjectURL(blob),
             a = document.createElement('a');
       a.href = url;
-      a.download = `${title.replace(/\s+/g, '_')}.ics`;
+      // Sanitize filename
+      a.download = `${title.replace(/[^\w\s.-]/gi, '').replace(/\s+/g, '_')}.ics`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -135,69 +231,115 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('currentYear').textContent =
-        new Date().toLocaleDateString('es-ES', { year: 'numeric', timeZone: 'Europe/Madrid' });
-
-      document.getElementById('currentDate').textContent =
-        new Date().toLocaleDateString('es-ES', {
+      const currentYearEl = document.getElementById('currentYear');
+      if (currentYearEl) {
+        currentYearEl.textContent = new Date().toLocaleDateString('es-ES', { year: 'numeric', timeZone: 'Europe/Madrid' });
+      }
+      
+      const currentDateEl = document.getElementById('currentDate');
+      if (currentDateEl) {
+        currentDateEl.textContent = new Date().toLocaleDateString('es-ES', {
           weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Madrid'
         });
+      }
 
       const addCalBtn = document.getElementById('addToCalendarButton');
       const dailyLink = document.getElementById('dailySuggestionLink');
-      const markReadBtn = document.getElementById('markSuggestedAsRead');
+      const markReadBtn = document.getElementById('markSuggestedAsRead'); // Asegúrate que este botón existe y está visible cuando debe
 
-      const originalDisplay = window.displayDailySuggestion;
+      // Extender displayDailySuggestion si existe globalmente (cargado por script.js)
+      if (typeof window.displayDailySuggestion === 'function') {
+        const originalDisplayDailySuggestion = window.displayDailySuggestion;
 
-      window.displayDailySuggestion = function () {
-        originalDisplay();
+        window.displayDailySuggestion = function (...args) {
+          originalDisplayDailySuggestion.apply(this, args); // Llama a la función original
 
-        if (window.currentSuggestedReading && window.todayUTC) {
-          const suggestionText = document.getElementById('dailySuggestionText');
+          // Asumimos que window.currentSuggestedReading, window.todayUTC, y window.dayDiff son establecidos por la función original
+          const currentReading = window.currentSuggestedReading;
+          const todayDateUTC = window.todayUTC; // Debe ser un objeto Date
+          const daysDelayedCount = window.dayDiff !== undefined ? window.dayDiff : 0;
 
-          if (currentSuggestedReading.url && !currentSuggestedReading.url.startsWith('#ERROR')) {
-            addCalBtn.style.display = 'inline-block';
-            addCalBtn.onclick = () => {
-              const title = `Lectura día ${dayDiff + 1}: ${currentSuggestedReading.displayText}`;
-              const desc = `Leer en jw.org: ${currentSuggestedReading.url}`;
-              const start = todayUTC;
-              const end = new Date(todayUTC);
-              end.setDate(end.getDate() + 1);
-              downloadICS({ title, description: desc, startDate: start, endDate: end });
-            };
-            dailyLink.style.marginLeft = '10px';
+          const daysDelayedSpan = document.getElementById('daysDelayed');
+          if(daysDelayedSpan) {
+              daysDelayedSpan.textContent = daysDelayedCount;
+              if (daysDelayedCount > 0) {
+                  daysDelayedSpan.classList.add('has-delay');
+                  const statusBlock = daysDelayedSpan.closest('.suggestion-block--status');
+                  if(statusBlock) statusBlock.classList.add('has-delay');
+              } else {
+                  daysDelayedSpan.classList.remove('has-delay');
+                  const statusBlock = daysDelayedSpan.closest('.suggestion-block--status');
+                  if(statusBlock) statusBlock.classList.remove('has-delay');
+              }
+          }
+
+
+          if (currentReading && todayDateUTC) {
+            const suggestionTextElement = document.getElementById('dailySuggestionText');
+            
+            if (currentReading.url && !currentReading.url.startsWith('#ERROR')) {
+              if (dailyLink) {
+                dailyLink.href = currentReading.url;
+                dailyLink.style.display = 'inline-block';
+              }
+              if (addCalBtn) {
+                addCalBtn.style.display = 'inline-block'; // Asegúrate que la clase CSS no lo oculte
+                addCalBtn.onclick = () => {
+                  const title = `Lectura día ${daysDelayedCount + 1}: ${currentReading.displayText}`;
+                  const desc = `Leer según plan: ${currentReading.url}`;
+                  const start = new Date(todayDateUTC.valueOf()); // Clonar fecha
+                  const end = new Date(todayDateUTC.valueOf());
+                  end.setDate(start.getDate() + 1); // Evento de día completo
+                  downloadICS({ title, description: desc, startDate: start, endDate: end });
+                };
+              }
+              if(markReadBtn) markReadBtn.style.display = 'inline-block';
+
+            } else {
+              if (dailyLink) dailyLink.style.display = 'none';
+              if (addCalBtn) addCalBtn.style.display = 'none';
+              if (markReadBtn) markReadBtn.style.display = 'none';
+            }
+
+            // Nota para Android y JW Library
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            if (isAndroid && suggestionTextElement && !document.getElementById('jwAppSuggestionNote')) {
+              const note = document.createElement('small');
+              note.id = 'jwAppSuggestionNote';
+              note.textContent = 'Si tienes la app JW Library instalada, considera abrir esta lectura desde allí manualmente.';
+              note.style.display = 'block';
+              note.style.marginTop = 'calc(var(--spacing) * 0.5)';
+              note.style.fontStyle = 'italic';
+              note.style.color = 'var(--text-light-color)';
+              suggestionTextElement.parentNode.insertBefore(note, dailyLink); // Insertar antes del enlace
+            }
           } else {
-            addCalBtn.style.display = 'none';
+            // Ocultar elementos si no hay datos de sugerencia
+            if (dailyLink) dailyLink.style.display = 'none';
+            if (addCalBtn) addCalBtn.style.display = 'none';
+            if (markReadBtn) markReadBtn.style.display = 'none';
           }
-
-          const isAndroid = /Android/i.test(navigator.userAgent);
-          if (isAndroid && !document.getElementById('jwAppSuggestion')) {
-            const note = document.createElement('small');
-            note.id = 'jwAppSuggestion';
-            note.textContent = 'Si tienes la app JW Library instalada, abre esta lectura desde allí manualmente.';
-            note.style.display = 'block';
-            note.style.marginTop = '5px';
-            note.style.fontStyle = 'italic';
-            note.style.color = 'gray';
-            suggestionText.appendChild(note);
-          }
-        }
-      };
-
-      displayDailySuggestion();
+        };
+        
+        // Podrías necesitar llamar a displayDailySuggestion aquí si script.js no lo hace tras cargar datos
+        // window.displayDailySuggestion(); 
+        
+      } else {
+        console.warn('window.displayDailySuggestion no está definida. Algunas funcionalidades podrían no estar activas.');
+      }
     });
   </script>
 
-  <!-- Service Worker -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker
-          .register('sw.js')
-          .then(reg => console.log('SW registrado:', reg.scope))
-          .catch(err => console.error('Error SW:', err));
+          .register('./sw.js') // Asegúrate que la ruta a sw.js es correcta
+          .then(reg => console.log('Service Worker: Registrado con éxito. Scope:', reg.scope))
+          .catch(err => console.error('Service Worker: Error de Registro:', err));
       });
     }
   </script>
 </body>
 </html>
+
