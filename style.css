@@ -1,22 +1,31 @@
-/* style.css */
 /* — Variables y reset — */
 :root {
   /* Colores - Tema "Deep Ocean" */
-  --primary-color: #0A2342;       /* Azul Marino Profundo */
-  --secondary-color: #2CA58D;     /* Teal (Verde Azulado) */
-  --accent-color: #F4B942;        /* Amarillo Dorado */
-  --background-color: #F0F4F8;    /* Gris Azulado Muy Claro */
-  --card-background-color: #FFFFFF;/* Blanco */
-  --text-color: #333333;          /* Gris Oscuro */
-  --text-light-color: #777777;    /* Gris Medio */
-  --border-color: #DDE2E6;        /* Gris Claro */
-  --read-color: #38A169;          /* Verde para Leído */
-  --unread-color: #CBD5E0;        /* Gris Azulado Claro para No Leído */
-  --button-hover-bg: #238472;     /* Teal Más Oscuro para Hover */
-  --danger-color: #E53E3E;        /* Rojo Peligro */
-  --danger-hover-color: #C53030;  /* Rojo Peligro Más Oscuro */
+  --primary-color: #0A2342;
+  --secondary-color: #2CA58D;
+  --accent-color: #F4B942;
+  --background-color: #F0F4F8;
+  --card-background-color: #FFFFFF;
+  --text-color: #333333;
+  --text-light-color: #777777;
+  --border-color: #DDE2E6;
+  --read-color: #38A169;
+  --unread-color: #CBD5E0;
+  --button-hover-bg: #238472;
+  --danger-color: #E53E3E;
+  --danger-hover-color: #C53030;
+  --award-unlocked-bg: #FFFBEB; 
+  --award-unlocked-border: var(--accent-color);
+  --award-locked-color: #A0AEC0;
 
-  /* Tipografía */
+  --reading-block-bg: #E0F2F7; 
+  --reading-block-accent: var(--secondary-color); 
+  --reading-block-title-color: var(--primary-color); 
+  --reading-block-text-color: var(--text-color); 
+  --reading-block-link-bg: var(--secondary-color); 
+  --reading-block-link-text: #FFFFFF; 
+  --reading-block-link-hover-bg: var(--button-hover-bg); 
+
   --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   --font-size-base: 1rem;
   --font-size-lg: 1.125rem;
@@ -26,32 +35,19 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
 
-  /* Espaciado y bordes */
   --spacing: 8px;
   --border-radius: 10px;
 
-  /* Sombras */
   --box-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
   --box-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
 
-  /* Transiciones */
   --transition-duration-fast: 0.2s;
   --transition-duration-medium: 0.5s;
   --transition-transform-fast: 0.1s;
 }
 
-/* Reset y base */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-html {
-  font-size: var(--font-size-base);
-  scroll-behavior: smooth;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: var(--font-size-base); scroll-behavior: smooth; }
 body {
   background: var(--background-color);
   color: var(--text-color);
@@ -62,114 +58,146 @@ body {
   min-height: 100vh;
   padding: calc(var(--spacing) * 2);
 }
-
-/* Contenedor principal */
 .container {
-  flex: 1;
-  max-width: 1140px;
-  margin: auto;
+  flex: 1; max-width: 1140px; margin: auto;
   background: var(--card-background-color);
   padding: calc(var(--spacing) * 3);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow-md);
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
   gap: calc(var(--spacing) * 3);
 }
 
-/* ==========================================================================
-   Nuevos Estilos Mejorados para la Sección de Sugerencia Diaria
-   ========================================================================== */
-
-/* Contenedor principal de la sección de sugerencias */
 .daily-suggestion {
-  background: var(--background-color); /* Un fondo ligeramente distinto al del contenedor principal blanco */
+  background: var(--background-color);
   padding: calc(var(--spacing) * 2);
   border-radius: var(--border-radius);
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 2); /* Espacio entre cada bloque de sugerencia */
+  gap: calc(var(--spacing) * 1.5);
 }
 
-/* Estilo base para cada bloque individual (fecha, lectura, estado) */
 .suggestion-block {
-  background: var(--card-background-color); /* Fondo blanco para que resalten */
-  padding: calc(var(--spacing) * 2);
+  background: var(--card-background-color);
+  padding: calc(var(--spacing) * 1.5);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow-sm);
-  border-left: 5px solid transparent; /* Borde izquierdo para acento, color se define abajo */
+  border-left: 5px solid transparent;
   transition: box-shadow var(--transition-duration-fast), transform var(--transition-duration-fast);
+  display: flex; /* Added for better internal alignment */
+  flex-direction: column; /* Default direction */
 }
-
-/* Título dentro de cada bloque */
 .suggestion-block__title {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: var(--primary-color);
-  margin-top: 0;
-  margin-bottom: calc(var(--spacing) * 1.5);
-  padding-bottom: calc(var(--spacing) * 0.75);
+  margin-top: 0; margin-bottom: calc(var(--spacing) * 1);
+  padding-bottom: calc(var(--spacing) * 0.3);
   border-bottom: 1px solid var(--border-color);
 }
 
-/* Colores de acento para el borde izquierdo de cada tipo de bloque */
-.suggestion-block--date {
-  border-left-color: var(--accent-color);
-}
-
 .suggestion-block--reading {
-  border-left-color: var(--secondary-color);
+  background-color: var(--reading-block-bg);
+  border-left-color: var(--reading-block-accent);
+  border-width: 5px;
+  padding: calc(var(--spacing) * 2); 
+  box-shadow: 0 6px 15px rgba(44, 165, 141, 0.1); 
+  position: relative;
+  overflow: hidden;
+}
+.suggestion-block--reading .suggestion-block__title {
+  color: var(--reading-block-title-color);
+  font-size: var(--font-size-lg);
+  border-bottom: 2px solid var(--reading-block-accent);
+  padding-bottom: var(--spacing);
+  margin-bottom: calc(var(--spacing) * 1.5);
 }
 
-.suggestion-block--status {
-  border-left-color: var(--text-light-color);
+.suggested-reading-content { 
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  text-align: center;
+  gap: calc(var(--spacing) * 0.75);
+  flex-grow: 1; /* Allow content to take available space */
+  justify-content: center; /* Center content vertically */
 }
-/* Si hay retraso, JavaScript podría añadir clase 'has-delay' al bloque de status */
-.suggestion-block--status.has-delay {
-    border-left-color: var(--danger-color);
-}
-
-/* Estilos para el contenido específico de los elementos originales */
-.daily-suggestion__date { /* El <p> que contiene la fecha */
+.suggested-reading__day {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
-  color: var(--primary-color);
-  padding: 0;
-  background: none;
-  line-height: 1.3;
+  color: var(--reading-block-title-color);
+  line-height: 1.2;
+  margin: 0;
+}
+.suggested-reading__scripture {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--reading-block-text-color);
+  line-height: 1.5;
+  margin: 0;
+  margin-bottom: calc(var(--spacing) * 0.5);
+}
+.suggested-reading__link { 
+  display: inline-block;
+  background-color: var(--reading-block-link-bg);
+  color: var(--reading-block-link-text) !important; 
+  font-weight: var(--font-weight-semibold);
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2); 
+  border-radius: calc(var(--border-radius) / 1.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: background-color var(--transition-duration-fast), transform var(--transition-duration-fast), box-shadow var(--transition-duration-fast);
+  text-decoration: none;
+  margin-top: calc(var(--spacing) * 0.5);
+}
+.suggested-reading__link:hover, .suggested-reading__link:focus {
+  background-color: var(--reading-block-link-hover-bg);
+  color: var(--reading-block-link-text) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  outline: none;
 }
 
-.daily-suggestion__text { /* El <p> con el texto de la lectura */
+.suggestion-block--date { border-left-color: var(--accent-color); }
+.suggestion-block--status { border-left-color: var(--text-light-color); }
+.suggestion-block--status.has-delay { border-left-color: var(--danger-color); }
+
+.daily-suggestion__date { /* Para #currentDateText */
   font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary-color);
+  padding: 0; background: none; line-height: 1; 
+  text-align: center; /* Center date text */
+  margin: auto 0; /* Vertical centering if block has extra space */
+}
+.daily-suggestion__text { /* Para #dailySuggestionMainText */
+  font-size: var(--font-size-base);
   line-height: var(--line-height);
   color: var(--text-color);
-  padding: 0;
-  margin-bottom: var(--spacing);
+  padding: 0; 
 }
-
-.daily-suggestion__delay-indicator { /* El <p> del indicador de retraso */
-  font-size: var(--font-size-lg);
-  color: var(--text-color);
-  padding: 0;
+.daily-suggestion__delay-indicator { /* Para el P que contiene #daysDelayedText */
+  font-size: var(--font-size-base);
+  color: var(--text-color); padding: 0;
+  text-align: center; /* Center delay text */
+  margin: auto 0; /* Vertical centering */
 }
-
-/* Énfasis en el número de días de retraso */
-.daily-suggestion__delay-indicator #daysDelayed {
+.daily-suggestion__delay-indicator #daysDelayedText {
   font-weight: var(--font-weight-semibold);
-  color: var(--primary-color); /* Color por defecto */
+  color: var(--primary-color);
   font-size: 1.1em;
   padding: calc(var(--spacing) * 0.25) calc(var(--spacing) * 0.75);
   border-radius: calc(var(--border-radius) / 2);
   background-color: rgba(0,0,0,0.03);
 }
-/* Si JavaScript añade clase 'has-delay' al span #daysDelayed cuando hay retraso */
-#daysDelayed.has-delay {
+#daysDelayedText.has-delay {
   color: var(--danger-color);
-  background-color: rgba(229, 62, 62, 0.1); /* Fondo rojo muy claro */
+  background-color: rgba(229, 62, 62, 0.1);
 }
 
-/* Estilo para el enlace de la lectura sugerida */
-.daily-suggestion__link {
+.daily-suggestion__link { /* Estilo base para enlaces de sugerencia */
   display: inline-block;
   margin-bottom: calc(var(--spacing) * 1.5);
   font-weight: var(--font-weight-medium);
@@ -180,32 +208,20 @@ body {
   border-radius: var(--border-radius);
   transition: background-color var(--transition-duration-fast), color var(--transition-duration-fast);
 }
-
-.daily-suggestion__link:hover,
-.daily-suggestion__link:focus {
+.daily-suggestion__link:not(.suggested-reading__link):hover, /* Excluir el link específico del bloque de lectura */
+.daily-suggestion__link:not(.suggested-reading__link):focus {
   background-color: var(--secondary-color);
-  color: var(--card-background-color);
-  outline: none;
+  color: var(--card-background-color); outline: none;
 }
 
-/* Contenedor para los botones de acción dentro de un bloque */
 .suggestion-block__actions {
   margin-top: calc(var(--spacing) * 1.5);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing);
+  display: flex; flex-wrap: wrap; gap: var(--spacing);
+  justify-content: center; 
 }
-
-/* Ajustes para los botones .daily-suggestion__button cuando están dentro de .suggestion-block__actions */
-.suggestion-block__actions .daily-suggestion__button {
-  margin: 0; /* El gap del flex container se encarga del espaciado */
-}
-/* ==========================================================================
-   Fin Nuevos Estilos Mejorados para la Sección de Sugerencia Diaria
-   ========================================================================== */
+.suggestion-block__actions .daily-suggestion__button { margin: 0; }
 
 
-/* — Tipografía secundaria — */
 h1, h2 {
   color: var(--primary-color);
   border-bottom: 2px solid var(--accent-color);
@@ -215,133 +231,146 @@ h1, h2 {
 h1 { font-size: var(--font-size-2xl); }
 h2 { font-size: var(--font-size-xl); }
 
-/* — Layout main + aside en tablet en adelante — */
-@media (min-width: 768px) {
-  .container > main {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: calc(var(--spacing) * 3);
-  }
-}
-
-/* — Progress Bar — */
 .progress-container {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing);
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing);
 }
 .progress-bar-overall {
-  flex: 1 1 200px;
-  height: 32px;
-  background: #e9ecef;
-  border-radius: var(--border-radius);
+  flex: 1 1 200px; height: 32px;
+  background: #e9ecef; border-radius: var(--border-radius);
   overflow: hidden;
 }
 #progressBar {
-  width: 0;
-  height: 100%;
+  width: 0; height: 100%;
   background: var(--primary-color);
-  text-align: center;
-  line-height: 32px; /* Coincide con la altura de .progress-bar-overall */
-  color: #fff;
-  font-weight: var(--font-weight-semibold);
+  text-align: center; line-height: 32px; 
+  color: #fff; font-weight: var(--font-weight-semibold);
   transition: width var(--transition-duration-medium) ease-in-out;
   font-size: 0.875rem;
 }
 #progressText {
-  white-space: nowrap;
-  font-size: 0.9rem;
-  font-weight: var(--font-weight-semibold);
-  color: var(--primary-color);
+  white-space: nowrap; font-size: 0.9rem;
+  font-weight: var(--font-weight-semibold); color: var(--primary-color);
 }
 
-/* — Grupos de formulario — */
 .field-group {
-  background: var(--card-background-color); /* Fondo blanco para los field groups */
+  background: var(--card-background-color);
   padding: calc(var(--spacing) * 1.5);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   margin-bottom: calc(var(--spacing) * 2);
 }
 .field-group label {
-  display: block;
-  margin-bottom: calc(var(--spacing) * 0.75);
-  font-weight: var(--font-weight-semibold);
-  color: var(--primary-color);
+  display: block; margin-bottom: calc(var(--spacing) * 0.75);
+  font-weight: var(--font-weight-semibold); color: var(--primary-color);
   font-size: var(--font-size-lg);
 }
-.field-group input[type="date"],
-.field-group input[type="color"], /* Estilo añadido para los selectores de color */
-.field-group select {
-  width: 100%;
-  padding: var(--spacing);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  font-size: var(--font-size-base);
-  margin-bottom: calc(var(--spacing) * 0.5); /* Espacio debajo de inputs antes de botones */
+.field-group input[type="date"], .field-group input[type="color"], .field-group select {
+  width: 100%; padding: var(--spacing);
+  border: 1px solid var(--border-color); border-radius: var(--border-radius);
+  font-size: var(--font-size-base); margin-bottom: calc(var(--spacing) * 0.5);
 }
-.field-group input[type="color"] { /* Ajuste específico para input color */
-    height: calc(var(--font-size-base) + var(--spacing) * 2 + 2px); /* Para que la altura sea similar a otros inputs */
-    padding: calc(var(--spacing) * 0.5); /* Padding interno más pequeño para el color picker */
+.field-group input[type="color"] {
+    height: calc(var(--font-size-base) + var(--spacing) * 2 + 2px);
+    padding: calc(var(--spacing) * 0.5);
 }
 
-
-/* — Botones generales — */
 button, .daily-suggestion__button {
   display: inline-block;
   padding: calc(var(--spacing) * 0.75) calc(var(--spacing) * 1.5);
-  background: var(--secondary-color);
-  color: #fff;
-  border: none;
-  border-radius: var(--border-radius);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
+  background: var(--secondary-color); color: #fff;
+  border: none; border-radius: var(--border-radius);
+  font-size: var(--font-size-base); font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: background var(--transition-duration-fast), box-shadow var(--transition-duration-fast), transform var(--transition-transform-fast);
-  margin: var(--spacing) 0 0 0; /* Margen superior por defecto */
+  transition: background-color var(--transition-duration-fast), box-shadow var(--transition-duration-fast), transform var(--transition-transform-fast);
+  margin: calc(var(--spacing) * 0.5) 0 0 0; 
   text-align: center;
 }
-button:hover, .daily-suggestion__button:hover {
-  background: var(--button-hover-bg);
-}
-button:active, .daily-suggestion__button:active {
-  transform: translateY(1px);
-}
+button:hover, .daily-suggestion__button:hover { background: var(--button-hover-bg); }
+button:active, .daily-suggestion__button:active { transform: translateY(1px); }
 button:focus-visible, .daily-suggestion__button:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
+  outline: 2px solid var(--primary-color); outline-offset: 2px;
 }
+#resetProgress { background: var(--danger-color); }
+#resetProgress:hover { background: var(--danger-hover-color); }
+.field-group button { margin-top: calc(var(--spacing) * 0.5); }
 
-/* Modificadores para botones específicos */
-#resetProgress {
-  background: var(--danger-color);
-}
-#resetProgress:hover {
-  background: var(--danger-hover-color);
-}
-.field-group button { /* Botones dentro de field-group no necesitan margen superior si siguen un input */
-    margin-top: calc(var(--spacing) * 0.5);
-}
-
-
-/* Estilos específicos para .daily-suggestion__button que sobreescriben o complementan la base */
-/* (Esta clase es usada por los botones dentro de .suggestion-block__actions) */
-.daily-suggestion__button {
-  /* margin-top es gestionado por .suggestion-block__actions (gap) o por .field-group button */
+.daily-suggestion__button { 
   background: var(--card-background-color);
   color: var(--secondary-color);
   font-weight: var(--font-weight-semibold);
-  font-size: 0.9rem; /* Ligeramente más pequeño */
+  font-size: 0.9rem;
   border: 2px solid var(--secondary-color);
 }
-.daily-suggestion__button:hover { /* Hover específico para este tipo de botón */
+.daily-suggestion__button:hover {
   background: var(--secondary-color);
   color: var(--card-background-color);
 }
 
+/* — Sección de Metas Temáticas — */
+#thematic-reading-goals {
+  margin-top: calc(var(--spacing) * 2);
+}
+.thematic-sections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: calc(var(--spacing) * 2);
+}
+.thematic-section-item {
+  background-color: var(--card-background-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: calc(var(--spacing) * 2);
+  box-shadow: var(--box-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all var(--transition-duration-fast) ease-in-out;
+}
+.thematic-section-item.awarded {
+  background-color: var(--award-unlocked-bg);
+  border-left: 5px solid var(--award-unlocked-border);
+  box-shadow: 0 4px 10px rgba(244, 185, 66, 0.2); 
+}
+.thematic-section-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--primary-color);
+  margin-bottom: var(--spacing);
+  line-height: 1.3;
+  flex-grow: 1; /* Hace que el título ocupe espacio y empuje el premio hacia abajo */
+}
+.thematic-section-award {
+  font-size: 2rem; 
+  margin-top: var(--spacing); /* Separación del título */
+  padding-top: var(--spacing);
+  color: var(--award-locked-color); 
+}
+.thematic-section-item.awarded .thematic-section-award {
+  color: var(--accent-color); 
+  transform: scale(1.1);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+}
 
-/* — Sección de libros — */
+/* Animación para premio recién ganado */
+.thematic-section-item.newly-awarded {
+  animation: newAwardAnimation 0.8s ease-out;
+}
+@keyframes newAwardAnimation {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.thematic-section-item.newly-awarded .thematic-section-award {
+  animation: awardEmojiPop 0.5s 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes awardEmojiPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1.1); } /* Termina un poco más grande */
+}
+
+
 .book-section {
   background: var(--card-background-color);
   border: 1px solid var(--border-color);
@@ -351,21 +380,17 @@ button:focus-visible, .daily-suggestion__button:focus-visible {
   margin-bottom: calc(var(--spacing) * 3);
 }
 .book-title {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
+  display: flex; flex-wrap: wrap;
+  justify-content: space-between; align-items: center;
   margin-bottom: var(--spacing);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold);
   color: var(--primary-color);
 }
 .book-progress {
   background: var(--background-color);
   padding: calc(var(--spacing) * 0.5) var(--spacing);
   border-radius: var(--border-radius);
-  font-size: 0.8rem;
-  font-weight: var(--font-weight-medium);
+  font-size: 0.8rem; font-weight: var(--font-weight-medium);
   color: var(--text-light-color);
 }
 .chapters-grid {
@@ -374,80 +399,73 @@ button:focus-visible, .daily-suggestion__button:focus-visible {
   gap: var(--spacing);
 }
 .chapter-button {
-  padding: var(--spacing);
-  font-size: 0.875rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  background: var(--unread-color);
-  color: var(--text-color);
-  cursor: pointer;
-  font-weight: var(--font-weight-medium);
+  padding: var(--spacing); font-size: 0.875rem;
+  border: 1px solid var(--border-color); border-radius: var(--border-radius);
+  background: var(--unread-color); color: var(--text-color);
+  cursor: pointer; font-weight: var(--font-weight-medium);
   text-align: center;
   transition: background var(--transition-duration-fast), transform var(--transition-transform-fast), border-color var(--transition-duration-fast), box-shadow var(--transition-duration-fast);
 }
 .chapter-button.read {
-  background: var(--read-color);
-  border-color: var(--read-color);
-  color: #fff;
+  background: var(--read-color); border-color: var(--read-color); color: #fff;
 }
 .chapter-button:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--box-shadow-sm);
+  transform: translateY(-2px); box-shadow: var(--box-shadow-sm);
   border-color: var(--secondary-color);
 }
 
-/* — Footer — */
 footer {
-  text-align: center;
-  margin-top: calc(var(--spacing) * 4);
+  text-align: center; margin-top: calc(var(--spacing) * 4);
   padding-top: calc(var(--spacing) * 2);
   border-top: 1px solid var(--border-color);
-  font-size: 0.875rem;
-  color: var(--text-light-color);
+  font-size: 0.875rem; color: var(--text-light-color);
 }
 
-/* — Breakpoints específicos — */
-/* Escritorio grande */
+@media (min-width: 768px) {
+  .daily-suggestion {
+    flex-direction: row; 
+    align-items: stretch; 
+  }
+  .suggestion-block {
+    flex: 1; 
+  }
+  .suggestion-block--reading {
+    flex: 1.5; 
+  }
+  .suggestion-block--date, .suggestion-block--status {
+    justify-content: center; /* Centra el contenido si el bloque es más alto */
+  }
+}
+
 @media (min-width: 1024px) {
-  .container { padding: calc(var(--spacing) * 4); } /* 32px */
+  .container { padding: calc(var(--spacing) * 4); }
   .chapters-grid { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
 }
 
-/* Móviles muy pequeños */
 @media (max-width: 400px) {
   body { padding: var(--spacing); }
   .container { padding: calc(var(--spacing) * 1.5); }
-
-  h1 { font-size: 1.75rem; }
-  h2 { font-size: 1.25rem; }
-  .book-title { font-size: var(--font-size-lg); }
-
+  h1 { font-size: 1.75rem; } h2 { font-size: 1.25rem; }
+  .book-title { font-size: var(--font-size-base); } 
   .chapters-grid {
     grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
-    gap: calc(var(--spacing) * 0.75); /* 6px */
+    gap: calc(var(--spacing) * 0.75);
   }
-  .chapter-button {
-    font-size: 0.8rem;
-    padding: calc(var(--spacing) * 0.75); /* 6px */
-  }
+  .chapter-button { font-size: 0.8rem; padding: calc(var(--spacing) * 0.75); }
+  .progress-bar-overall { height: 24px; }
+  #progressBar { line-height: 24px; font-size: 0.75rem; }
+  .suggestion-block { padding: var(--spacing); }
+  .suggestion-block--reading { padding: calc(var(--spacing) * 1.5); }
+  .suggested-reading__day { font-size: var(--font-size-lg); }
+  .suggested-reading__scripture { font-size: var(--font-size-base); }
+  .suggested-reading__link { padding: var(--spacing) calc(var(--spacing) * 1.5); font-size: 0.85rem; }
+  .daily-suggestion__date { font-size: var(--font-size-base); } 
+  .daily-suggestion__text, .daily-suggestion__delay-indicator { font-size: 0.9rem; } 
 
-  .progress-bar-overall {
-    height: 24px;
+  .thematic-sections-grid {
+    grid-template-columns: 1fr; 
   }
-  #progressBar {
-    line-height: 24px;
-    font-size: 0.75rem;
-  }
-
-  .suggestion-block {
-    padding: var(--spacing); /* Menos padding en bloques en móviles muy pequeños */
-  }
-  .daily-suggestion__date {
-    font-size: var(--font-size-lg); /* Ajustar tamaño de fecha */
-  }
-  .daily-suggestion__text,
-  .daily-suggestion__delay-indicator {
-    font-size: var(--font-size-base); /* Ajustar tamaño de texto */
-  }
+  .thematic-section-title { font-size: var(--font-size-base); }
+  .thematic-section-award { font-size: 1.8rem; }
 }
 
