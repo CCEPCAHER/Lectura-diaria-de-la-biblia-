@@ -22,7 +22,7 @@
 
 <body>
   <script>
-    // Script del menú lateral
+    // Script del menú lateral y tema
     document.addEventListener('DOMContentLoaded', () => {
       const menuToggle = document.getElementById('menuToggle');
       const sideMenu = document.getElementById('sideMenu');
@@ -30,36 +30,50 @@
 
       if (menuToggle && sideMenu && closeMenu) {
         menuToggle.addEventListener('click', (e) => {
-          e.stopPropagation();
+          e.stopPropagation(); // Evita que el clic se propague al documento y cierre el menú inmediatamente si hay un listener global
           sideMenu.classList.toggle('open');
+          menuToggle.setAttribute('aria-expanded', sideMenu.classList.contains('open'));
         });
 
         closeMenu.addEventListener('click', () => {
           sideMenu.classList.remove('open');
+          menuToggle.setAttribute('aria-expanded', 'false');
         });
 
-        // Cerrar el menú si se hace clic en un enlace de anclaje dentro del menú
+        // Cerrar el menú si se hace clic en un enlace de anclaje dentro del menú que lleva a la página principal
         sideMenu.querySelectorAll('nav ul li a').forEach(link => {
           link.addEventListener('click', (e) => {
             const href = link.getAttribute('href');
             if (href && href.startsWith('#')) {
+              // Si el enlace es para una sección dentro del menú, no cerrar
+              // (asumiendo que los IDs internos del menú son para navegación dentro del menú)
               const targetElement = document.getElementById(href.substring(1));
               if (targetElement && sideMenu.contains(targetElement)) {
-                 // Si el enlace es para una sección dentro del menú, no cerrar inmediatamente
-                 // o cerrar después de un pequeño retardo para permitir el scroll.
-                 // Por ahora, simplemente no cerramos si es un ancla interna.
-                 // Para cerrar, usar: sideMenu.classList.remove('open');
+                 // No cerrar si es un ancla interna al menú (ej. para expandir/colapsar secciones del menú)
+                 // Si quieres que se desplace y luego cierre, podrías usar un setTimeout
               } else {
+                // Si es un ancla a la página principal o un enlace externo
                 sideMenu.classList.remove('open');
+                menuToggle.setAttribute('aria-expanded', 'false');
               }
             } else {
+              // Enlace normal (no ancla) o ancla a otra página
               sideMenu.classList.remove('open');
+              menuToggle.setAttribute('aria-expanded', 'false');
             }
           });
         });
+
+        // Cerrar el menú si se hace clic fuera de él
+        document.addEventListener('click', (e) => {
+          if (sideMenu.classList.contains('open') && !sideMenu.contains(e.target) && e.target !== menuToggle) {
+            sideMenu.classList.remove('open');
+            menuToggle.setAttribute('aria-expanded', 'false');
+          }
+        });
       }
 
-      // Aplicación de tema (se mantiene igual)
+      // Aplicación de tema
       function applyCustomTheme(primary, accent) {
         document.documentElement.style.setProperty('--primary-color', primary);
         document.documentElement.style.setProperty('--accent-color', accent);
@@ -69,6 +83,7 @@
       const accentPicker = document.getElementById('accentColorPicker');
       const defaultPrimaryColor = '#0A2342';
       const defaultAccentColor = '#F4B942';
+      
       const savedPrimary = localStorage.getItem('theme-primary');
       const savedAccent = localStorage.getItem('theme-accent');
 
@@ -83,7 +98,6 @@
           accentPicker.value = defaultAccentColor;
         }
       }
-
 
       const saveThemeButton = document.getElementById('saveThemeButton');
       if(saveThemeButton && primaryPicker && accentPicker) {
@@ -118,6 +132,12 @@
           localStorage.setItem('theme-accent', accent);
         });
       });
+
+      // Actualizar el año en el footer
+      const currentYearEl = document.getElementById('currentYearText');
+      if (currentYearEl) {
+        currentYearEl.textContent = new Date().getFullYear().toString();
+      }
     });
   </script>
 
@@ -129,10 +149,15 @@
     <nav>
       <ul>
         <li><a href="#theme-customizer-menu">🎨 Colores</a></li>
-        <li><a href="#thematic-reading-goals-menu">🏅 Metas de Lectura</a></li>
-        </ul>
+        <!-- Nueva sección para Calendario -->
+        <li><a href="#calendar-menu">📅 Calendario</a></li>
+        <li><a href="#thematic-reading-goals-menu">🏅 Metas Temáticas</a></li>
+        <li><a href="#monthly-reading-view">📊 Progreso Mensual</a></li>
+        <li><a href="#annual-reading-view">🗓️ Progreso Anual</a></li>
+      </ul>
 
-      <section id="theme-customizer-menu"> <h2>Personaliza los Colores</h2>
+      <section id="theme-customizer-menu" class="menu-section">
+        <h2>Personaliza los Colores</h2>
         <div class="field-group">
           <label for="primaryColorPicker">Color principal:</label>
           <input type="color" id="primaryColorPicker" value="#0A2342" title="Selector de color principal">
@@ -141,14 +166,14 @@
           <label for="accentColorPicker">Color de acento:</label>
           <input type="color" id="accentColorPicker" value="#F4B942" title="Selector de color de acento">
         </div>
-        <div class="field-group">
+        <div class="field-group button-group">
             <button type="button" id="saveThemeButton">Guardar Estilo</button>
-            <button type="button" id="resetThemeButton">Restaurar Colores por Defecto</button>
+            <button type="button" id="resetThemeButton">Restaurar Colores</button>
         </div>
-  
+
         <div class="field-group">
           <label>O elige una paleta predefinida:</label>
-          <div id="presetThemes" class="suggestion-block__actions">
+          <div id="presetThemes" class="suggestion-block__actions preset-themes-grid">
             <button type="button" class="theme-preset daily-suggestion__button" data-primary="#0A2342" data-accent="#F4B942" style="background:#0A2342; color:#F4B942;">Abismo</button>
             <button type="button" class="theme-preset daily-suggestion__button" data-primary="#0b3d91" data-accent="#f39c12" style="background:#0b3d91; color:#f39c12;">Clásico</button>
             <button type="button" class="theme-preset daily-suggestion__button" data-primary="#2c3e50" data-accent="#e67e22" style="background:#2c3e50; color:#e67e22;">Oscuro</button>
@@ -158,12 +183,37 @@
         </div>
       </section>
 
-      <section id="thematic-reading-goals-menu"> <h2>Metas de Lectura Temática</h2>
-        <div id="thematicSectionsContainer" class="thematic-sections-grid">
-            </div>
+      <!-- Nueva sección para Calendario -->
+      <section id="calendar-menu" class="menu-section">
+        <h2>Calendario de Lectura</h2>
+        <div class="menu-section-actions">
+          <button id="generateMonthCalendarButton" class="calendar-button">Añadir lectura por un mes</button>
+          <button id="generateYearCalendarButton" class="calendar-button">Añadir lectura por 1 año</button>
+        </div>
+        <p class="calendar-note">Agrega recordatorios de lectura a tu calendario favorito</p>
       </section>
-      
-    </nav>
+
+      <section id="thematic-reading-goals-menu" class="menu-section">
+        <h2>Metas de Lectura Temática</h2>
+        <div id="thematicSectionsContainer" class="thematic-sections-grid">
+            <p>Configura o visualiza tus metas de lectura por temas.</p>
+        </div>
+      </section>
+
+      <section id="monthly-reading-view" class="menu-section">
+        <h2>Progreso de Lectura Mensual</h2>
+        <div id="monthlyProgressContainer">
+          <p>Aquí se mostrará un resumen de tu progreso de lectura para el mes actual y anteriores.</p>
+          </div>
+      </section>
+
+      <section id="annual-reading-view" class="menu-section">
+        <h2>Progreso de Lectura Anual</h2>
+        <div id="annualProgressContainer">
+          <p>Aquí se mostrará un resumen de tu progreso de lectura para el año actual y anteriores.</p>
+          </div>
+      </section>
+      </nav>
   </aside>
 
   <div class="container">
@@ -252,8 +302,8 @@
   <script src="./script.js" defer></script>
 
   <script>
-    // Función para descargar ICS (se mantiene igual)
-    function downloadICS({ title, description, startDate, endDate, isAllDay = false }) { // Añadido isAllDay
+    // Función para descargar ICS (se mantiene igual, parece correcta)
+    function downloadICS({ title, description, startDate, endDate, isAllDay = false }) {
         function fmt(d, time = false) {
             const year = d.getUTCFullYear();
             const month = String(d.getUTCMonth() + 1).padStart(2, '0');
@@ -273,9 +323,7 @@
         if (isAllDay) {
             dtStart = `DTSTART;VALUE=DATE:${fmt(startDate)}`;
             // Para eventos de todo el día, DTEND suele ser el día siguiente al final real.
-            const actualEndDate = new Date(endDate);
-            // actualEndDate.setUTCDate(actualEndDate.getUTCDate() + 1); // Si endDate es inclusivo. Si es exclusivo, no sumar.
-            // La implementación original ya sumaba +1 a endDate en el script.js, así que aquí solo formateamos.
+            // Asumiendo que endDate ya está ajustado si es necesario (ej. es el día después del último día del evento)
             dtEnd = `DTEND;VALUE=DATE:${fmt(endDate)}`;
         } else {
             dtStart = `DTSTART:${fmt(startDate, true)}`;
@@ -299,15 +347,11 @@
         URL.revokeObjectURL(url);
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const currentYearEl = document.getElementById('currentYearText');
-      if (currentYearEl) {
-        currentYearEl.textContent = new Date().toLocaleDateString('es-ES', { year: 'numeric', timeZone: 'Europe/Madrid' });
-      }
-    });
+    // El script para el año ya se movió al primer bloque de script con DOMContentLoaded.
   </script>
 
   <script>
+    // Service Worker Registration
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker
@@ -319,4 +363,3 @@
   </script>
 </body>
 </html>
-
