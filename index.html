@@ -19,15 +19,52 @@
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
 </head>
+
 <body>
   <script>
-    // Aplicación de tema (se mantiene igual)
-    function applyCustomTheme(primary, accent) {
-      document.documentElement.style.setProperty('--primary-color', primary);
-      document.documentElement.style.setProperty('--accent-color', accent);
-    }
-
+    // Script del menú lateral
     document.addEventListener('DOMContentLoaded', () => {
+      const menuToggle = document.getElementById('menuToggle');
+      const sideMenu = document.getElementById('sideMenu');
+      const closeMenu = document.getElementById('closeMenu');
+
+      if (menuToggle && sideMenu && closeMenu) {
+        menuToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sideMenu.classList.toggle('open');
+        });
+
+        closeMenu.addEventListener('click', () => {
+          sideMenu.classList.remove('open');
+        });
+
+        // Cerrar el menú si se hace clic en un enlace de anclaje dentro del menú
+        sideMenu.querySelectorAll('nav ul li a').forEach(link => {
+          link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            if (href && href.startsWith('#')) {
+              const targetElement = document.getElementById(href.substring(1));
+              if (targetElement && sideMenu.contains(targetElement)) {
+                 // Si el enlace es para una sección dentro del menú, no cerrar inmediatamente
+                 // o cerrar después de un pequeño retardo para permitir el scroll.
+                 // Por ahora, simplemente no cerramos si es un ancla interna.
+                 // Para cerrar, usar: sideMenu.classList.remove('open');
+              } else {
+                sideMenu.classList.remove('open');
+              }
+            } else {
+              sideMenu.classList.remove('open');
+            }
+          });
+        });
+      }
+
+      // Aplicación de tema (se mantiene igual)
+      function applyCustomTheme(primary, accent) {
+        document.documentElement.style.setProperty('--primary-color', primary);
+        document.documentElement.style.setProperty('--accent-color', accent);
+      }
+
       const primaryPicker = document.getElementById('primaryColorPicker');
       const accentPicker = document.getElementById('accentColorPicker');
       const defaultPrimaryColor = '#0A2342';
@@ -35,18 +72,21 @@
       const savedPrimary = localStorage.getItem('theme-primary');
       const savedAccent = localStorage.getItem('theme-accent');
 
-      if (savedPrimary && savedAccent) {
-        applyCustomTheme(savedPrimary, savedAccent);
-        if(primaryPicker) primaryPicker.value = savedPrimary;
-        if(accentPicker) accentPicker.value = savedAccent;
-      } else {
-        applyCustomTheme(defaultPrimaryColor, defaultAccentColor);
-        if(primaryPicker) primaryPicker.value = defaultPrimaryColor;
-        if(accentPicker) accentPicker.value = defaultAccentColor;
+      if (primaryPicker && accentPicker) { // Asegurar que los elementos existen
+        if (savedPrimary && savedAccent) {
+          applyCustomTheme(savedPrimary, savedAccent);
+          primaryPicker.value = savedPrimary;
+          accentPicker.value = savedAccent;
+        } else {
+          applyCustomTheme(defaultPrimaryColor, defaultAccentColor);
+          primaryPicker.value = defaultPrimaryColor;
+          accentPicker.value = defaultAccentColor;
+        }
       }
 
+
       const saveThemeButton = document.getElementById('saveThemeButton');
-      if(saveThemeButton) {
+      if(saveThemeButton && primaryPicker && accentPicker) {
         saveThemeButton.addEventListener('click', () => {
           const primary = primaryPicker.value;
           const accent = accentPicker.value;
@@ -57,11 +97,11 @@
       }
 
       const resetThemeButton = document.getElementById('resetThemeButton');
-      if(resetThemeButton) {
+      if(resetThemeButton && primaryPicker && accentPicker) {
         resetThemeButton.addEventListener('click', () => {
           applyCustomTheme(defaultPrimaryColor, defaultAccentColor);
-          if(primaryPicker) primaryPicker.value = defaultPrimaryColor;
-          if(accentPicker) accentPicker.value = defaultAccentColor;
+          primaryPicker.value = defaultPrimaryColor;
+          accentPicker.value = defaultAccentColor;
           localStorage.removeItem('theme-primary');
           localStorage.removeItem('theme-accent');
         });
@@ -80,6 +120,51 @@
       });
     });
   </script>
+
+  <button id="menuToggle" aria-label="Abrir menú de configuración" aria-expanded="false" aria-controls="sideMenu">
+    &#9776; </button>
+
+  <aside id="sideMenu">
+    <button id="closeMenu" aria-label="Cerrar menú">&times;</button>
+    <nav>
+      <ul>
+        <li><a href="#theme-customizer-menu">🎨 Colores</a></li>
+        <li><a href="#thematic-reading-goals-menu">🏅 Metas de Lectura</a></li>
+        </ul>
+
+      <section id="theme-customizer-menu"> <h2>Personaliza los Colores</h2>
+        <div class="field-group">
+          <label for="primaryColorPicker">Color principal:</label>
+          <input type="color" id="primaryColorPicker" value="#0A2342" title="Selector de color principal">
+        </div>
+        <div class="field-group">
+          <label for="accentColorPicker">Color de acento:</label>
+          <input type="color" id="accentColorPicker" value="#F4B942" title="Selector de color de acento">
+        </div>
+        <div class="field-group">
+            <button type="button" id="saveThemeButton">Guardar Estilo</button>
+            <button type="button" id="resetThemeButton">Restaurar Colores por Defecto</button>
+        </div>
+  
+        <div class="field-group">
+          <label>O elige una paleta predefinida:</label>
+          <div id="presetThemes" class="suggestion-block__actions">
+            <button type="button" class="theme-preset daily-suggestion__button" data-primary="#0A2342" data-accent="#F4B942" style="background:#0A2342; color:#F4B942;">Abismo</button>
+            <button type="button" class="theme-preset daily-suggestion__button" data-primary="#0b3d91" data-accent="#f39c12" style="background:#0b3d91; color:#f39c12;">Clásico</button>
+            <button type="button" class="theme-preset daily-suggestion__button" data-primary="#2c3e50" data-accent="#e67e22" style="background:#2c3e50; color:#e67e22;">Oscuro</button>
+            <button type="button" class="theme-preset daily-suggestion__button" data-primary="#16a085" data-accent="#f1c40f" style="background:#16a085; color:#f1c40f;">Tropical</button>
+            <button type="button" class="theme-preset daily-suggestion__button" data-primary="#8e44ad" data-accent="#3498db" style="background:#8e44ad; color:#3498db;">Vibrante</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="thematic-reading-goals-menu"> <h2>Metas de Lectura Temática</h2>
+        <div id="thematicSectionsContainer" class="thematic-sections-grid">
+            </div>
+      </section>
+      
+    </nav>
+  </aside>
 
   <div class="container">
     <header>
@@ -137,37 +222,6 @@
       </div>
     </section>
 
-    <section id="thematic-reading-goals">
-      <h2>Metas de Lectura Temática</h2>
-      <div id="thematicSectionsContainer" class="thematic-sections-grid">
-          </div>
-    </section>
-
-    <section id="theme-customizer">
-      <h2>Personaliza los Colores</h2>
-      <div class="field-group">
-        <label for="primaryColorPicker">Color principal:</label>
-        <input type="color" id="primaryColorPicker" value="#0A2342" title="Selector de color principal">
-        
-        <label for="accentColorPicker">Color de acento:</label>
-        <input type="color" id="accentColorPicker" value="#F4B942" title="Selector de color de acento">
-        
-        <button type="button" id="saveThemeButton">Guardar Estilo</button>
-        <button type="button" id="resetThemeButton">Restaurar Colores por Defecto</button>
-      </div>
-
-      <div class="field-group">
-        <label>O elige una paleta predefinida:</label>
-        <div id="presetThemes" class="suggestion-block__actions">
-          <button type="button" class="theme-preset daily-suggestion__button" data-primary="#0A2342" data-accent="#F4B942" style="background:#0A2342; color:#F4B942;">Abismo</button>
-          <button type="button" class="theme-preset daily-suggestion__button" data-primary="#0b3d91" data-accent="#f39c12" style="background:#0b3d91; color:#f39c12;">Clásico</button>
-          <button type="button" class="theme-preset daily-suggestion__button" data-primary="#2c3e50" data-accent="#e67e22" style="background:#2c3e50; color:#e67e22;">Oscuro</button>
-          <button type="button" class="theme-preset daily-suggestion__button" data-primary="#16a085" data-accent="#f1c40f" style="background:#16a085; color:#f1c40f;">Tropical</button>
-          <button type="button" class="theme-preset daily-suggestion__button" data-primary="#8e44ad" data-accent="#3498db" style="background:#8e44ad; color:#3498db;">Vibrante</button>
-        </div>
-      </div>
-    </section>
-
     <section id="controls">
       <h2>Filtros y Controles</h2>
       <div class="field-group">
@@ -199,28 +253,50 @@
 
   <script>
     // Función para descargar ICS (se mantiene igual)
-    function downloadICS({ title, description, startDate, endDate }) {
-      function fmt(d) {
-        const y = d.getFullYear(),
-              m = String(d.getMonth() + 1).padStart(2, '0'),
-              dd = String(d.getDate()).padStart(2, '0');
-        return `${y}${m}${dd}`;
-      }
-      const dtStart = fmt(startDate),
-            dtEnd = fmt(endDate),
-            now = new Date(),
-            dtStamp = `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, '0')}${String(now.getUTCDate()).padStart(2, '0')}T${String(now.getUTCHours()).padStart(2, '0')}${String(now.getUTCMinutes()).padStart(2, '0')}${String(now.getUTCSeconds()).padStart(2, '0')}Z`;
+    function downloadICS({ title, description, startDate, endDate, isAllDay = false }) { // Añadido isAllDay
+        function fmt(d, time = false) {
+            const year = d.getUTCFullYear();
+            const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(d.getUTCDate()).padStart(2, '0');
+            if (time) {
+                const hours = String(d.getUTCHours()).padStart(2, '0');
+                const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+                const seconds = String(d.getUTCSeconds()).padStart(2, '0');
+                return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
+            }
+            return `${year}${month}${day}`;
+        }
 
-      const lines = [
-              'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TuApp//LecturaDiaria//ES',
-              'BEGIN:VEVENT', `UID:${Date.now()}@tubiblia.app`, `DTSTAMP:${dtStamp}`,
-              `DTSTART;VALUE=DATE:${dtStart}`, `DTEND;VALUE=DATE:${dtEnd}`, `SUMMARY:${title}`,
-              `DESCRIPTION:${description.replace(/\n/g, '\\n')}`, 'END:VEVENT', 'END:VCALENDAR'
-            ];
-      const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' }),
-            url = URL.createObjectURL(blob), a = document.createElement('a');
-      a.href = url; a.download = `${title.replace(/[^\w\s.-]/gi, '').replace(/\s+/g, '_')}.ics`;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        const dtStamp = fmt(new Date(), true);
+        let dtStart, dtEnd;
+
+        if (isAllDay) {
+            dtStart = `DTSTART;VALUE=DATE:${fmt(startDate)}`;
+            // Para eventos de todo el día, DTEND suele ser el día siguiente al final real.
+            const actualEndDate = new Date(endDate);
+            // actualEndDate.setUTCDate(actualEndDate.getUTCDate() + 1); // Si endDate es inclusivo. Si es exclusivo, no sumar.
+            // La implementación original ya sumaba +1 a endDate en el script.js, así que aquí solo formateamos.
+            dtEnd = `DTEND;VALUE=DATE:${fmt(endDate)}`;
+        } else {
+            dtStart = `DTSTART:${fmt(startDate, true)}`;
+            dtEnd = `DTEND:${fmt(endDate, true)}`;
+        }
+      
+        const lines = [
+            'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TuApp//LecturaDiaria//ES',
+            'BEGIN:VEVENT', `UID:${Date.now()}@tubiblia.app`, `DTSTAMP:${dtStamp}`,
+            dtStart, dtEnd, `SUMMARY:${title}`,
+            `DESCRIPTION:${description.replace(/\n/g, '\\n')}`, 'END:VEVENT', 'END:VCALENDAR'
+        ];
+        const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.replace(/[^\w\s.-]/gi, '').replace(/\s+/g, '_')}.ics`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -228,7 +304,6 @@
       if (currentYearEl) {
         currentYearEl.textContent = new Date().toLocaleDateString('es-ES', { year: 'numeric', timeZone: 'Europe/Madrid' });
       }
-      
     });
   </script>
 
@@ -244,3 +319,4 @@
   </script>
 </body>
 </html>
+
