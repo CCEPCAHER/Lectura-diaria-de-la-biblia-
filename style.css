@@ -228,8 +228,6 @@ h1 {
   padding-bottom: var(--spacing);
   margin-bottom: calc(var(--spacing) * 2);
   font-size: var(--font-size-2xl);
-
-  /* Ajustes para centrar el título y evitar solapamiento con el menú fijo */
   text-align: center;
   padding-left: calc(var(--spacing) * 8); 
   padding-right: calc(var(--spacing) * 8); 
@@ -243,7 +241,6 @@ h2 {
   margin-bottom: calc(var(--spacing) * 2);
   font-size: var(--font-size-xl);
 }
-
 
 .progress-container {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing);
@@ -365,7 +362,6 @@ button:focus-visible, .daily-suggestion__button:focus-visible {
   transform: scale(1.1);
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
 }
-
 .thematic-section-item.newly-awarded {
   animation: newAwardAnimation 0.8s ease-out;
 }
@@ -383,34 +379,75 @@ button:focus-visible, .daily-suggestion__button:focus-visible {
   100% { transform: scale(1.1); } 
 }
 
-
+/* --- Estilos para Libros y Capítulos (Acordeón) --- */
 .book-section {
   background: var(--card-background-color);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow-sm);
   padding: calc(var(--spacing) * 2);
-  margin-bottom: calc(var(--spacing) * 3);
+  margin-bottom: calc(var(--spacing) * 2); /* Reducido un poco el margen inferior */
 }
+
 .book-title {
-  display: flex; flex-wrap: wrap;
-  justify-content: space-between; align-items: center;
-  margin-bottom: var(--spacing);
-  font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-lg); 
+  font-weight: var(--font-weight-semibold);
   color: var(--primary-color);
+  padding: var(--spacing); 
+  margin: calc(var(--spacing) * -1); /* Compensa el padding del book-section para el título */
+  margin-bottom: 0; /* Sin margen inferior si los capítulos están justo debajo */
+  border-radius: calc(var(--border-radius) - var(--spacing)); /* Radio interno */
+  transition: background-color var(--transition-duration-fast);
 }
-.book-progress {
-  background: var(--background-color);
-  padding: calc(var(--spacing) * 0.5) var(--spacing);
-  border-radius: var(--border-radius);
-  font-size: 0.8rem; font-weight: var(--font-weight-medium);
+.book-title:hover,
+.book-title:focus {
+  background-color: var(--background-color);
+  outline: 2px solid var(--secondary-color);
+  outline-offset: 1px; 
+}
+.book-title .book-name {
+  flex-grow: 1; /* El nombre del libro ocupa el espacio */
+}
+.book-title .book-progress {
+  margin-left: var(--spacing); /* Espacio entre nombre y progreso */
+  flex-shrink: 0; /* Evita que el texto de progreso se encoja */
+  font-size: 0.8rem; 
+  font-weight: var(--font-weight-medium);
   color: var(--text-light-color);
+  background: transparent; /* Quitar fondo si no se necesita */
+  padding: calc(var(--spacing) * 0.25) calc(var(--spacing) * 0.5);
+  border-radius: calc(var(--border-radius) / 2);
 }
+.book-title .book-toggle-icon {
+  font-size: 1rem; /* Tamaño del ícono ▼/▲ */
+  margin-left: calc(var(--spacing) * 1.5);
+  transition: transform var(--transition-duration-fast) ease-in-out;
+  flex-shrink: 0;
+  color: var(--secondary-color); /* Color del ícono */
+}
+.book-title[aria-expanded="true"] .book-toggle-icon {
+  transform: rotateX(180deg); /* Gira el ícono ▼ para que parezca ▲ */
+}
+.book-title[aria-expanded="false"] + .chapters-grid {
+  /* Estilo para el book-title cuando está contraído y la rejilla está oculta */
+  /* margin-bottom: 0;  Podría no ser necesario si el book-section ya tiene margen */
+}
+
+
 .chapters-grid {
-  display: grid;
+  /* display: none; por defecto (manejado por JS) */
+  display: grid; /* Se cambiará a 'none' o 'grid' por JS */
   grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
   gap: var(--spacing);
+  margin-top: var(--spacing); /* Espacio entre el título y la rejilla cuando está visible */
+  padding-top: var(--spacing); /* Padding superior para la rejilla */
+  border-top: 1px solid var(--border-color); /* Línea separadora */
 }
+
 .chapter-button {
   padding: var(--spacing); font-size: 0.875rem;
   border: 1px solid var(--border-color); border-radius: var(--border-radius);
@@ -469,11 +506,9 @@ footer {
   overflow-y: auto; 
   border-right: 1px solid var(--border-color);
 }
-
 #sideMenu.open {
   left: 0;
 }
-
 #closeMenu {
   background: none;
   border: none;
@@ -489,24 +524,20 @@ footer {
 #closeMenu:hover {
   color: var(--danger-color);
 }
-
 #sideMenu nav {
   display: flex;
   flex-direction: column;
   gap: calc(var(--spacing) * 2);
 }
-
 #sideMenu nav ul {
   list-style: none;
   padding: 0;
   margin: 0;
   margin-top: calc(var(--spacing) * 3); 
 }
-
 #sideMenu nav ul li {
   margin-bottom: var(--spacing);
 }
-
 #sideMenu nav ul li a {
   text-decoration: none;
   color: var(--primary-color);
@@ -522,7 +553,6 @@ footer {
   color: var(--secondary-color);
   outline: none;
 }
-
 #sideMenu section {
   margin-top: calc(var(--spacing) * 1); 
   border-top: 1px solid var(--border-color);
@@ -531,32 +561,26 @@ footer {
 #sideMenu section:first-of-type { 
     margin-top: calc(var(--spacing) * 2);
 }
-
-
 #sideMenu section h2 {
   font-size: var(--font-size-lg); 
   margin-bottom: calc(var(--spacing) * 1.5);
   border-bottom: 1px solid var(--accent-color);
   padding-bottom: calc(var(--spacing) * 0.75);
   color: var(--primary-color);
-  /* Los H2 del menú no necesitan los paddings laterales del H1 principal */
   padding-left: 0; 
   padding-right: 0;
-  text-align: left; /* Los títulos en el menú suelen estar alineados a la izquierda */
+  text-align: left; 
 }
-
 #sideMenu .field-group {
   padding: var(--spacing);
   margin-bottom: calc(var(--spacing) * 1.5);
   background-color: var(--background-color); 
 }
-
 #sideMenu .field-group label {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
   margin-bottom: calc(var(--spacing) * 0.5);
 }
-
 #sideMenu .field-group input[type="color"] {
   width: 60px; 
   height: 40px;
@@ -571,7 +595,6 @@ footer {
   font-size: 0.9rem;
   padding: var(--spacing);
 }
-
 #sideMenu #presetThemes {
   display: grid;
   grid-template-columns: 1fr 1fr; 
@@ -581,8 +604,6 @@ footer {
     width: 100%; 
     margin-top: 0; 
 }
-
-
 #sideMenu #thematicSectionsContainer {
   grid-template-columns: 1fr; 
   gap: var(--spacing);
@@ -606,7 +627,6 @@ footer {
   order: -1; 
 }
 
-
 /* — Media Queries — */
 @media (min-width: 768px) {
   .daily-suggestion {
@@ -623,24 +643,25 @@ footer {
     justify-content: center; 
   }
 }
-
 @media (min-width: 1024px) {
   .container { padding: calc(var(--spacing) * 4); }
   .chapters-grid { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
 }
-
 @media (max-width: 400px) {
   body { padding: var(--spacing); }
   .container { padding: calc(var(--spacing) * 1.5); }
   
   h1 { 
     font-size: 1.75rem; 
-    padding-left: calc(var(--spacing) * 7); /* Ajustar padding para pantallas más pequeñas */
-    padding-right: calc(var(--spacing) * 1); /* Menos padding a la derecha si el botón está solo a la izq */
+    padding-left: calc(var(--spacing) * 7); 
+    padding-right: calc(var(--spacing) * 1); 
   } 
   h2 { font-size: 1.25rem; }
 
-  .book-title { font-size: var(--font-size-base); } 
+  .book-title { 
+    font-size: var(--font-size-base);
+    margin: calc(var(--spacing) * -0.5); /* Ajuste más pequeño para pantallas pequeñas */
+  } 
   .chapters-grid {
     grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
     gap: calc(var(--spacing) * 0.75);
@@ -661,7 +682,7 @@ footer {
     left: -260px;
   }
   #sideMenu section h2 {
-    font-size: var(--font-size-lg); /* Mantener el tamaño o ajustar si es necesario */
+    font-size: var(--font-size-lg); 
   }
   #sideMenu #thematicSectionsContainer {
     grid-template-columns: 1fr; 
