@@ -84,8 +84,8 @@ body {
   box-shadow: var(--box-shadow-sm);
   border-left: 5px solid transparent;
   transition: box-shadow var(--transition-duration-fast), transform var(--transition-duration-fast);
-  display: flex; /* Added for better internal alignment */
-  flex-direction: column; /* Default direction */
+  display: flex; 
+  flex-direction: column; 
 }
 .suggestion-block__title {
   font-size: var(--font-size-base);
@@ -119,8 +119,8 @@ body {
   align-items: center; 
   text-align: center;
   gap: calc(var(--spacing) * 0.75);
-  flex-grow: 1; /* Allow content to take available space */
-  justify-content: center; /* Center content vertically */
+  flex-grow: 1; 
+  justify-content: center; 
 }
 .suggested-reading__day {
   font-size: var(--font-size-xl);
@@ -164,25 +164,25 @@ body {
 .suggestion-block--status { border-left-color: var(--text-light-color); }
 .suggestion-block--status.has-delay { border-left-color: var(--danger-color); }
 
-.daily-suggestion__date { /* Para #currentDateText */
+.daily-suggestion__date { 
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--primary-color);
   padding: 0; background: none; line-height: 1; 
-  text-align: center; /* Center date text */
-  margin: auto 0; /* Vertical centering if block has extra space */
+  text-align: center; 
+  margin: auto 0; 
 }
-.daily-suggestion__text { /* Para #dailySuggestionMainText */
+.daily-suggestion__text { 
   font-size: var(--font-size-base);
   line-height: var(--line-height);
   color: var(--text-color);
   padding: 0; 
 }
-.daily-suggestion__delay-indicator { /* Para el P que contiene #daysDelayedText */
+.daily-suggestion__delay-indicator { 
   font-size: var(--font-size-base);
   color: var(--text-color); padding: 0;
-  text-align: center; /* Center delay text */
-  margin: auto 0; /* Vertical centering */
+  text-align: center; 
+  margin: auto 0; 
 }
 .daily-suggestion__delay-indicator #daysDelayedText {
   font-weight: var(--font-weight-semibold);
@@ -197,7 +197,7 @@ body {
   background-color: rgba(229, 62, 62, 0.1);
 }
 
-.daily-suggestion__link { /* Estilo base para enlaces de sugerencia */
+.daily-suggestion__link { 
   display: inline-block;
   margin-bottom: calc(var(--spacing) * 1.5);
   font-weight: var(--font-weight-medium);
@@ -208,7 +208,7 @@ body {
   border-radius: var(--border-radius);
   transition: background-color var(--transition-duration-fast), color var(--transition-duration-fast);
 }
-.daily-suggestion__link:not(.suggested-reading__link):hover, /* Excluir el link específico del bloque de lectura */
+.daily-suggestion__link:not(.suggested-reading__link):hover, 
 .daily-suggestion__link:not(.suggested-reading__link):focus {
   background-color: var(--secondary-color);
   color: var(--card-background-color); outline: none;
@@ -221,15 +221,29 @@ body {
 }
 .suggestion-block__actions .daily-suggestion__button { margin: 0; }
 
-
-h1, h2 {
+/* --- Encabezados --- */
+h1 {
   color: var(--primary-color);
   border-bottom: 2px solid var(--accent-color);
   padding-bottom: var(--spacing);
   margin-bottom: calc(var(--spacing) * 2);
+  font-size: var(--font-size-2xl);
+
+  /* Ajustes para centrar el título y evitar solapamiento con el menú fijo */
+  text-align: center;
+  padding-left: calc(var(--spacing) * 8); 
+  padding-right: calc(var(--spacing) * 8); 
+  box-sizing: border-box; 
 }
-h1 { font-size: var(--font-size-2xl); }
-h2 { font-size: var(--font-size-xl); }
+
+h2 {
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--accent-color);
+  padding-bottom: var(--spacing);
+  margin-bottom: calc(var(--spacing) * 2);
+  font-size: var(--font-size-xl);
+}
+
 
 .progress-container {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing);
@@ -306,8 +320,8 @@ button:focus-visible, .daily-suggestion__button:focus-visible {
   color: var(--card-background-color);
 }
 
-/* — Sección de Metas Temáticas — */
-#thematic-reading-goals {
+/* — Sección de Metas Temáticas (Estilos base para cuando está en el menú) — */
+#thematic-reading-goals-menu { 
   margin-top: calc(var(--spacing) * 2);
 }
 .thematic-sections-grid {
@@ -338,11 +352,11 @@ button:focus-visible, .daily-suggestion__button:focus-visible {
   color: var(--primary-color);
   margin-bottom: var(--spacing);
   line-height: 1.3;
-  flex-grow: 1; /* Hace que el título ocupe espacio y empuje el premio hacia abajo */
+  flex-grow: 1; 
 }
 .thematic-section-award {
   font-size: 2rem; 
-  margin-top: var(--spacing); /* Separación del título */
+  margin-top: var(--spacing); 
   padding-top: var(--spacing);
   color: var(--award-locked-color); 
 }
@@ -352,7 +366,6 @@ button:focus-visible, .daily-suggestion__button:focus-visible {
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
 }
 
-/* Animación para premio recién ganado */
 .thematic-section-item.newly-awarded {
   animation: newAwardAnimation 0.8s ease-out;
 }
@@ -367,7 +380,7 @@ button:focus-visible, .daily-suggestion__button:focus-visible {
 @keyframes awardEmojiPop {
   0% { transform: scale(1); }
   50% { transform: scale(1.4); }
-  100% { transform: scale(1.1); } /* Termina un poco más grande */
+  100% { transform: scale(1.1); } 
 }
 
 
@@ -421,6 +434,180 @@ footer {
   font-size: 0.875rem; color: var(--text-light-color);
 }
 
+/* --- Estilos del Menú Lateral --- */
+#menuToggle {
+  position: fixed;
+  top: calc(var(--spacing) * 1.5);
+  left: calc(var(--spacing) * 1.5);
+  background: var(--accent-color);
+  color: var(--primary-color); 
+  font-size: 1.5rem; 
+  border: none;
+  border-radius: calc(var(--border-radius) / 2);
+  z-index: 1001; 
+  padding: calc(var(--spacing) * 0.75) var(--spacing); 
+  cursor: pointer;
+  box-shadow: var(--box-shadow-sm);
+  transition: background-color var(--transition-duration-fast);
+}
+#menuToggle:hover {
+  background-color: var(--button-hover-bg); 
+  color: var(--card-background-color);
+}
+
+#sideMenu {
+  position: fixed;
+  top: 0;
+  left: -300px; 
+  width: 300px; 
+  height: 100vh;
+  background-color: var(--card-background-color);
+  box-shadow: var(--box-shadow-md);
+  transition: left 0.3s ease-in-out;
+  z-index: 1000; 
+  padding: calc(var(--spacing) * 2);
+  overflow-y: auto; 
+  border-right: 1px solid var(--border-color);
+}
+
+#sideMenu.open {
+  left: 0;
+}
+
+#closeMenu {
+  background: none;
+  border: none;
+  font-size: 2.2rem;
+  line-height: 1;
+  position: absolute;
+  top: var(--spacing);
+  right: var(--spacing);
+  cursor: pointer;
+  color: var(--text-light-color);
+  padding: calc(var(--spacing) / 2);
+}
+#closeMenu:hover {
+  color: var(--danger-color);
+}
+
+#sideMenu nav {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+}
+
+#sideMenu nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: calc(var(--spacing) * 3); 
+}
+
+#sideMenu nav ul li {
+  margin-bottom: var(--spacing);
+}
+
+#sideMenu nav ul li a {
+  text-decoration: none;
+  color: var(--primary-color);
+  font-weight: var(--font-weight-semibold);
+  display: block;
+  padding: var(--spacing) calc(var(--spacing) * 1.5);
+  border-radius: var(--border-radius);
+  transition: background-color var(--transition-duration-fast), color var(--transition-duration-fast);
+}
+#sideMenu nav ul li a:hover,
+#sideMenu nav ul li a:focus {
+  background-color: var(--background-color);
+  color: var(--secondary-color);
+  outline: none;
+}
+
+#sideMenu section {
+  margin-top: calc(var(--spacing) * 1); 
+  border-top: 1px solid var(--border-color);
+  padding-top: calc(var(--spacing) * 2);
+}
+#sideMenu section:first-of-type { 
+    margin-top: calc(var(--spacing) * 2);
+}
+
+
+#sideMenu section h2 {
+  font-size: var(--font-size-lg); 
+  margin-bottom: calc(var(--spacing) * 1.5);
+  border-bottom: 1px solid var(--accent-color);
+  padding-bottom: calc(var(--spacing) * 0.75);
+  color: var(--primary-color);
+  /* Los H2 del menú no necesitan los paddings laterales del H1 principal */
+  padding-left: 0; 
+  padding-right: 0;
+  text-align: left; /* Los títulos en el menú suelen estar alineados a la izquierda */
+}
+
+#sideMenu .field-group {
+  padding: var(--spacing);
+  margin-bottom: calc(var(--spacing) * 1.5);
+  background-color: var(--background-color); 
+}
+
+#sideMenu .field-group label {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: calc(var(--spacing) * 0.5);
+}
+
+#sideMenu .field-group input[type="color"] {
+  width: 60px; 
+  height: 40px;
+  padding: calc(var(--spacing) * 0.25);
+  margin-right: var(--spacing);
+  vertical-align: middle;
+}
+#sideMenu .field-group button,
+#sideMenu .field-group .daily-suggestion__button {
+  width: 100%;
+  margin-top: var(--spacing);
+  font-size: 0.9rem;
+  padding: var(--spacing);
+}
+
+#sideMenu #presetThemes {
+  display: grid;
+  grid-template-columns: 1fr 1fr; 
+  gap: var(--spacing);
+}
+#sideMenu #presetThemes .daily-suggestion__button {
+    width: 100%; 
+    margin-top: 0; 
+}
+
+
+#sideMenu #thematicSectionsContainer {
+  grid-template-columns: 1fr; 
+  gap: var(--spacing);
+}
+#sideMenu .thematic-section-item {
+  padding: var(--spacing);
+  flex-direction: row; 
+  align-items: center;
+  text-align: left;
+}
+#sideMenu .thematic-section-title {
+  font-size: var(--font-size-base);
+  flex-grow: 1;
+  margin-bottom: 0; 
+  margin-left: var(--spacing); 
+}
+#sideMenu .thematic-section-award {
+  font-size: 1.5rem; 
+  margin-top: 0;
+  padding-top: 0;
+  order: -1; 
+}
+
+
+/* — Media Queries — */
 @media (min-width: 768px) {
   .daily-suggestion {
     flex-direction: row; 
@@ -433,7 +620,7 @@ footer {
     flex: 1.5; 
   }
   .suggestion-block--date, .suggestion-block--status {
-    justify-content: center; /* Centra el contenido si el bloque es más alto */
+    justify-content: center; 
   }
 }
 
@@ -445,7 +632,14 @@ footer {
 @media (max-width: 400px) {
   body { padding: var(--spacing); }
   .container { padding: calc(var(--spacing) * 1.5); }
-  h1 { font-size: 1.75rem; } h2 { font-size: 1.25rem; }
+  
+  h1 { 
+    font-size: 1.75rem; 
+    padding-left: calc(var(--spacing) * 7); /* Ajustar padding para pantallas más pequeñas */
+    padding-right: calc(var(--spacing) * 1); /* Menos padding a la derecha si el botón está solo a la izq */
+  } 
+  h2 { font-size: 1.25rem; }
+
   .book-title { font-size: var(--font-size-base); } 
   .chapters-grid {
     grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
@@ -462,10 +656,16 @@ footer {
   .daily-suggestion__date { font-size: var(--font-size-base); } 
   .daily-suggestion__text, .daily-suggestion__delay-indicator { font-size: 0.9rem; } 
 
-  .thematic-sections-grid {
+  #sideMenu {
+    width: 260px; 
+    left: -260px;
+  }
+  #sideMenu section h2 {
+    font-size: var(--font-size-lg); /* Mantener el tamaño o ajustar si es necesario */
+  }
+  #sideMenu #thematicSectionsContainer {
     grid-template-columns: 1fr; 
   }
-  .thematic-section-title { font-size: var(--font-size-base); }
-  .thematic-section-award { font-size: 1.8rem; }
+  #sideMenu .thematic-section-title { font-size: var(--font-size-base); }
+  #sideMenu .thematic-section-award { font-size: 1.8rem; } 
 }
-
