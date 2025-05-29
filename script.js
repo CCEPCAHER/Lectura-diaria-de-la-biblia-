@@ -234,8 +234,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentPlanStartDateTextEl = document.getElementById('currentPlanStartDateText');
     const syncReadingSelect = document.getElementById('syncReadingSelect');
     const syncPlanButton = document.getElementById('syncPlanButton');
-    const thematicSectionsContainer = document.getElementById('thematicSectionsContainer'); // Asegúrate que el ID es 'thematicSectionsContainer' en HTML
+    const thematicSectionsContainer = document.getElementById('thematicSectionsContainer'); 
     const daysDelayedTextEl = document.getElementById('daysDelayedText');
+
+    // NUEVO: Referencias a los nuevos botones de generación de calendario
+    const generateMonthCalendarButton = document.getElementById('generateMonthCalendarButton');
+    const generateYearCalendarButton = document.getElementById('generateYearCalendarButton');
+
 
     let readStatus = {};
     let awardedSectionsStatus = {};
@@ -266,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedPlanStartDate && planStartDateInput) {
             planStartDateInput.value = savedPlanStartDate;
             try {
-                const dateObj = new Date(savedPlanStartDate + "T00:00:00Z");
+                const dateObj = new Date(savedPlanStartDate + "T00:00:00Z"); // Asegurar que se interpreta como UTC
                 if (isNaN(dateObj.getTime())) throw new Error("Invalid date value");
                 if (currentPlanStartDateTextEl) currentPlanStartDateTextEl.textContent = `Tu plan de lectura actual comenzó el: ` +
                     dateObj.toLocaleDateString('es-ES', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' });
@@ -326,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderThematicSections() {
-        if (!thematicSectionsContainer) return; // thematicSectionsContainer es el div donde se renderizan las metas
+        if (!thematicSectionsContainer) return; 
         thematicSectionsContainer.innerHTML = '';
         thematicSections.forEach(section => {
             const sectionEl = document.createElement('div');
@@ -526,7 +531,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAllThematicSectionsStatus();
     }
 
-    // NUEVA FUNCIÓN para manejar el despliegue/contracción de capítulos
     function toggleBookChapters(bookId, titleElement) {
         const chapterGrid = document.getElementById(`chapters_${bookId}`);
         const icon = titleElement.querySelector('.book-toggle-icon'); 
@@ -554,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filterBookName === 'todos' || book.name === filterBookName
         );
 
-        if (booksToRender.length === 0 && bibleBooksContainer) { // Añadido chequeo de bibleBooksContainer
+        if (booksToRender.length === 0 && bibleBooksContainer) {
             bibleBooksContainer.innerHTML = '<p>No hay libros que coincidan con los filtros seleccionados.</p>';
             return;
         }
@@ -734,23 +738,150 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // MODIFICADO: Reemplazo de la función downloadICS original
+    function downloadICS(eventDetails, filename = 'LecturaBiblica.ics') {
+        let eventsArray = Array.isArray(eventDetails) ? eventDetails : [eventDetails];
+        let icsContent = generateICSContent(eventsArray);
+        downloadFile(filename, icsContent);
+    }
+    
+    // NUEVA: Función para generar el contenido de un archivo .ics para múltiples eventos
+    function generateICSContent(events) {
+        const calHeader = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//TuApp//PlanBiblicoNONSGML v1.0//ES", // Puedes personalizar esto
+            "CALSCALE:GREGORIAN"
+        ];
+        const calFooter = ["END:VCALENDAR"];
+        let eventStrings = [];
+
+        events.forEach(event => {
+            const uid = `planbiblico-${Date.now()}-${Math.random().toString(36).substring(2, 15)}@ejemplo.com`;
+            const dtstamp = new Date().toISOString().replace(/[-:.]/g, "").substring(0, 15) + "Z";
+            
+            // Formato YYYYMMDD para fechas de día completo
+            const formatDate = (date) => {
+                return date.getUTCFullYear() + 
+                       ('0' + (date.getUTCMonth() + 1)).slice(-2) + 
+                       ('0' + date.getUTCDate()).slice(-2);
+            };
+
+            let eventLines = [
+                "BEGIN:VEVENT",
+                `UID:${uid}`,
+                `DTSTAMP:${dtstamp}`,
+                `SUMMARY:${event.title.replace(/,/g, '\\,')}`, // Escapar comas
+            ];
+
+            if (event.isAllDay) {
+                eventLines.push(`DTSTART;VALUE=DATE:${formatDate(event.startDate)}`);
+                const endDatePlusOne = new Date(event.endDate); // endDate para DTEND es exclusivo
+                endDatePlusOne.setUTCDate(endDatePlusOne.getUTCDate() + 1);
+                eventLines.push(`DTEND;VALUE=DATE:${formatDate(endDatePlusOne)}`);
+            } else {
+                // Para eventos con hora específica (no usado aquí pero podría ser útil)
+                eventLines.push(`DTSTART:${event.startDate.toISOString().replace(/[-:.]/g, "").substring(0, 15) + "Z"}`);
+                eventLines.push(`DTEND:${event.endDate.toISOString().replace(/[-:.]/g, "").substring(0, 15) + "Z"}`);
+            }
+            
+            if (event.description) {
+                eventLines.push(`DESCRIPTION:${event.description.replace(/,/g, '\\,').replace(/\n/g, '\\n')}`); // Escapar comas y saltos de línea
+            }
+            eventLines.push("END:VEVENT");
+            eventStrings.push(eventLines.join("\r\n"));
+        });
+
+        return calHeader.join("\r\n") + "\r\n" + eventStrings.join("\r\n") + "\r\n" + calFooter.join("\r\n");
+    }
+
+    // NUEVA: Función para descargar un archivo
+    function downloadFile(filename, content, mimeType = 'text/calendar;charset=utf-8') {
+        const blob = new Blob([content], { type: mimeType });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+
+    // NUEVA: Lógica para generar eventos de calendario para un período
+    function generateCalendarEventsForPeriod(numberOfDays, filenameSuffix) {
+        const planStartDateString = localStorage.getItem('planStartDate');
+        if (!planStartDateString) {
+            alert("Por favor, establece primero una fecha de inicio para el plan de lectura.");
+            return;
+        }
+
+        let baseStartDate;
+        try {
+            // Aseguramos que la fecha se interpreta como UTC para evitar problemas de zona horaria
+            baseStartDate = new Date(planStartDateString + 'T00:00:00Z');
+            if (isNaN(baseStartDate.getTime())) throw new Error("Fecha inválida");
+        } catch (e) {
+            alert("La fecha de inicio del plan guardada no es válida. Por favor, reestablécela.");
+            return;
+        }
+
+        const eventsForCalendar = [];
+        for (let i = 0; i < numberOfDays && i < dailyReadingPlan.length; i++) {
+            const planEntry = dailyReadingPlan[i];
+            const eventDate = new Date(baseStartDate.valueOf());
+            eventDate.setUTCDate(baseStartDate.getUTCDate() + i); // Sumamos días en UTC
+
+            const title = `Lectura Día ${i + 1}: ${planEntry.displayText}`;
+            const description = `Plan de Lectura Bíblica.\nLectura: ${planEntry.displayText}\nEnlace: ${planEntry.url || 'No disponible'}`;
+            
+            eventsForCalendar.push({
+                title: title,
+                description: description,
+                startDate: new Date(eventDate.valueOf()), // Clonar la fecha
+                endDate: new Date(eventDate.valueOf()),   // Clonar la fecha, para DTEND es startDate
+                isAllDay: true
+            });
+        }
+
+        if (eventsForCalendar.length > 0) {
+            const filename = `PlanLecturaBiblica_${filenameSuffix}.ics`;
+            downloadICS(eventsForCalendar, filename);
+        } else {
+            alert("No hay lecturas en el plan para generar el calendario o la duración solicitada es cero.");
+        }
+    }
+
+
     if (addToCalendarButtonEl) {
         addToCalendarButtonEl.onclick = () => { 
             if (!window.currentSuggestedReading || !window.todayUTC) { alert("No hay sugerencia de lectura o fecha para agregar al calendario."); return; }
-            if (typeof downloadICS !== 'function') { console.error("La función downloadICS no está definida."); alert("Error: Funcionalidad de calendario no disponible."); return; }
+            // La función downloadICS ahora maneja la generación y descarga
             const title = `Lectura Bíblica Día ${window.dayOfPlan}: ${window.currentSuggestedReading.displayText}`;
             const description = `Leer según el plan: ${window.currentSuggestedReading.displayText}. Enlace: ${window.currentSuggestedReading.url || 'N/A'}`;
             const startDate = new Date(window.todayUTC.valueOf()); 
-            const endDate = new Date(window.todayUTC.valueOf()); endDate.setDate(startDate.getDate() + 1);
+            // Para un evento de día completo, endDate suele ser el mismo día o el inicio del siguiente día.
+            // Para DTEND con VALUE=DATE, el final es exclusivo, por lo que el mismo día es correcto.
+            const endDate = new Date(window.todayUTC.valueOf()); 
             downloadICS({ title: title, description: description, startDate: startDate, endDate: endDate, isAllDay: true });
         };
     }
-    if (typeof downloadICS === 'undefined') {
-        window.downloadICS = function(eventDetails) {
-            console.warn("Función `downloadICS` es un placeholder. Detalles:", eventDetails);
-            alert("Descarga de ICS no implementada completamente.\n" + `Título: ${eventDetails.title}\nFecha: ${eventDetails.startDate.toLocaleDateString()}`);
-        };
+    
+    // NUEVO: Event Listeners para los botones de generar calendario mensual/anual
+    if (generateMonthCalendarButton) {
+        generateMonthCalendarButton.addEventListener('click', () => {
+            // Usamos 30 días como aproximación para un mes.
+            // Se podría calcular el número exacto de días del mes si se quiere más precisión.
+            generateCalendarEventsForPeriod(30, 'Mes'); 
+        });
     }
+
+    if (generateYearCalendarButton) {
+        generateYearCalendarButton.addEventListener('click', () => {
+            // Usamos 365 días. El plan de lectura tiene menos, así que se limitará a la longitud del plan.
+            generateCalendarEventsForPeriod(365, 'Anual'); 
+        });
+    }
+
 
     if (resetProgressButton) {
         resetProgressButton.addEventListener('click', () => {
