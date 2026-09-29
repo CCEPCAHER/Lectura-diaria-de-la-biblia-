@@ -97,9 +97,20 @@ function record_attempt(bool $success): void
     file_put_contents(ATTEMPTS_FILE, json_encode($all), LOCK_EX);
 }
 
+// Cada sesión va ligada a la contraseña vigente: al cambiarla (o borrarla) se cierran las demás sesiones.
+function session_key(?string $hash): string
+{
+    return $hash ? substr(hash('sha256', $hash), 0, 32) : '';
+}
+
 function is_logged_in(): bool
 {
     if (empty($_SESSION['admin'])) return false;
+    $key = session_key(admin_hash());
+    if ($key === '' || !hash_equals($key, (string)($_SESSION['admin_key'] ?? ''))) {
+        $_SESSION = [];
+        return false;
+    }
     if (time() - ($_SESSION['last_activity'] ?? 0) > SESSION_IDLE_SECONDS) {
         $_SESSION = [];
         return false;
@@ -136,6 +147,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         } else {
             session_regenerate_id(true);
             $_SESSION['admin'] = true;
+            $_SESSION['admin_key'] = session_key(admin_hash());
             $_SESSION['last_activity'] = time();
             $_SESSION['flash'] = 'Contraseña creada. ¡Bienvenido a tu panel!';
             redirect_self();
@@ -147,6 +159,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             record_attempt(true);
             session_regenerate_id(true);
             $_SESSION['admin'] = true;
+            $_SESSION['admin_key'] = session_key($hash);
             $_SESSION['last_activity'] = time();
             redirect_self();
         } else {
@@ -168,7 +181,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             $error = 'La nueva contraseña debe tener al menos ' . MIN_PASSWORD_LENGTH . ' caracteres y coincidir en ambos campos.';
         } else {
             save_admin_hash($p1, false);
-            $_SESSION['flash'] = 'Contraseña actualizada.';
+            session_regenerate_id(true);
+            $_SESSION['admin_key'] = session_key(admin_hash());
+            $_SESSION['flash'] = 'Contraseña actualizada. Se han cerrado las demás sesiones.';
             redirect_self();
         }
     }
@@ -188,62 +203,126 @@ function page(string $title, string $body): void
 <style>
 :root {
   color-scheme: light;
-  --page: #f3f4f1; --surface-1: #fcfcfb; --border: #e3e2dc;
-  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #7a7974;
-  --series-1: #2a78d6; --track: #e8e7e1; --grid: #ecebe6;
-  --accent: #0A2342; --danger: #c53030; --good: #1b7f4b;
+  --page: #EEF2F7; --surface: #FFFFFF; --surface-2: #F5F7FB; --border: #E2E7EF;
+  --text: #1F2937; --muted: #667085; --heading: #0A2342;
+  --brand: #0A2342; --teal: #1F8A74; --gold: #F4B942;
+  --series-1: #1F8A74; --track: #E6EBF2; --grid: #EDF1F6;
+  --danger: #C53030; --good: #1B7F4B;
+  --shadow: 0 1px 2px rgba(16,24,40,.05), 0 4px 14px rgba(16,24,40,.06);
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root {
     color-scheme: dark;
-    --page: #111110; --surface-1: #1a1a19; --border: #2e2e2c;
-    --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
-    --series-1: #3987e5; --track: #2a2a28; --grid: #262624;
-    --accent: #9ec5ff; --danger: #ff8a80; --good: #6fd39b;
+    --page: #0E1522; --surface: #162133; --surface-2: #1C293E; --border: #26364D;
+    --text: #E4E9F1; --muted: #98A6BA; --heading: #F2F6FB;
+    --teal: #2BB594; --series-1: #2BB594; --track: #2A3A52; --grid: #1F2C40;
+    --danger: #FF8A80; --good: #6FD39B;
+    --shadow: 0 1px 2px rgba(0,0,0,.4);
   }
 }
 * { box-sizing: border-box; margin: 0; }
-body { background: var(--page); color: var(--text-primary); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding: 16px; }
-.wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 16px; }
-.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
-h1 { font-size: 1.35rem; } h2 { font-size: 1rem; margin-bottom: 12px; } .sub { color: var(--text-secondary); font-size: .9rem; }
-.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+body { background: var(--page); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: var(--teal); }
+
+/* Cabecera */
+.hero {
+  color: #fff; padding: 22px 16px 70px;
+  background:
+    radial-gradient(90% 140% at 100% 0%, rgba(244,185,66,.35), transparent 55%),
+    linear-gradient(135deg, #0A2342 0%, #123A5E 55%, #16574F 100%);
+}
+.hero__inner { max-width: 1120px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+.hero h1 { font-size: 1.45rem; font-weight: 800; letter-spacing: -.01em; }
+.hero p { opacity: .8; font-size: .9rem; }
 .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-.seg a { padding: 6px 12px; color: var(--text-secondary); text-decoration: none; font-size: .9rem; }
-.seg a[aria-current="true"] { background: var(--accent); color: var(--surface-1); }
-button, .btn { font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary); cursor: pointer; }
-button.primary { background: var(--accent); color: var(--surface-1); border-color: var(--accent); width: 100%; }
-input[type=password] { font: inherit; width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--page); color: var(--text-primary); margin: 4px 0 12px; }
-label { font-size: .9rem; color: var(--text-secondary); }
-.msg { padding: 10px 12px; border-radius: 8px; font-size: .9rem; }
-.msg.err { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
-.msg.ok { background: color-mix(in srgb, var(--good) 12%, transparent); color: var(--good); }
-.auth { max-width: 380px; margin: 10vh auto 0; display: grid; gap: 12px; }
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
-.kpi .label { color: var(--text-secondary); font-size: .85rem; }
-.kpi .value { font-size: 1.9rem; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: 2px; }
-.kpi .note { color: var(--text-muted); font-size: .8rem; }
-.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
-.chart { position: relative; }
+.seg { display: inline-flex; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); border-radius: 999px; padding: 3px; }
+.seg a { padding: 6px 14px; color: rgba(255,255,255,.85); text-decoration: none; font-size: .88rem; font-weight: 600; border-radius: 999px; }
+.seg a[aria-current="true"] { background: #fff; color: #0A2342; }
+.btn-ghost { font: inherit; font-weight: 600; font-size: .88rem; padding: 7px 16px; border-radius: 999px; cursor: pointer; background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.25); }
+.btn-ghost:hover { background: rgba(255,255,255,.22); }
+
+/* Contenido */
+.wrap { max-width: 1120px; margin: -48px auto 0; padding: 0 16px 40px; display: grid; gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; min-width: 0; box-shadow: var(--shadow); }
+.section-title { font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 10px 2px -6px; }
+h2 { font-size: 1.02rem; color: var(--heading); margin-bottom: 4px; }
+.sub { color: var(--muted); font-size: .88rem; }
+
+/* Cifras principales */
+.heroes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.hero-tile { position: relative; overflow: hidden; display: grid; gap: 6px; }
+.hero-tile__top { display: flex; align-items: center; gap: 10px; }
+.icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 1.2rem; background: color-mix(in srgb, var(--teal) 14%, transparent); flex: none; }
+.icon--gold { background: color-mix(in srgb, var(--gold) 22%, transparent); }
+.icon--blue { background: color-mix(in srgb, #2A78D6 16%, transparent); }
+.hero-tile__label { font-weight: 700; color: var(--muted); font-size: .9rem; }
+.hero-tile__value { font-size: 2.6rem; font-weight: 800; line-height: 1.05; color: var(--heading); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.hero-tile__note { font-size: .85rem; color: var(--muted); }
+.delta { display: inline-block; font-weight: 700; color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); padding: 1px 8px; border-radius: 999px; font-size: .8rem; }
+.spark { width: 100%; height: 44px; display: block; margin-top: 4px; }
+.spark .area { fill: color-mix(in srgb, var(--series-1) 16%, transparent); }
+.spark .line { fill: none; stroke: var(--series-1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.meter-lg { height: 10px; background: var(--track); border-radius: 999px; overflow: hidden; margin-top: 10px; }
+.meter-lg > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--teal), var(--gold)); }
+
+/* Cifras secundarias */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.kpi { display: flex; gap: 12px; align-items: flex-start; padding: 14px; }
+.kpi .label { color: var(--muted); font-size: .82rem; font-weight: 600; }
+.kpi .value { font-size: 1.55rem; font-weight: 800; color: var(--heading); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.kpi .note { color: var(--muted); font-size: .76rem; line-height: 1.3; margin-top: 2px; }
+
+/* Gráficas */
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 16px; }
+.chart { position: relative; margin-top: 10px; }
 .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
 .chart .bar { fill: var(--series-1); }
-.chart .hit { fill: transparent; cursor: default; }
-.chart .hit:hover + .bar, .chart .bar.hover { opacity: .75; }
+.chart .hit { fill: transparent; }
+.chart .hit:hover + .bar, .chart .bar.hover { opacity: .7; }
 .chart .gridline { stroke: var(--grid); stroke-width: 1; }
-.chart .axis { fill: var(--text-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
-.tip { position: absolute; pointer-events: none; background: var(--text-primary); color: var(--surface-1); font-size: .8rem; padding: 6px 8px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, -110%); opacity: 0; transition: opacity .1s; }
+.chart .axis { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.chart-total { font-size: 1.5rem; font-weight: 800; color: var(--heading); font-variant-numeric: tabular-nums; }
+.chart-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.tip { position: absolute; pointer-events: none; background: #0A2342; color: #fff; font-size: .8rem; padding: 6px 9px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, -115%); opacity: 0; transition: opacity .1s; box-shadow: 0 6px 16px rgba(0,0,0,.2); }
 .tip.on { opacity: 1; }
-table { width: 100%; border-collapse: collapse; font-size: .9rem; font-variant-numeric: tabular-nums; }
-th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--border); }
-th { color: var(--text-secondary); font-weight: 600; font-size: .8rem; }
+
+/* Tablas */
+table { width: 100%; border-collapse: collapse; font-size: .9rem; font-variant-numeric: tabular-nums; margin-top: 8px; }
+th, td { text-align: left; padding: 9px 6px; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+th { color: var(--muted); font-weight: 700; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
 td.num, th.num { text-align: right; }
-.meter { height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; min-width: 60px; }
-.meter > span { display: block; height: 100%; background: var(--series-1); border-radius: 4px; }
-details summary { cursor: pointer; color: var(--text-secondary); font-size: .85rem; margin-top: 10px; }
+.meter { height: 8px; background: var(--track); border-radius: 999px; overflow: hidden; min-width: 60px; }
+.meter > span { display: block; height: 100%; background: var(--series-1); border-radius: 999px; }
+details summary { cursor: pointer; color: var(--muted); font-size: .85rem; font-weight: 600; margin-top: 10px; }
 details table { margin-top: 8px; }
-.foot { color: var(--text-muted); font-size: .8rem; }
-.foot a { color: inherit; }
+
+/* Mini tarjetas */
+.minis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
+.mini { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
+.mini .value { font-size: 1.35rem; font-weight: 800; color: var(--heading); font-variant-numeric: tabular-nums; }
+.mini .label { font-size: .8rem; color: var(--muted); font-weight: 600; }
+
+/* Mensajes y formularios */
+.msg { padding: 11px 14px; border-radius: 12px; font-size: .9rem; }
+.msg.err { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+.msg.ok { background: color-mix(in srgb, var(--good) 12%, transparent); color: var(--good); }
+label { font-size: .88rem; font-weight: 600; color: var(--heading); }
+input[type=password] { font: inherit; width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); color: var(--text); margin: 6px 0 14px; }
+button.primary { font: inherit; font-weight: 700; width: 100%; padding: 11px 16px; border-radius: 999px; border: none; cursor: pointer; background: var(--teal); color: #fff; }
+button.primary:hover { filter: brightness(1.08); }
+code.block { display: block; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; overflow-wrap: anywhere; font-size: .85rem; }
+.foot { color: var(--muted); font-size: .8rem; text-align: center; }
+
+/* Acceso */
+.auth-page { min-height: 100vh; display: grid; place-items: center; padding: 20px;
+  background:
+    radial-gradient(90% 90% at 100% 0%, rgba(244,185,66,.35), transparent 55%),
+    linear-gradient(135deg, #0A2342 0%, #123A5E 55%, #16574F 100%); }
+.auth { width: min(100%, 400px); display: grid; gap: 12px; padding: 28px 24px; border-radius: 24px; }
+.auth__logo { width: 64px; height: 64px; border-radius: 18px; margin: 0 auto 4px; display: block; }
+.auth h1 { text-align: center; font-size: 1.35rem; color: var(--heading); }
+.auth .sub { text-align: center; }
 </style>
 </head>
 <body>
@@ -258,7 +337,8 @@ function auth_page(string $mode, string $error, string $flash): void
 {
     $title = $mode === 'setup' ? 'Crear contraseña de administrador' : 'Panel de administración';
     ob_start(); ?>
-<main class="auth card">
+<div class="auth-page"><main class="auth card">
+  <img class="auth__logo" src="../icons/icon-192x192.png" alt="">
   <h1><?= h($title) ?></h1>
   <p class="sub"><?= $mode === 'setup'
       ? 'Es la primera vez que entras. Elige la contraseña con la que accederás a las estadísticas. Solo tú la conocerás.'
@@ -278,7 +358,7 @@ function auth_page(string $mode, string $error, string $flash): void
     <?php endif; ?>
     <button type="submit" class="primary"><?= $mode === 'setup' ? 'Crear y entrar' : 'Entrar' ?></button>
   </form>
-</main>
+</main></div>
 <?php
     page($title, (string)ob_get_clean());
 }
@@ -407,28 +487,46 @@ function bar_chart(array $series, string $unit): string
     return $svg . '</svg>';
 }
 
+function sparkline(array $series): string
+{
+    $values = array_values($series);
+    $n = count($values);
+    if ($n < 2) return '';
+    $w = 200; $h = 44; $max = max(1, ...$values);
+    $pts = [];
+    foreach ($values as $i => $v) {
+        $pts[] = sprintf('%.1f,%.1f', $i / ($n - 1) * $w, $h - 3 - ($v / $max) * ($h - 8));
+    }
+    $line = implode(' ', $pts);
+    return '<svg class="spark" viewBox="0 0 ' . $w . ' ' . $h . '" preserveAspectRatio="none" aria-hidden="true">'
+        . '<polygon class="area" points="0,' . $h . ' ' . $line . ' ' . $w . ',' . $h . '"/>'
+        . '<polyline class="line" points="' . $line . '" vector-effect="non-scaling-stroke"/></svg>';
+}
+
 function chart_card(string $title, string $subtitle, array $series, string $unit): string
 {
     $rows = '';
     foreach (array_reverse($series, true) as $day => $v) {
         $rows .= '<tr><td>' . h(date('d/m/Y', strtotime($day))) . '</td><td class="num">' . nf($v) . '</td></tr>';
     }
-    return '<section class="card"><h2>' . h($title) . '</h2><p class="sub" style="margin:-8px 0 8px">' . h($subtitle) . '</p>'
+    return '<section class="card"><div class="chart-head"><div><h2>' . h($title) . '</h2><p class="sub">' . h($subtitle) . '</p></div>'
+        . '<div class="chart-total" title="Total del periodo">' . nf(array_sum($series)) . '</div></div>'
         . '<div class="chart">' . bar_chart($series, $unit) . '<div class="tip"></div></div>'
         . '<details><summary>Ver tabla</summary><table><thead><tr><th>Día</th><th class="num">' . h(ucfirst($unit)) . '</th></tr></thead><tbody>'
         . $rows . '</tbody></table></details></section>';
 }
 
-$kpi = static fn(string $label, string $value, string $note = ''): string =>
-    '<div class="card kpi"><div class="label">' . h($label) . '</div><div class="value">' . h($value) . '</div>'
-    . ($note !== '' ? '<div class="note">' . h($note) . '</div>' : '') . '</div>';
+$kpi = static fn(string $icon, string $label, string $value, string $note = ''): string =>
+    '<div class="card kpi"><span class="icon" aria-hidden="true">' . $icon . '</span><div><div class="label">' . h($label) . '</div><div class="value">' . h($value) . '</div>'
+    . ($note !== '' ? '<div class="note">' . h($note) . '</div>' : '') . '</div></div>';
+$platformIcons = ['android' => '🤖', 'ios' => '🍎', 'windows' => '🪟', 'mac' => '💻', 'linux' => '🐧', 'otro' => '❔'];
 
 ob_start(); ?>
-<div class="wrap">
-  <header class="top">
+<header class="hero">
+  <div class="hero__inner">
     <div>
       <h1>📖 Lectura diaria · Panel</h1>
-      <p class="sub">Datos anónimos · actualizado <?= h(date('d/m/Y H:i')) ?> (hora de Madrid)</p>
+      <p>Datos anónimos · actualizado <?= h(date('d/m/Y H:i')) ?> (hora de Madrid)</p>
     </div>
     <div class="controls">
       <nav class="seg" aria-label="Periodo">
@@ -439,55 +537,69 @@ ob_start(); ?>
       <form method="post">
         <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
         <input type="hidden" name="action" value="logout">
-        <button type="submit">Salir</button>
+        <button type="submit" class="btn-ghost">Salir</button>
       </form>
     </div>
-  </header>
+  </div>
+</header>
 
+<div class="wrap">
   <?php if ($error): ?><p class="msg err"><?= h($error) ?></p><?php endif; ?>
   <?php if ($flash): ?><p class="msg ok"><?= h($flash) ?></p><?php endif; ?>
 
-  <section class="kpis" aria-label="Resumen">
-    <?= $kpi('Personas que la usan', nf($total), 'dispositivos distintos desde el inicio') ?>
-    <?= $kpi('La han instalado', nf($installed), pct($installed, $total) . ' del total') ?>
-    <?= $kpi('Activos hoy', nf($activeToday)) ?>
-    <?= $kpi('Activos 7 días', nf($active7)) ?>
-    <?= $kpi('Activos 30 días', nf($active30)) ?>
-    <?= $kpi("Nuevos ($range días)", nf($newInRange)) ?>
-    <?= $kpi('Minutos por visita diaria', nf($avgMinutes, 1), "media de los últimos $range días") ?>
-    <?= $kpi("Capítulos marcados ($range días)", nf($usage['chapters'])) ?>
-    <?= $kpi('Siguen usándola', pct($retained, $eligible), 'de quienes empezaron hace +7 días, activos esta semana') ?>
-    <?= $kpi('Horas de uso totales', nf($totalHours, 1)) ?>
+  <section class="heroes" aria-label="Resumen">
+    <div class="card hero-tile">
+      <div class="hero-tile__top"><span class="icon" aria-hidden="true">👥</span><span class="hero-tile__label">Personas que la usan</span></div>
+      <div class="hero-tile__value"><?= nf($total) ?></div>
+      <div class="hero-tile__note"><span class="delta">+<?= nf($newInRange) ?></span> nuevas en <?= $range ?> días</div>
+      <?= sparkline($newSeries) ?>
+    </div>
+    <div class="card hero-tile">
+      <div class="hero-tile__top"><span class="icon icon--gold" aria-hidden="true">📲</span><span class="hero-tile__label">La han instalado</span></div>
+      <div class="hero-tile__value"><?= nf($installed) ?></div>
+      <div class="hero-tile__note"><?= pct($installed, $total) ?> de las personas</div>
+      <div class="meter-lg"><span style="width:<?= $total ? round($installed / $total * 100) : 0 ?>%"></span></div>
+    </div>
+    <div class="card hero-tile">
+      <div class="hero-tile__top"><span class="icon icon--blue" aria-hidden="true">⚡</span><span class="hero-tile__label">Activas hoy</span></div>
+      <div class="hero-tile__value"><?= nf($activeToday) ?></div>
+      <div class="hero-tile__note"><?= nf($active7) ?> esta semana · <?= nf($active30) ?> este mes</div>
+      <?= sparkline($activeSeries) ?>
+    </div>
   </section>
 
+  <section class="kpis" aria-label="Más cifras">
+    <?= $kpi('⏱️', 'Minutos por visita', nf($avgMinutes, 1), "media de los últimos $range días") ?>
+    <?= $kpi('✅', 'Capítulos marcados', nf($usage['chapters']), "en los últimos $range días") ?>
+    <?= $kpi('🔁', 'Siguen usándola', pct($retained, $eligible), 'de quienes empezaron hace +7 días') ?>
+    <?= $kpi('⌛', 'Horas de uso', nf($totalHours, 1), 'desde el principio') ?>
+  </section>
+
+  <p class="section-title">📈 Actividad</p>
   <div class="grid2">
     <?= chart_card('Personas activas por día', 'Dispositivos que abrieron la app cada día', $activeSeries, 'personas') ?>
     <?= chart_card('Personas nuevas por día', 'Primera vez que se abre la app en un dispositivo', $newSeries, 'nuevas') ?>
-    <?= chart_card('Instalaciones por día', 'Dispositivos que la instalaron o la abrieron instalada por primera vez', $installSeries, 'instalaciones') ?>
+    <?= chart_card('Instalaciones por día', 'La instalaron o la abrieron instalada por primera vez', $installSeries, 'instalaciones') ?>
     <?= chart_card('Minutos de uso por día', 'Tiempo activo sumado de todas las personas', $minutesSeries, 'minutos') ?>
   </div>
 
+  <p class="section-title">📖 Lectura</p>
   <div class="grid2">
     <section class="card">
-      <h2>Dispositivos</h2>
-      <table>
-        <thead><tr><th>Sistema</th><th class="num">Personas</th><th class="num">Instalada</th><th>Parte del total</th></tr></thead>
-        <tbody>
-        <?php foreach ($platforms as $p): ?>
-          <tr>
-            <td><?= h($platformNames[$p['platform']] ?? $p['platform']) ?></td>
-            <td class="num"><?= nf($p['n']) ?></td>
-            <td class="num"><?= nf($p['inst']) ?></td>
-            <td><div class="meter"><span style="width:<?= $total ? round($p['n'] / $total * 100) : 0 ?>%"></span></div></td>
-          </tr>
-        <?php endforeach; ?>
-        <?php if (!$platforms): ?><tr><td colspan="4" class="sub">Todavía no hay datos.</td></tr><?php endif; ?>
-        </tbody>
-      </table>
+      <h2>Plan de lectura</h2>
+      <p class="sub">Cómo va la gente con el plan de un año</p>
+      <div class="minis">
+        <div class="mini"><div class="value"><?= nf($plan['started']) ?></div><div class="label">Han empezado · <?= pct((int)$plan['started'], $total) ?></div></div>
+        <div class="mini"><div class="value"><?= nf($plan['on_track']) ?></div><div class="label">Van al día · <?= pct((int)$plan['on_track'], (int)$plan['started']) ?></div></div>
+        <div class="mini"><div class="value"><?= $plan['avg_delay'] !== null ? nf($plan['avg_delay'], 1) : '—' ?></div><div class="label">Lecturas atrasadas (media)</div></div>
+        <div class="mini"><div class="value">🔥 <?= $plan['avg_streak'] !== null ? nf($plan['avg_streak'], 1) : '—' ?></div><div class="label">Racha media (activos)</div></div>
+        <div class="mini"><div class="value">🏆 <?= nf($plan['best_streak'] ?? 0) ?></div><div class="label">Mejor racha actual</div></div>
+      </div>
     </section>
 
     <section class="card">
       <h2>Cuánto llevan leído</h2>
+      <p class="sub">Parte de la Biblia marcada como leída</p>
       <table>
         <thead><tr><th>Biblia leída</th><th class="num">Personas</th><th>Parte del total</th></tr></thead>
         <tbody>
@@ -502,53 +614,68 @@ ob_start(); ?>
         </tbody>
       </table>
     </section>
+  </div>
 
+  <p class="section-title">📱 Dispositivos</p>
+  <div class="grid2">
     <section class="card">
-      <h2>Plan de lectura</h2>
+      <h2>Sistemas</h2>
+      <p class="sub">En qué dispositivos se usa</p>
       <table>
+        <thead><tr><th>Sistema</th><th class="num">Personas</th><th class="num">Instalada</th><th>Parte del total</th></tr></thead>
         <tbody>
-          <tr><td>Han empezado el plan</td><td class="num"><?= nf($plan['started']) ?></td><td class="num sub"><?= pct((int)$plan['started'], $total) ?></td></tr>
-          <tr><td>Van al día</td><td class="num"><?= nf($plan['on_track']) ?></td><td class="num sub"><?= pct((int)$plan['on_track'], (int)$plan['started']) ?></td></tr>
-          <tr><td>Retraso medio (de quienes van atrasados)</td><td class="num"><?= $plan['avg_delay'] !== null ? nf($plan['avg_delay'], 1) . ' días' : '—' ?></td><td></td></tr>
-          <tr><td>Racha media (activos 7 días)</td><td class="num"><?= $plan['avg_streak'] !== null ? nf($plan['avg_streak'], 1) . ' días' : '—' ?></td><td></td></tr>
-          <tr><td>Mejor racha actual</td><td class="num"><?= nf($plan['best_streak'] ?? 0) ?> días</td><td></td></tr>
+        <?php foreach ($platforms as $p): ?>
+          <tr>
+            <td><?= $platformIcons[$p['platform']] ?? '❔' ?> <?= h($platformNames[$p['platform']] ?? $p['platform']) ?></td>
+            <td class="num"><?= nf($p['n']) ?></td>
+            <td class="num"><?= nf($p['inst']) ?></td>
+            <td><div class="meter"><span style="width:<?= $total ? round($p['n'] / $total * 100) : 0 ?>%"></span></div></td>
+          </tr>
+        <?php endforeach; ?>
+        <?php if (!$platforms): ?><tr><td colspan="4" class="sub">Todavía no hay datos.</td></tr><?php endif; ?>
         </tbody>
       </table>
     </section>
 
     <section class="card">
-      <h2>Versiones en uso (30 días)</h2>
+      <h2>Versiones en uso</h2>
+      <p class="sub">Personas activas en los últimos 30 días</p>
       <table>
-        <thead><tr><th>Versión</th><th class="num">Personas</th></tr></thead>
+        <thead><tr><th>Versión</th><th class="num">Personas</th><th>Parte</th></tr></thead>
         <tbody>
+        <?php $versionTotal = array_sum(array_column($versions, 'n')); ?>
         <?php foreach ($versions as $v): ?>
-          <tr><td><?= h($v['version'] !== '' ? $v['version'] : 'desconocida') ?></td><td class="num"><?= nf($v['n']) ?></td></tr>
+          <tr>
+            <td><?= h($v['version'] !== '' ? $v['version'] : 'desconocida') ?></td>
+            <td class="num"><?= nf($v['n']) ?></td>
+            <td><div class="meter"><span style="width:<?= $versionTotal ? round($v['n'] / $versionTotal * 100) : 0 ?>%"></span></div></td>
+          </tr>
         <?php endforeach; ?>
-        <?php if (!$versions): ?><tr><td colspan="2" class="sub">Todavía no hay datos.</td></tr><?php endif; ?>
+        <?php if (!$versions): ?><tr><td colspan="3" class="sub">Todavía no hay datos.</td></tr><?php endif; ?>
         </tbody>
       </table>
     </section>
   </div>
 
+  <p class="section-title">🔔 Recordatorios y sincronización</p>
   <section class="card">
-    <h2>🔔 Recordatorios y 🔄 sincronización</h2>
     <?php if ($cronStale): ?>
       <p class="msg err" style="margin-bottom:12px">El envío automático no se ha ejecutado en los últimos 30 minutos<?= $cron['lastRun'] ? ' (última vez: ' . h(date('d/m/Y H:i', strtotime($cron['lastRun']))) . ')' : '' ?>. Configura el cron (ver abajo) para que los avisos lleguen.</p>
     <?php endif; ?>
-    <div class="kpis">
-      <div class="kpi"><div class="label">Activos</div><div class="value"><?= nf($reminders['subs']) ?></div><div class="note"><?= pct((int)$reminders['devices'], $total) ?> de las personas</div></div>
-      <div class="kpi"><div class="label">Enviados (7 días)</div><div class="value"><?= nf($pushWeek['sent']) ?></div><div class="note"><?= nf($pushWeek['failed']) ?> fallidos</div></div>
-      <div class="kpi"><div class="label">Abiertos (7 días)</div><div class="value"><?= nf($pushWeek['clicked']) ?></div><div class="note"><?= pct((int)$pushWeek['clicked'], (int)$pushWeek['sent']) ?> de los enviados</div></div>
-      <div class="kpi"><div class="label">Códigos de sincronización</div><div class="value"><?= nf($syncStats['total']) ?></div><div class="note"><?= nf($syncStats['active']) ?> usados en 30 días</div></div>
-      <div class="kpi"><div class="label">Horas más elegidas</div><div class="value" style="font-size:1.1rem"><?= $reminderTimes ? h(implode(' · ', array_map(fn($r) => $r['remind_time'], $reminderTimes))) : '—' ?></div></div>
+    <div class="minis">
+      <div class="mini"><div class="value">🔔 <?= nf($reminders['subs']) ?></div><div class="label">Recordatorios activos · <?= pct((int)$reminders['devices'], $total) ?></div></div>
+      <div class="mini"><div class="value"><?= nf($pushWeek['sent']) ?></div><div class="label">Enviados (7 días) · <?= nf($pushWeek['failed']) ?> fallidos</div></div>
+      <div class="mini"><div class="value"><?= nf($pushWeek['clicked']) ?></div><div class="label">Abiertos (7 días) · <?= pct((int)$pushWeek['clicked'], (int)$pushWeek['sent']) ?></div></div>
+      <div class="mini"><div class="value" style="font-size:1rem"><?= $reminderTimes ? h(implode(' · ', array_map(fn($r) => $r['remind_time'], $reminderTimes))) : '—' ?></div><div class="label">Horas más elegidas</div></div>
+      <div class="mini"><div class="value">🔄 <?= nf($syncStats['total']) ?></div><div class="label">Códigos de sincronización · <?= nf($syncStats['active']) ?> usados en 30 días</div></div>
     </div>
     <details>
       <summary>Configurar el envío automático (cron)</summary>
       <div style="margin-top:10px;display:grid;gap:8px;font-size:.9rem">
         <p>En Hostinger: <strong>hPanel → Avanzado → Cron Jobs</strong>, tipo «Personalizado», cada 5 minutos (<code>*/5 * * * *</code>), con este comando:</p>
-        <code style="display:block;padding:8px;border:1px solid var(--border);border-radius:6px;overflow-wrap:anywhere">/usr/bin/php <?= h($cronPath) ?></code>
+        <code class="block">/usr/bin/php <?= h($cronPath) ?></code>
         <p>Si prefieres un servicio externo gratuito (p. ej. cron-job.org), usa esta URL. Es secreta: no la compartas.</p>
-        <code style="display:block;padding:8px;border:1px solid var(--border);border-radius:6px;overflow-wrap:anywhere"><?= h($cronUrl) ?></code>
+        <code class="block"><?= h($cronUrl) ?></code>
         <p class="sub">Última ejecución: <?= $cron['lastRun'] ? h(date('d/m/Y H:i', strtotime($cron['lastRun']))) . ' · ' . h($cron['lastResult']) : 'nunca' ?></p>
       </div>
     </details>
@@ -556,7 +683,7 @@ ob_start(); ?>
 
   <section class="card">
     <details>
-      <summary>Cambiar contraseña</summary>
+      <summary>🔑 Cambiar contraseña</summary>
       <form method="post" style="max-width:380px;margin-top:12px">
         <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
         <input type="hidden" name="action" value="password">
@@ -572,7 +699,7 @@ ob_start(); ?>
     </details>
   </section>
 
-  <p class="foot">«Personas» = dispositivos distintos: si alguien usa la app en el móvil y en el ordenador cuenta dos veces, y si borra los datos del navegador cuenta como nueva. Quien desactiva las estadísticas no aparece. <a href="../">Abrir la app</a> · <a href="https://mycongre.com/" target="_blank" rel="noopener">mycongre.com</a></p>
+  <p class="foot">«Personas» = dispositivos distintos: si alguien usa la app en el móvil y en el ordenador cuenta dos veces, y si borra los datos del navegador cuenta como nueva. Quien desactiva las estadísticas no aparece.<br><a href="../">Abrir la app</a> · <a href="https://mycongre.com/" target="_blank" rel="noopener">mycongre.com</a></p>
 </div>
 <script>
 document.querySelectorAll('.chart').forEach(chart => {

@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const dateObj = new Date(savedPlanStartDate + "T00:00:00Z"); // Asegurar que se interpreta como UTC
                 if (isNaN(dateObj.getTime())) throw new Error("Invalid date value");
-                if (currentPlanStartDateTextEl) currentPlanStartDateTextEl.textContent = `Tu plan de lectura actual comenzó el: ` +
+                if (currentPlanStartDateTextEl) currentPlanStartDateTextEl.textContent = `Empezó el ` +
                     dateObj.toLocaleDateString('es-ES', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' });
             } catch (e) {
                 console.error("Error parsing planStartDate:", e);
@@ -314,8 +314,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             if (planStartDateInput) planStartDateInput.value = '';
-            if (currentPlanStartDateTextEl) currentPlanStartDateTextEl.textContent = "Aún no has establecido una fecha de inicio para tu plan.";
+            if (currentPlanStartDateTextEl) currentPlanStartDateTextEl.textContent = "Elige la fecha de inicio";
         }
+        const planPanel = document.getElementById('plan-management');
+        if (planPanel) planPanel.open = !localStorage.getItem('planStartDate');
 
         const savedAwards = localStorage.getItem('awardedSectionsStatus');
         if (savedAwards) { try { awardedSectionsStatus = JSON.parse(savedAwards); } catch (e) { console.error("Error parsing awardedSectionsStatus:", e); awardedSectionsStatus = {}; } }
@@ -584,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (jwAppSuggestionNoteEl) jwAppSuggestionNoteEl.style.display = 'none';
         window.currentSuggestedReading = null; window.todayUTC = null; window.dayOfPlan = 0;
         if (!planStartDateString) {
-            if (dailySuggestionMainTextEl) dailySuggestionMainTextEl.textContent = "Establece una fecha de inicio para el plan de lectura.";
+            if (dailySuggestionMainTextEl) dailySuggestionMainTextEl.textContent = "Elige en «Mi plan de lectura» la fecha en que empiezas y aquí verás la lectura de cada día.";
             window.dayDiff = 0; actualizarInterfazDiasRetraso(); return;
         }
         let planStartDate;
@@ -651,10 +653,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const percent = totalBibleChapters > 0 ? Math.round((readCount / totalBibleChapters) * 100) : 0;
         if (progressBar) {
             progressBar.style.width = `${percent}%`;
-            progressBar.textContent = percent > 5 ? `${percent}%` : '';
+            progressBar.textContent = '';
             progressBar.setAttribute('aria-valuenow', readCount);
         }
-        if (progressTextEl) progressTextEl.textContent = `${percent}% completado (${readCount} de ${totalBibleChapters} capítulos)`;
+        if (progressTextEl) progressTextEl.textContent = `${readCount} de ${totalBibleChapters} capítulos`;
+        const ring = document.getElementById('progressRing');
+        if (ring) ring.style.setProperty('--p', (readCount / totalBibleChapters * 100).toFixed(1));
+        const percentEl = document.getElementById('progressPercent');
+        if (percentEl) percentEl.textContent = `${percent}%`;
         const streaks = computeStreaks();
         updateStreakUI(streaks);
         renderProgressViews();
@@ -670,7 +676,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressElement = document.getElementById(`progress_${bookId}`);
         if (progressElement) {
             const percent = bookData.chapters > 0 ? Math.round((readInBookCount / bookData.chapters) * 100) : 0;
-            progressElement.textContent = `${percent}% (${readInBookCount}/${bookData.chapters})`;
+            progressElement.textContent = `${readInBookCount}/${bookData.chapters}`;
+            const section = document.getElementById(`book-section-${bookId}`);
+            if (section) {
+                section.style.setProperty('--book-p', `${percent}%`);
+                section.classList.toggle('is-complete', percent === 100);
+                section.classList.toggle('is-started', readInBookCount > 0 && percent < 100);
+            }
         }
     }
 
@@ -718,7 +730,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const testamentTitles = { Antiguo: 'Escrituras Hebreo-arameas', Nuevo: 'Escrituras Griegas Cristianas' };
+        let lastTestament = null;
         booksToRender.forEach(book => {
+            if (filterBookName === 'todos' && book.testament !== lastTestament) {
+                lastTestament = book.testament;
+                const heading = document.createElement('h3');
+                heading.className = 'books__group';
+                heading.textContent = testamentTitles[book.testament] || book.testament;
+                bibleBooksContainer.appendChild(heading);
+            }
             const bookId = sanitizeKey(book.name, '').substring(4).replace(/_undefined$|_null$|_$/,''); 
 
             const section = document.createElement('div');
@@ -1051,7 +1072,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('bibleReadStatus'); localStorage.removeItem('bibleReadDates'); localStorage.removeItem('awardedSectionsStatus');
             storePlanStartDate(''); localStorage.removeItem('lastReadingDate');
             if (planStartDateInput) planStartDateInput.value = "";
-            if (currentPlanStartDateTextEl) currentPlanStartDateTextEl.textContent = "Aún no has establecido una fecha de inicio para tu plan.";
+            if (currentPlanStartDateTextEl) currentPlanStartDateTextEl.textContent = "Elige la fecha de inicio";
             saveState(); 
             renderBooks(bookFilter ? bookFilter.value : 'todos', statusFilter ? statusFilter.value : 'todos');
             updateOverallProgress(); updateAllThematicSectionsStatus(); 

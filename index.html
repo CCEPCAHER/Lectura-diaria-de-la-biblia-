@@ -297,7 +297,7 @@
         <p class="menu-note">Esta app es <strong>gratuita</strong> y no necesita registro. Forma parte de las herramientas de <strong>mycongre.com</strong>.</p>
         <p><a class="about-link" href="https://mycongre.com/" target="_blank" rel="noopener">Saber más en mycongre.com →</a></p>
         <div class="menu-section-actions">
-          <button type="button" id="replayTutorialButton" class="button-secondary">Ver el tutorial</button>
+          <button type="button" id="replayTutorialButton" class="button-secondary">▶ Ver el vídeo de bienvenida</button>
         </div>
         <label class="stats-toggle">
           <input type="checkbox" id="statsOptInToggle" checked>
@@ -308,149 +308,210 @@
       </nav>
   </aside>
 
-  <div class="container">
-    <header>
-      <h1>Lectura Bíblica</h1>
-
-      <div class="daily-suggestion">
-        <div class="suggestion-block suggestion-block--date">
-          <h3 class="suggestion-block__title">Fecha Actual</h3>
-          <p class="daily-suggestion__date" id="currentDateText">[La fecha se cargará aquí]</p>
-        </div>
-      
-        <div class="suggestion-block suggestion-block--reading">
-          <h3 class="suggestion-block__title">Lectura Sugerida</h3>
-          <div id="suggestedReadingContentContainer" class="suggested-reading-content">
-            <p class="daily-suggestion__text" id="dailySuggestionMainText" aria-live="polite">Cargando sugerencia...</p>
-            <a class="daily-suggestion__link suggested-reading__link" id="dailySuggestionOnlineLink" href="#" target="_blank" style="display: none;" aria-label="Abrir lectura sugerida">Ver lectura online</a>
-            <small id="jwAppSuggestionNote" style="display:none; margin-top: calc(var(--spacing) * 0.5); font-style: italic; color: var(--text-light-color);"></small>
-          </div>
-          <div class="suggestion-block__actions">
-              <button type="button" class="daily-suggestion__button" id="markSuggestedAsReadButton" style="display: none;">Marcar como Leído</button>
-              <button type="button" class="daily-suggestion__button" id="addToCalendarButton" style="display: none;">Añadir al Calendario</button>
-              <button type="button" class="daily-suggestion__button" id="reminderPromoButton" hidden>🔔 Recordármelo cada día</button>
-          </div>
-        </div>
-      
-        <div class="suggestion-block suggestion-block--status">
-          <h3 class="suggestion-block__title">Estado del Plan</h3>
-          <p class="daily-suggestion__delay-indicator">
-            Días de retraso: <span id="daysDelayedText" aria-live="polite">0</span>
-          </p>
-          <p class="daily-suggestion__streak">
-            🔥 Racha: <span id="streakText">0</span> <span id="streakUnit">días</span>
-          </p>
-        </div>
-      </div>
-
-      <div class="progress-container">
-        <div class="progress-bar-overall" role="progressbar" aria-labelledby="progressText" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-          <div id="progressBar"></div>
-        </div>
-        <span id="progressText" aria-live="polite">0%</span>
+  <div class="app">
+    <header class="app-header">
+      <div class="app-header__inner">
+        <p class="app-header__date" id="currentDateText">&nbsp;</p>
+        <h1 class="app-header__title">Lectura diaria</h1>
+        <p class="app-header__subtitle">La Biblia completa en un año</p>
       </div>
     </header>
 
-    <section id="plan-management">
-      <h2>Gestionar Plan de Lectura</h2>
-      <div class="field-group">
-        <label for="planStartDateInput">Fecha de inicio del plan:</label>
-        <input type="date" id="planStartDateInput">
-        <button type="button" id="setPlanStartDateButton">Establecer Inicio</button>
-        <p id="currentPlanStartDateText" aria-live="polite">Cargando fecha de inicio...</p>
-      </div>
-      <div class="field-group">
-        <label for="syncReadingSelect">Sincronizar plan:</label>
-        <select id="syncReadingSelect">
-          <option value="">Cargando lecturas del plan...</option>
-        </select>
-        <button type="button" id="syncPlanButton">Sincronizar Plan</button>
-      </div>
-    </section>
+    <main class="app-main">
+      <section class="today-card" aria-labelledby="todayTitle">
+        <p class="today-card__eyebrow" id="todayTitle">📖 Lectura de hoy</p>
+        <div id="suggestedReadingContentContainer" class="suggested-reading-content">
+          <p class="daily-suggestion__text" id="dailySuggestionMainText" aria-live="polite">Cargando…</p>
+          <a class="suggested-reading__link" id="dailySuggestionOnlineLink" href="#" target="_blank" rel="noopener" style="display: none;" aria-label="Abrir la lectura de hoy en jw.org">Ver lectura online</a>
+          <small id="jwAppSuggestionNote" class="today-card__note" style="display:none;"></small>
+        </div>
+        <div class="today-card__actions">
+          <button type="button" class="button-success" id="markSuggestedAsReadButton" style="display: none;">✓ Marcar como leído</button>
+          <button type="button" class="button-ghost" id="addToCalendarButton" style="display: none;">📅 Añadir al calendario</button>
+          <button type="button" class="button-ghost" id="reminderPromoButton" hidden>🔔 Recordármelo cada día</button>
+        </div>
+      </section>
 
-    <section id="controls">
-      <h2>Filtros y Controles</h2>
-      <div class="field-group">
-        <label for="bookFilter">Filtrar por Libro:</label>
-        <select id="bookFilter">
-          <option value="todos">Todos los Libros</option>
-        </select>
-      </div>
-      <div class="field-group">
-        <label for="statusFilter">Filtrar por Estado:</label>
-        <select id="statusFilter">
-          <option value="todos">Todos</option>
-          <option value="leidos">Leídos</option>
-          <option value="no_leidos">No Leídos</option>
-        </select>
-      </div>
-      <button type="button" id="resetProgress">Reiniciar Progreso</button>
-    </section>
+      <section class="stats-row" aria-label="Tu progreso">
+        <div class="stat-card stat-card--progress">
+          <div class="progress-ring" id="progressRing" aria-hidden="true"><span id="progressPercent">0%</span></div>
+          <div class="stat-card__body">
+            <p class="stat-card__label">Biblia leída</p>
+            <p class="stat-card__detail" id="progressText" aria-live="polite">0 de 1189 capítulos</p>
+            <div class="progress-bar-overall" role="progressbar" aria-labelledby="progressText" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+              <div id="progressBar"></div>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card stat-card--streak daily-suggestion__streak">
+          <p class="stat-card__value"><span class="stat-card__icon" aria-hidden="true">🔥</span> <span id="streakText">0</span></p>
+          <p class="stat-card__label">Racha · <span id="streakUnit">días</span></p>
+        </div>
+        <div class="stat-card stat-card--delay suggestion-block--status">
+          <p class="stat-card__value"><span id="daysDelayedText" aria-live="polite">0</span></p>
+          <p class="stat-card__label"><span class="when-late">Lecturas atrasadas</span><span class="when-ok">✓ Vas al día</span></p>
+        </div>
+      </section>
 
-    <main id="bibleBooksContainer">
-      </main>
+      <details class="panel" id="plan-management">
+        <summary class="panel__summary">
+          <span class="panel__title">⚙️ Mi plan de lectura</span>
+          <span class="panel__hint" id="currentPlanStartDateText" aria-live="polite">Cargando…</span>
+        </summary>
+        <div class="panel__body">
+          <div class="field">
+            <label for="planStartDateInput">Fecha de inicio</label>
+            <div class="field__row">
+              <input type="date" id="planStartDateInput">
+              <button type="button" id="setPlanStartDateButton">Guardar</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="syncReadingSelect">¿Vas por otro día? Ponte al día en el plan</label>
+            <div class="field__row">
+              <select id="syncReadingSelect">
+                <option value="">Cargando lecturas del plan...</option>
+              </select>
+              <button type="button" id="syncPlanButton">Ir a ese día</button>
+            </div>
+          </div>
+          <div class="panel__danger">
+            <button type="button" id="resetProgress" class="button-danger">Reiniciar todo el progreso</button>
+          </div>
+        </div>
+      </details>
 
-    <footer>
+      <section class="books" aria-labelledby="booksTitle">
+        <div class="books__header">
+          <h2 id="booksTitle">Libros de la Biblia</h2>
+          <div class="books__filters" id="controls">
+            <label class="visually-hidden" for="bookFilter">Filtrar por libro</label>
+            <select id="bookFilter">
+              <option value="todos">Todos los libros</option>
+            </select>
+            <label class="visually-hidden" for="statusFilter">Filtrar por estado</label>
+            <select id="statusFilter">
+              <option value="todos">Todos</option>
+              <option value="leidos">Leídos</option>
+              <option value="no_leidos">No leídos</option>
+            </select>
+          </div>
+        </div>
+        <div id="bibleBooksContainer" class="books__grid"></div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
       <p>&copy; <span id="currentYearText"></span> FabricaDev · App gratuita</p>
       <p class="footer-more"><a href="https://mycongre.com/" target="_blank" rel="noopener">Saber más en mycongre.com</a></p>
     </footer>
   </div>
 
-  <dialog id="onboarding" class="onboarding" aria-labelledby="onboardingWelcomeTitle">
-    <button type="button" class="onboarding__skip" id="onboardingSkip">Saltar</button>
+  <dialog id="onboarding" class="intro" aria-label="Vídeo de bienvenida">
+    <div class="intro__player" id="introPlayer">
+      <div class="intro__stage" id="introStage" aria-hidden="true">
 
-    <section class="onboarding__step" data-step="welcome">
-      <div class="onboarding__icon" aria-hidden="true">📖</div>
-      <h2 id="onboardingWelcomeTitle" tabindex="-1">¡Bienvenido!</h2>
-      <p>Lee la Biblia completa en un año con una lectura corta cada día.</p>
-      <p class="onboarding__small">Es gratis, sin registro y funciona sin conexión.</p>
-    </section>
+        <div class="scene scene--title">
+          <div class="sc-glow"></div>
+          <div class="sc-book">📖</div>
+          <p class="sc-title">Lectura diaria<br>de la Biblia</p>
+          <p class="sc-sub">La Biblia completa en un año</p>
+        </div>
 
-    <section class="onboarding__step" data-step="start" hidden>
-      <div class="onboarding__icon" aria-hidden="true">📅</div>
-      <h2 tabindex="-1">¿Cuándo empiezas?</h2>
-      <p>El plan tiene 365 lecturas. Cada día te diremos cuál toca.</p>
-      <label class="onboarding__label" for="onboardingStartDate">Fecha de inicio</label>
-      <input type="date" id="onboardingStartDate" class="onboarding__input">
-      <p class="onboarding__small">Puedes cambiarla cuando quieras en «Gestionar Plan de Lectura».</p>
-    </section>
+        <div class="scene scene--today">
+          <div class="mock-card">
+            <p class="mock-eyebrow">📖 Lectura de hoy</p>
+            <span class="mock-day">Día 1</span>
+            <p class="mock-scripture">Génesis 1-3</p>
+            <span class="mock-btn mock-btn--primary">📖 Ver lectura online</span>
+          </div>
+          <span class="tap tap--today"></span>
+        </div>
 
-    <section class="onboarding__step" data-step="how" hidden>
-      <div class="onboarding__icon" aria-hidden="true">✅</div>
-      <h2 tabindex="-1">Así se usa</h2>
-      <ol class="onboarding__list">
-        <li><strong>Ver lectura online</strong> abre el texto de hoy en jw.org.</li>
-        <li>Al terminar, pulsa <strong>Marcar como leído</strong>.</li>
-        <li>También puedes marcar capítulos sueltos tocando su número en cada libro.</li>
-        <li>Lee cada día para mantener tu 🔥 racha y ganar premios por temas.</li>
-      </ol>
-    </section>
+        <div class="scene scene--mark">
+          <div class="mock-card">
+            <p class="mock-scripture mock-scripture--small">Génesis 1-3</p>
+            <span class="mock-btn mock-btn--mark"><span class="mark-before">Marcar como leído</span><span class="mark-after">✓ ¡Leído!</span></span>
+            <div class="mock-chapters"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+          </div>
+          <span class="tap tap--mark"></span>
+        </div>
 
-    <section class="onboarding__step" data-step="reminder" hidden>
-      <div class="onboarding__icon" aria-hidden="true">🔔</div>
-      <h2 tabindex="-1">¿Te lo recordamos?</h2>
-      <p>Recibe un aviso cada día con tu lectura, aunque la app esté cerrada.</p>
-      <label class="onboarding__label" for="onboardingReminderTime">Hora del aviso</label>
-      <input type="time" id="onboardingReminderTime" class="onboarding__input" value="08:00" step="300">
-      <button type="button" id="onboardingReminderButton" class="onboarding__action">🔔 Activar recordatorio</button>
-      <p class="onboarding__small" id="onboardingReminderNote">Si prefieres, puedes activarlo más tarde desde el menú ☰.</p>
-    </section>
+        <div class="scene scene--streak">
+          <div class="streak-box">
+            <span class="streak-flame">🔥</span>
+            <span class="streak-ticker"><span class="streak-numbers"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></span></span>
+          </div>
+          <p class="streak-label">días seguidos</p>
+          <div class="mini-progress"><span></span></div>
+          <p class="award">👑 ¡Premio desbloqueado!</p>
+        </div>
 
-    <section class="onboarding__step" data-step="install" hidden>
-      <div class="onboarding__icon" aria-hidden="true">📲</div>
-      <h2 tabindex="-1">Tenla siempre a mano</h2>
-      <p id="onboardingInstallText">Instálala para abrirla desde tu pantalla de inicio.</p>
-      <button type="button" class="onboarding__action" data-install-button hidden>📲 Instalar la app</button>
-      <p class="onboarding__small">¿Usas varios dispositivos? En el menú ☰ → Sincronizar dispositivos puedes tener tu progreso en todos.</p>
-    </section>
+        <div class="scene scene--reminder">
+          <div class="lock">
+            <p class="lock-time">08:00</p>
+            <p class="lock-date">Buenos días</p>
+            <div class="notif">
+              <span class="notif-icon">📖</span>
+              <span class="notif-text"><strong>Día 12: Génesis 31-32</strong><small>Toca para abrir tu lectura de hoy</small></span>
+            </div>
+          </div>
+        </div>
 
-    <div class="onboarding__footer">
-      <div class="onboarding__dots" aria-hidden="true"></div>
-      <div class="onboarding__buttons">
-        <button type="button" class="button-secondary" id="onboardingBack" hidden>Atrás</button>
-        <button type="button" id="onboardingNext">Siguiente</button>
+        <div class="scene scene--sync">
+          <div class="devices">
+            <span class="device device--a">📱</span>
+            <span class="flow"><i></i><i></i><i></i></span>
+            <span class="device device--b">💻</span>
+          </div>
+          <p class="code-chip">🔒 K7MQ-3XPA-9TRD</p>
+          <p class="sc-sub">Mismo progreso en todos tus dispositivos</p>
+        </div>
+
+        <div class="scene scene--end">
+          <ul class="checks">
+            <li>✓ Gratis</li>
+            <li>✓ Sin registro</li>
+            <li>✓ Funciona sin conexión</li>
+          </ul>
+          <p class="sc-title">¡Vamos a empezar!</p>
+        </div>
+      </div>
+
+      <p class="intro__caption" id="introCaption" aria-live="polite"></p>
+
+      <div class="intro__bar">
+        <button type="button" class="intro__icon-btn" id="introPlay" aria-label="Pausar">❚❚</button>
+        <div class="intro__timeline" id="introTimeline"></div>
+        <button type="button" class="intro__icon-btn" id="introVoice" aria-pressed="false" aria-label="Activar narración" title="Narración por voz">🔈</button>
       </div>
     </div>
+
+    <div class="intro__setup" id="introSetup" hidden>
+      <h2 id="introSetupTitle" tabindex="-1">¡Todo listo para empezar!</h2>
+      <div class="setup-item">
+        <label for="onboardingStartDate">📅 ¿Qué día empiezas el plan?</label>
+        <input type="date" id="onboardingStartDate">
+      </div>
+      <div class="setup-item">
+        <label for="onboardingReminderTime">🔔 Recordatorio diario</label>
+        <div class="field__row">
+          <input type="time" id="onboardingReminderTime" value="08:00" step="300">
+          <button type="button" id="onboardingReminderButton">Activar</button>
+        </div>
+        <p class="setup-note" id="onboardingReminderNote">Opcional. También puedes activarlo después desde el menú ☰.</p>
+      </div>
+      <div class="setup-item" id="setupInstall">
+        <p class="setup-note">📲 <span id="onboardingInstallText">Instálala para abrirla desde tu pantalla de inicio.</span></p>
+        <button type="button" class="button-secondary" data-install-button hidden>Instalar la app</button>
+      </div>
+      <div class="intro__footer">
+        <button type="button" class="button-ghost" id="introReplay">↺ Ver el vídeo</button>
+        <button type="button" id="onboardingNext">¡Empezar!</button>
+      </div>
+    </div>
+
+    <button type="button" class="intro__skip" id="onboardingSkip">Saltar vídeo</button>
   </dialog>
 
   <script src="./pwa.js" defer></script>
