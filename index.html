@@ -160,6 +160,7 @@
     <button id="closeMenu" aria-label="Cerrar menú">&times;</button>
     <nav>
       <ul>
+        <li><a href="#reminder-menu">🔔 Recordatorio diario</a></li>
         <li><a href="#theme-customizer-menu">🎨 Colores</a></li>
         <!-- Nueva sección para Calendario -->
         <li><a href="#calendar-menu">📅 Calendario</a></li>
@@ -170,6 +171,22 @@
         <li><a href="#install-menu">📲 Instalar la app</a></li>
         <li><a href="#about-menu">ℹ️ Acerca de</a></li>
       </ul>
+
+      <section id="reminder-menu" class="menu-section">
+        <h2>Recordatorio diario</h2>
+        <p class="menu-note" id="reminderStatusText">Recibe cada día un aviso con tu lectura, aunque la app esté cerrada.</p>
+        <label class="stats-toggle">
+          <input type="checkbox" id="reminderToggle">
+          <span>Avisarme cada día</span>
+        </label>
+        <div class="field-group">
+          <label for="reminderTime">Hora del aviso:</label>
+          <input type="time" id="reminderTime" value="08:00" step="300">
+        </div>
+        <div class="menu-section-actions">
+          <button type="button" id="reminderTestButton" class="button-secondary" hidden>Enviar aviso de prueba</button>
+        </div>
+      </section>
 
       <section id="theme-customizer-menu" class="menu-section">
         <h2>Personaliza los Colores</h2>
@@ -280,6 +297,7 @@
           <div class="suggestion-block__actions">
               <button type="button" class="daily-suggestion__button" id="markSuggestedAsReadButton" style="display: none;">Marcar como Leído</button>
               <button type="button" class="daily-suggestion__button" id="addToCalendarButton" style="display: none;">Añadir al Calendario</button>
+              <button type="button" class="daily-suggestion__button" id="reminderPromoButton" hidden>🔔 Recordármelo cada día</button>
           </div>
         </div>
       
@@ -350,5 +368,6 @@
   <script src="./pwa.js" defer></script>
   <script src="./script.js" defer></script>
   <script src="./stats.js" defer></script>
+  <script src="./reminders.js" defer></script>
 </body>
 </html>

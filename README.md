@@ -11,6 +11,9 @@ Funciona sin conexión. Se publica en **https://mylectura.mycongre.com/**.
 | `index.html`, `style.css`, `script.js` | La app (el progreso se guarda en el `localStorage` del navegador) |
 | `pwa.js` | Avisos, registro del Service Worker y botón «Instalar» |
 | `stats.js` | Estadísticas anónimas de uso → `api/collect.php` (se pueden desactivar en Menú → Acerca de) |
+| `reminders.js` | Recordatorio diario: pide permiso y suscribe el dispositivo a las notificaciones push |
+| `api/push.php`, `api/webpush.php` | Suscripciones y envío Web Push (claves VAPID propias, sin servicios externos) |
+| `api/cron.php` | Envía los recordatorios a la hora elegida por cada persona (lo ejecuta un cron) |
 | `sw.js` | Modo sin conexión: red primero, caché como respaldo |
 | `api/collect.php`, `api/db.php` | Recibe las estadísticas y las guarda en SQLite (`data/lectura.sqlite`) |
 | `admin/index.php` | Panel privado de estadísticas |
@@ -30,7 +33,20 @@ Funciona sin conexión. Se publica en **https://mylectura.mycongre.com/**.
    Solo se puede crear una vez; después pide la contraseña.
 5. Comprueba que https://mylectura.mycongre.com/data/lectura.sqlite devuelve **403** (prohibido).
 
+6. **Recordatorios:** en hPanel → Avanzado → Cron Jobs crea una tarea «Personalizada» cada 5 minutos
+   (`*/5 * * * *`) con el comando que aparece en el panel de admin (sección «Recordatorios diarios»),
+   algo como `/usr/bin/php /home/USUARIO/domains/mylectura.mycongre.com/public_html/api/cron.php`.
+   Si tu plan no tiene cron, usa la URL secreta del panel en un servicio gratuito como cron-job.org.
+
 ¿Olvidaste la contraseña? Borra `data/admin.json` por FTP y vuelve a entrar en `/admin/` para crear otra.
+
+## Recordatorio diario
+
+- Cada persona elige la hora en Menú → Recordatorio diario (o con el botón «🔔 Recordármelo cada día»).
+- El aviso muestra la lectura del día («📖 Día 12: Génesis 31-32») y no se envía si ya la marcó como leída.
+- Android, Windows, Mac y Linux: funciona en el navegador. **iPhone/iPad (iOS 16.4+): solo con la app instalada**
+  en la pantalla de inicio.
+- Las claves VAPID se generan solas en `data/vapid.json` la primera vez. No las borres: invalidarían todas las suscripciones.
 
 ## Qué mide el panel
 
@@ -39,6 +55,7 @@ Funciona sin conexión. Se publica en **https://mylectura.mycongre.com/**.
 - **Activos** hoy / 7 / 30 días, **nuevos** por día, **minutos de uso** (solo tiempo con la app visible y en uso).
 - **Retención**: de quienes empezaron hace más de 7 días, cuántos la usaron esta semana.
 - Progreso de lectura, estado del plan, rachas, sistemas y versiones.
+- Recordatorios activos, enviados, abiertos y estado del cron.
 
 Al publicar una versión nueva, sube el número `APP_VERSION` de `stats.js` para verlo en «Versiones en uso».
 

@@ -491,6 +491,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusBlock = daysDelayedTextEl.closest('.suggestion-block--status');
             if (statusBlock) statusBlock.classList.toggle('has-delay', delayToShow > 0);
         }
+        publishToday();
+    }
+
+    // Para reminders.js: plan, fecha de inicio y si la lectura de hoy ya está hecha.
+    function publishToday() {
+        document.dispatchEvent(new CustomEvent('lectura:today', { detail: {
+            start: localStorage.getItem('planStartDate'),
+            plan: dailyReadingPlan.map(entry => entry.displayText),
+            todayRead: window.currentSuggestedReading ? isDailyPlanEntryRead(window.currentSuggestedReading) : false,
+            date: localDateKey()
+        } }));
     }
 
     function actualizarUltimaLectura() {

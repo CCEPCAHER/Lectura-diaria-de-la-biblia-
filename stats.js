@@ -2,7 +2,7 @@
 // y capítulos marcados. Nada de nombres, correos ni IP. Se desactivan desde Menú → Acerca de.
 (() => {
   const ENDPOINT = 'api/collect.php';
-  const APP_VERSION = '2.0.0';
+  const APP_VERSION = '2.1.0';
   const MAX_SECONDS_PER_PING = 4 * 3600;
   const NEW_SESSION_AFTER_MS = 30 * 60 * 1000; // volver tras 30 min cuenta como nueva apertura
   const IDLE_AFTER_MS = 90 * 1000;             // sin tocar nada 90 s: deja de contar tiempo

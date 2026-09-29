@@ -275,7 +275,7 @@ h2 {
   font-weight: var(--font-weight-semibold); color: var(--primary-color);
   font-size: var(--font-size-lg);
 }
-.field-group input[type="date"], .field-group input[type="color"], .field-group select {
+.field-group input[type="date"], .field-group input[type="time"], .field-group input[type="color"], .field-group select {
   width: 100%; padding: var(--spacing);
   border: 1px solid var(--border-color); border-radius: var(--border-radius);
   font-size: var(--font-size-base); margin-bottom: calc(var(--spacing) * 0.5);
@@ -778,3 +778,7 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* El atributo hidden siempre oculta, aunque el elemento tenga un display propio */
+[hidden] { display: none !important; }
+.stats-toggle input:disabled + span { color: var(--text-light-color); }

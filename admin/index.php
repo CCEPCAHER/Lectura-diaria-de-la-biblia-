@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../api/db.php';
+require_once __DIR__ . '/../api/webpush.php';
 
 const ADMIN_FILE = DATA_DIR . '/admin.json';
 const ATTEMPTS_FILE = DATA_DIR . '/login_attempts.json';
@@ -348,6 +349,14 @@ $plan = $q('SELECT COALESCE(SUM(plan_started), 0) AS started,
                    AVG(CASE WHEN last_seen >= ? THEN streak END) AS avg_streak,
                    MAX(streak) AS best_streak
             FROM devices', [$since(7)])[0];
+$reminders = $q('SELECT COUNT(*) AS subs, COUNT(DISTINCT device_id) AS devices FROM push_subscriptions')[0];
+$pushWeek = $q('SELECT COALESCE(SUM(sent), 0) AS sent, COALESCE(SUM(failed), 0) AS failed, COALESCE(SUM(clicked), 0) AS clicked FROM push_log WHERE day >= ?', [$since(7)])[0];
+$reminderTimes = $q('SELECT remind_time, COUNT(*) AS n FROM push_subscriptions GROUP BY remind_time ORDER BY n DESC LIMIT 5');
+$cron = cron_state();
+$cronStale = !$cron['lastRun'] || time() - strtotime($cron['lastRun']) > 30 * 60;
+$cronPath = realpath(__DIR__ . '/../api/cron.php') ?: __DIR__ . '/../api/cron.php';
+$cronUrl = ($secure ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'mylectura.mycongre.com')
+    . rtrim(str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME']))), '/') . '/api/cron.php?token=' . $cron['token'];
 $versions = $q('SELECT version, COUNT(*) AS n FROM devices WHERE last_seen >= ? GROUP BY version ORDER BY n DESC', [$since(30)]);
 
 function pct(int $part, int $whole): string { return $whole > 0 ? nf($part / $whole * 100) . ' %' : '—'; }
@@ -519,6 +528,29 @@ ob_start(); ?>
       </table>
     </section>
   </div>
+
+  <section class="card">
+    <h2>🔔 Recordatorios diarios</h2>
+    <?php if ($cronStale): ?>
+      <p class="msg err" style="margin-bottom:12px">El envío automático no se ha ejecutado en los últimos 30 minutos<?= $cron['lastRun'] ? ' (última vez: ' . h(date('d/m/Y H:i', strtotime($cron['lastRun']))) . ')' : '' ?>. Configura el cron (ver abajo) para que los avisos lleguen.</p>
+    <?php endif; ?>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Activos</div><div class="value"><?= nf($reminders['subs']) ?></div><div class="note"><?= pct((int)$reminders['devices'], $total) ?> de las personas</div></div>
+      <div class="kpi"><div class="label">Enviados (7 días)</div><div class="value"><?= nf($pushWeek['sent']) ?></div><div class="note"><?= nf($pushWeek['failed']) ?> fallidos</div></div>
+      <div class="kpi"><div class="label">Abiertos (7 días)</div><div class="value"><?= nf($pushWeek['clicked']) ?></div><div class="note"><?= pct((int)$pushWeek['clicked'], (int)$pushWeek['sent']) ?> de los enviados</div></div>
+      <div class="kpi"><div class="label">Horas más elegidas</div><div class="value" style="font-size:1.1rem"><?= $reminderTimes ? h(implode(' · ', array_map(fn($r) => $r['remind_time'], $reminderTimes))) : '—' ?></div></div>
+    </div>
+    <details>
+      <summary>Configurar el envío automático (cron)</summary>
+      <div style="margin-top:10px;display:grid;gap:8px;font-size:.9rem">
+        <p>En Hostinger: <strong>hPanel → Avanzado → Cron Jobs</strong>, tipo «Personalizado», cada 5 minutos (<code>*/5 * * * *</code>), con este comando:</p>
+        <code style="display:block;padding:8px;border:1px solid var(--border);border-radius:6px;overflow-wrap:anywhere">/usr/bin/php <?= h($cronPath) ?></code>
+        <p>Si prefieres un servicio externo gratuito (p. ej. cron-job.org), usa esta URL. Es secreta: no la compartas.</p>
+        <code style="display:block;padding:8px;border:1px solid var(--border);border-radius:6px;overflow-wrap:anywhere"><?= h($cronUrl) ?></code>
+        <p class="sub">Última ejecución: <?= $cron['lastRun'] ? h(date('d/m/Y H:i', strtotime($cron['lastRun']))) . ' · ' . h($cron['lastResult']) : 'nunca' ?></p>
+      </div>
+    </details>
+  </section>
 
   <section class="card">
     <details>
