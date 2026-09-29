@@ -549,17 +549,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try { planStartDate = new Date(planStartDateString + "T00:00:00Z"); if (isNaN(planStartDate.getTime())) return 0; } catch (e) { return 0; }
         const todayUTC = todayAsUTCDate();
         if (todayUTC < planStartDate) return 0;
-        const elapsedDaysSinceStart = Math.floor((todayUTC.getTime() - planStartDate.getTime()) / (1000 * 3600 * 24));
-        let actualDelay = 0;
-        let firstUnreadDayIndex = -1;
-        for (let i = 0; i <= elapsedDaysSinceStart; i++) {
-            if (i < dailyReadingPlan.length) {
-                const readingEntryForDayI = dailyReadingPlan[i];
-                if (!isDailyPlanEntryRead(readingEntryForDayI)) { if (firstUnreadDayIndex === -1) firstUnreadDayIndex = i; }
-            }
+        const elapsedDaysSinceStart = Math.floor((todayUTC.getTime() - planStartDate.getTime()) / DAY_MS);
+        // Retraso = lecturas de días anteriores que siguen sin hacer. La de hoy aún está a tiempo.
+        const pastDays = Math.min(elapsedDaysSinceStart, dailyReadingPlan.length);
+        let pendingReadings = 0;
+        for (let i = 0; i < pastDays; i++) {
+            if (!isDailyPlanEntryRead(dailyReadingPlan[i])) pendingReadings++;
         }
-        if (firstUnreadDayIndex !== -1) actualDelay = (elapsedDaysSinceStart) - firstUnreadDayIndex + 1;
-        return Math.max(0, actualDelay);
+        return pendingReadings;
     }
 
     function displayDailySuggestion() {
