@@ -1,6 +1,6 @@
 // Red primero y caché como respaldo: con conexión siempre llega la última versión publicada,
 // sin conexión la app sigue funcionando con lo último que se guardó.
-const CACHE = 'lectura-diaria-v7';
+const CACHE = 'lectura-diaria-v8';
 const STATE_CACHE = 'lectura-diaria-estado'; // plan y fecha de inicio que deja reminders.js
 const ASSETS = [
   './',

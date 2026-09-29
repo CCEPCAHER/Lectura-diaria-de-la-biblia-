@@ -2,6 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <script>
+    // Aplica el tema elegido antes de pintar la página (evita un destello).
+    try { var m = localStorage.getItem('theme-mode'); if (m === 'light' || m === 'dark') document.documentElement.dataset.theme = m; } catch (e) {}
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="App gratuita para leer la Biblia completa en un año: lectura diaria sugerida, progreso por libro, rachas, metas temáticas y recordatorios. Funciona sin conexión.">
   <meta name="theme-color" content="#0A2342">
@@ -154,6 +158,10 @@
   <button id="menuToggle" aria-label="Abrir menú de configuración" aria-expanded="false" aria-controls="sideMenu">
     &#9776; </button>
 
+  <div class="topbar" aria-hidden="true"><span class="topbar__title">Lectura diaria</span></div>
+
+  <button type="button" id="themeToggle" aria-label="Cambiar a modo oscuro" title="Modo claro / oscuro">🌙</button>
+
   <button type="button" id="installAppButton" data-install-button hidden aria-label="Instalar la app">📲 Instalar</button>
 
   <aside id="sideMenu">
@@ -161,7 +169,7 @@
     <nav>
       <ul>
         <li><a href="#reminder-menu">🔔 Recordatorio diario</a></li>
-        <li><a href="#theme-customizer-menu">🎨 Colores</a></li>
+        <li><a href="#theme-customizer-menu">🎨 Apariencia</a></li>
         <!-- Nueva sección para Calendario -->
         <li><a href="#calendar-menu">📅 Calendario</a></li>
         <li><a href="#thematic-reading-goals-menu">🏅 Metas Temáticas</a></li>
@@ -190,7 +198,16 @@
       </section>
 
       <section id="theme-customizer-menu" class="menu-section">
-        <h2>Personaliza los Colores</h2>
+        <h2>Apariencia</h2>
+        <div class="field-group">
+          <label id="themeModeLabel">Tema</label>
+          <div class="theme-modes" role="radiogroup" aria-labelledby="themeModeLabel">
+            <label class="theme-mode"><input type="radio" name="themeMode" value="auto"><span>🌓 Automático</span></label>
+            <label class="theme-mode"><input type="radio" name="themeMode" value="light"><span>☀️ Claro</span></label>
+            <label class="theme-mode"><input type="radio" name="themeMode" value="dark"><span>🌙 Oscuro</span></label>
+          </div>
+          <p class="menu-note menu-note--small">«Automático» sigue el modo claro u oscuro de tu móvil.</p>
+        </div>
         <div class="field-group">
           <label for="primaryColorPicker">Color principal:</label>
           <input type="color" id="primaryColorPicker" value="#0A2342" title="Selector de color principal">
@@ -200,8 +217,8 @@
           <input type="color" id="accentColorPicker" value="#F4B942" title="Selector de color de acento">
         </div>
         <div class="field-group button-group">
-            <button type="button" id="saveThemeButton">Guardar Estilo</button>
-            <button type="button" id="resetThemeButton">Restaurar Colores</button>
+            <button type="button" id="saveThemeButton">Guardar</button>
+            <button type="button" id="resetThemeButton" class="button-secondary">Restaurar</button>
         </div>
 
         <div class="field-group">
@@ -335,7 +352,8 @@
       <section class="week-card" id="weeklyReadingCard" hidden aria-labelledby="weeklyEyebrow">
         <span class="week-card__icon" aria-hidden="true">🗓️</span>
         <div class="week-card__body">
-          <p class="week-card__eyebrow" id="weeklyEyebrow">Lectura de la semana · <span id="weeklyRange"></span></p>
+          <p class="week-card__eyebrow" id="weeklyEyebrow">Lectura de la semana</p>
+          <p class="week-card__range" id="weeklyRange"></p>
           <p class="week-card__reading"><span id="weeklyReadingText"></span> <span class="week-card__done" id="weeklyDoneBadge" hidden>✓ Leída</span></p>
           <a class="week-card__guide" id="weeklyGuideLink" href="#" target="_blank" rel="noopener">Guía de actividades de esta semana</a>
         </div>
