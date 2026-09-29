@@ -29,6 +29,41 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// ---- Actualización automática ----
+// En el iPhone, la app instalada no se recarga al volver a abrirla: iOS la «despierta» tal cual.
+// Al volver a la app se comprueba si hay una versión publicada más nueva y, si la hay, se recarga.
+(() => {
+  const loaded = (() => {
+    const s = document.querySelector('script[src*="pwa.js?v="]');
+    const m = s && s.getAttribute('src').match(/v=([\d.]+)/);
+    return m ? m[1] : null;
+  })();
+  window.lecturaVersion = loaded;
+  let lastCheck = 0;
+
+  async function checkForUpdate(auto) {
+    if (!loaded || !navigator.onLine || Date.now() - lastCheck < 30 * 1000) return;
+    lastCheck = Date.now();
+    try {
+      const res = await fetch('./index.html', { cache: 'no-store' });
+      const m = (await res.text()).match(/pwa\.js\?v=([\d.]+)/);
+      if (!m || m[1] === loaded) return;
+      const busy = document.querySelector('dialog[open]') || document.querySelector('#sideMenu.open');
+      if (auto && !busy) { location.reload(); return; }
+      notify(`Hay una versión nueva (${m[1]}). Toca aquí para actualizar.`, { duration: 15000 });
+      const toast = document.querySelector('#toastContainer .toast:last-child');
+      if (toast) toast.addEventListener('click', () => location.reload());
+    } catch { /* sin conexión: se comprobará la próxima vez */ }
+  }
+
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(true); });
+  window.addEventListener('load', () => setTimeout(() => checkForUpdate(false), 8000));
+  document.addEventListener('DOMContentLoaded', () => {
+    const label = document.getElementById('appVersionText');
+    if (label && loaded) label.textContent = `Versión ${loaded}`;
+  });
+})();
+
 (() => {
   const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
