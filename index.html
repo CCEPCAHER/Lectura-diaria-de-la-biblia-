@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:locale" content="es_ES">
 
-  <link rel="stylesheet" href="style.css?v=2.7.3">
+  <link rel="stylesheet" href="style.css?v=2.7.4">
 
   <link rel="manifest" href="manifest.json">
 
@@ -316,6 +316,16 @@
         <div class="field-group">
           <label for="reminderTime">Hora del aviso:</label>
           <input type="time" id="reminderTime" value="08:00" step="300">
+        </div>
+        <div id="eveningReminderBox" hidden>
+          <label class="stats-toggle">
+            <input type="checkbox" id="eveningToggle" checked>
+            <span>🔥 Avisarme por la noche si aún no he leído y puedo perder la racha</span>
+          </label>
+          <div class="field-group">
+            <label for="eveningTime">Hora del aviso de la noche:</label>
+            <input type="time" id="eveningTime" value="21:00" step="300">
+          </div>
         </div>
         <div class="menu-section-actions">
           <button type="button" id="reminderTestButton" class="button-secondary" hidden>Enviar aviso de prueba</button>
@@ -726,12 +736,12 @@
     <button type="button" class="intro__skip" id="onboardingSkip">Saltar vídeo</button>
   </dialog>
 
-  <script src="./pwa.js?v=2.7.3" defer></script>
-  <script src="./script.js?v=2.7.3" defer></script>
-  <script src="./stats.js?v=2.7.3" defer></script>
-  <script src="./reminders.js?v=2.7.3" defer></script>
-  <script src="./sync.js?v=2.7.3" defer></script>
-  <script src="./friends.js?v=2.7.3" defer></script>
-  <script src="./onboarding.js?v=2.7.3" defer></script>
+  <script src="./pwa.js?v=2.7.4" defer></script>
+  <script src="./script.js?v=2.7.4" defer></script>
+  <script src="./stats.js?v=2.7.4" defer></script>
+  <script src="./reminders.js?v=2.7.4" defer></script>
+  <script src="./sync.js?v=2.7.4" defer></script>
+  <script src="./friends.js?v=2.7.4" defer></script>
+  <script src="./onboarding.js?v=2.7.4" defer></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 // Red primero y caché como respaldo: con conexión siempre llega la última versión publicada,
 // sin conexión la app sigue funcionando con lo último que se guardó.
-const CACHE = 'lectura-diaria-v15';
+const CACHE = 'lectura-diaria-v16';
 const STATE_CACHE = 'lectura-diaria-estado'; // plan y fecha de inicio que deja reminders.js
 const ASSETS = [
   './',
@@ -76,7 +76,11 @@ self.addEventListener('push', event => {
   event.waitUntil((async () => {
     let title = data.title || '📖 Tu lectura de hoy';
     let body = data.body || 'Dedica unos minutos a la lectura bíblica de hoy.';
-    if (!data.test && data.kind !== 'cheer') {
+    if (data.kind === 'streak') {
+      // Aviso de racha por la noche: se mantiene el título del servidor y se añade la lectura de hoy.
+      const reading = await todaysReading();
+      if (reading) body = `Aún estás a tiempo: hoy toca ${reading.text} 📖`;
+    } else if (!data.test && !data.kind) {
       const reading = await todaysReading();
       if (reading) {
         title = `📖 Día ${reading.day}: ${reading.text}`;

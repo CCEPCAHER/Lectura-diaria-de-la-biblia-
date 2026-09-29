@@ -116,4 +116,19 @@ function migrate(PDO $pdo): void
             clicked INTEGER NOT NULL DEFAULT 0
         );
         SQL);
+
+    // Aviso de racha por la noche (columnas añadidas después: las bases ya existentes no las tienen).
+    add_column_if_missing($pdo, 'push_subscriptions', 'evening_enabled', 'INTEGER NOT NULL DEFAULT 1');
+    add_column_if_missing($pdo, 'push_subscriptions', 'evening_time', "TEXT NOT NULL DEFAULT '21:00'");
+    add_column_if_missing($pdo, 'push_subscriptions', 'last_evening_date', 'TEXT');
+    add_column_if_missing($pdo, 'push_subscriptions', 'last_read_date', 'TEXT');
+    add_column_if_missing($pdo, 'push_subscriptions', 'streak', 'INTEGER NOT NULL DEFAULT 0');
+}
+
+function add_column_if_missing(PDO $pdo, string $table, string $column, string $definition): void
+{
+    $columns = array_column($pdo->query("PRAGMA table_info($table)")->fetchAll(), 'name');
+    if (!in_array($column, $columns, true)) {
+        $pdo->exec("ALTER TABLE $table ADD COLUMN $column $definition");
+    }
 }

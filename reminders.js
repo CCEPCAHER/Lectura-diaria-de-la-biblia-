@@ -15,7 +15,16 @@
   const timeZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid'; } catch { return 'Europe/Madrid'; } };
 
   let today = null; // { start, plan, todayRead, date } publicado por script.js
+  let summary = null; // { streak, readToday, … } publicado por script.js
+  let statusTimer = null;
   let els = {};
+
+  const localDateKey = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const eveningEnabled = () => store.get('eveningEnabled') !== '0';
+  const eveningTime = () => store.get('eveningTime') || '21:00';
 
   function urlBase64ToUint8Array(base64) {
     const padded = (base64 + '='.repeat((4 - base64.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/');
@@ -60,6 +69,19 @@
       .catch(() => {});
   }
 
+  // Racha y lectura de hoy, para que el servidor sepa si debe mandar el aviso de la noche.
+  async function reportStatus(force = false) {
+    if (!summary || store.get('reminderEnabled') !== '1') return;
+    const date = localDateKey();
+    const key = `${date}|${summary.readToday ? 1 : 0}|${summary.streak}`;
+    if (!force && store.get('reminderStatusSent') === key) return;
+    const sub = await getSubscription().catch(() => null);
+    if (!sub) return;
+    post({ action: 'status', endpoint: sub.endpoint, date, readToday: !!summary.readToday, streak: summary.streak })
+      .then(() => store.set('reminderStatusSent', key))
+      .catch(() => {});
+  }
+
   async function enable() {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
@@ -70,11 +92,15 @@
     const reg = await serviceWorkerReady(10000);
     let sub = await reg.pushManager.getSubscription();
     if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(publicKey) });
-    await post({ action: 'subscribe', subscription: sub.toJSON(), time: els.time.value || '08:00', tz: timeZone(), device: store.get('statsDeviceId') });
+    await post({
+      action: 'subscribe', subscription: sub.toJSON(), time: els.time.value || '08:00', tz: timeZone(), device: store.get('statsDeviceId'),
+      eveningEnabled: eveningEnabled(), eveningTime: eveningTime()
+    });
     store.set('reminderEnabled', '1');
     store.set('reminderTime', els.time.value || '08:00');
     store.set('reminderDoneSent', '');
     reportDone();
+    reportStatus(true);
     return true;
   }
 
@@ -104,6 +130,7 @@
       blocked = true;
     } else if (enabled) {
       message = `✅ Te avisaremos cada día a las ${els.time.value}, salvo que ya hayas hecho la lectura.`;
+      if (eveningEnabled()) message += ` Y a las ${eveningTime()}, si aún no has leído y puedes perder la racha.`;
     } else {
       message = 'Recibe cada día un aviso con tu lectura, aunque la app esté cerrada.';
     }
@@ -114,6 +141,11 @@
     els.time.disabled = blocked;
     els.test.hidden = !enabled || blocked;
     if (els.promo) els.promo.hidden = enabled || blocked;
+    if (els.eveningBox) {
+      els.eveningBox.hidden = !enabled || blocked;
+      els.eveningToggle.checked = eveningEnabled();
+      els.eveningTime.disabled = !eveningEnabled();
+    }
     window.lecturaReminderState = { enabled: enabled && !blocked, blocked, message };
     document.dispatchEvent(new CustomEvent('lectura:reminder-state', { detail: window.lecturaReminderState }));
   }
@@ -130,16 +162,31 @@
     reportDone();
   });
 
+  document.addEventListener('lectura:summary', (e) => {
+    summary = e.detail;
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => reportStatus(), 1500); // al marcar varios capítulos seguidos, un solo envío
+  });
+
+  // Al volver a la app otro día, se actualiza el estado aunque no se marque nada.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') reportStatus();
+  });
+
   document.addEventListener('DOMContentLoaded', async () => {
     els = {
       toggle: document.getElementById('reminderToggle'),
       time: document.getElementById('reminderTime'),
       test: document.getElementById('reminderTestButton'),
       status: document.getElementById('reminderStatusText'),
-      promo: document.getElementById('reminderPromoButton')
+      promo: document.getElementById('reminderPromoButton'),
+      eveningBox: document.getElementById('eveningReminderBox'),
+      eveningToggle: document.getElementById('eveningToggle'),
+      eveningTime: document.getElementById('eveningTime')
     };
     if (!els.toggle) return;
     els.time.value = store.get('reminderTime') || '08:00';
+    if (els.eveningTime) els.eveningTime.value = eveningTime();
     refreshUI();
 
     // Sincroniza la preferencia guardada con la suscripción real del navegador.
@@ -177,6 +224,24 @@
       }
       refreshUI();
     });
+
+    async function saveEvening() {
+      store.set('eveningEnabled', els.eveningToggle.checked ? '1' : '0');
+      store.set('eveningTime', els.eveningTime.value || '21:00');
+      refreshUI();
+      if (store.get('reminderEnabled') !== '1') return;
+      try {
+        const sub = await getSubscription();
+        if (sub) await post({ action: 'evening', endpoint: sub.endpoint, enabled: eveningEnabled(), time: eveningTime() });
+        notify(eveningEnabled() ? `🔥 Aviso de racha a las ${eveningTime()}.` : 'Aviso de racha por la noche desactivado.', { type: 'success' });
+      } catch (err) {
+        notify('No se pudo guardar el aviso de la noche. Revisa tu conexión.', { type: 'error' });
+      }
+    }
+    if (els.eveningBox) {
+      els.eveningToggle.addEventListener('change', saveEvening);
+      els.eveningTime.addEventListener('change', saveEvening);
+    }
 
     els.test.addEventListener('click', async () => {
       try {
