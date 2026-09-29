@@ -8,6 +8,7 @@ require __DIR__ . '/db.php';
 const WEEKLY_DIR = DATA_DIR . '/weekly';
 const WOL = 'https://wol.jw.org';
 const RETRY_AFTER_FAIL = 3600; // si wol.jw.org falla, no se reintenta hasta pasada una hora
+const RECHECK_EMPTY = 12 * 3600; // semana sin guía (aún no publicada o sin reunión): se vuelve a mirar cada 12 h
 
 header('Cache-Control: no-store');
 header('X-Robots-Tag: noindex');
@@ -61,7 +62,9 @@ $cacheFile = WEEKLY_DIR . "/$key.json";
 $failFile = WEEKLY_DIR . "/$key.fail";
 
 if (is_file($cacheFile)) {
-    reply(200, json_decode((string)file_get_contents($cacheFile), true));
+    $cached = json_decode((string)file_get_contents($cacheFile), true);
+    // Una lectura encontrada no cambia; una semana vacía se vuelve a comprobar por si publican la guía.
+    if (!empty($cached['reading']) || time() - filemtime($cacheFile) < RECHECK_EMPTY) reply(200, $cached);
 }
 if (is_file($failFile) && time() - filemtime($failFile) < RETRY_AFTER_FAIL) {
     reply(503, ['error' => 'unavailable', 'week' => $key]);
@@ -83,7 +86,7 @@ foreach ($xp->query('//li[contains(@class, "pub-mwb")]//a[@href]') as $a) {
     if (preg_match('#^/es/wol/d/r4/lp-s/\d+#', $a->getAttribute('href'), $m)) { $docPath = $m[0]; break; }
 }
 if ($docPath === null) {
-    // Semana sin reunión entre semana (asamblea, Conmemoración…): se guarda para no volver a preguntar.
+    // Guía aún no publicada o semana sin reunión (asamblea, Conmemoración…): se vuelve a mirar en 12 h.
     $data = ['week' => $key, 'reading' => null];
     file_put_contents($cacheFile, json_encode($data, JSON_UNESCAPED_UNICODE));
     reply(200, $data);

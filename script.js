@@ -1204,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`api/weekly.php?date=${localDateKey()}`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
-            localStorage.setItem(WEEKLY_CACHE_KEY, JSON.stringify(data));
+            if (data.reading) localStorage.setItem(WEEKLY_CACHE_KEY, JSON.stringify(data)); // una semana vacía se vuelve a consultar
             applyWeeklyReading(data);
         } catch (e) {
             console.warn('Lectura de la semana no disponible:', e);
