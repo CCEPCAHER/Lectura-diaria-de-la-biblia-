@@ -59,7 +59,7 @@ if ('serviceWorker' in navigator) {
     notify('📲 ¡App instalada! Ya puedes abrirla desde tu pantalla de inicio.', { type: 'success', duration: 6000 });
   });
 
-  document.addEventListener('DOMContentLoaded', () => {
+  const initInstall = () => {
     document.querySelectorAll('[data-install-button]').forEach(btn => {
       btn.addEventListener('click', async () => {
         if (!deferredPrompt) return;
@@ -70,48 +70,12 @@ if ('serviceWorker' in navigator) {
       });
     });
     refreshInstallUI();
-  });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initInstall);
+  } else {
+    initInstall();
+  }
 })();
 
-// Tema: 'auto' (según el sistema), 'light' o 'dark'. Se guarda en este dispositivo.
-(() => {
-  const KEY = 'theme-mode';
-  const root = document.documentElement;
-  const media = window.matchMedia('(prefers-color-scheme: dark)');
-  const getMode = () => { try { return localStorage.getItem(KEY) || 'auto'; } catch { return 'auto'; } };
-  const effective = mode => (mode === 'auto' ? (media.matches ? 'dark' : 'light') : mode);
-
-  function apply(mode) {
-    // Cambio instantáneo: sin transiciones mientras se cambian los colores.
-    root.classList.add('theme-switching');
-    if (mode === 'light' || mode === 'dark') root.dataset.theme = mode; else delete root.dataset.theme;
-    void root.offsetWidth;
-    setTimeout(() => root.classList.remove('theme-switching'), 50);
-    const isDark = effective(mode) === 'dark';
-    const toggle = document.getElementById('themeToggle');
-    if (toggle) {
-      toggle.textContent = isDark ? '☀️' : '🌙';
-      toggle.setAttribute('aria-label', isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
-    }
-    document.querySelectorAll('input[name="themeMode"]').forEach(r => { r.checked = r.value === mode; });
-  }
-
-  function setMode(mode) {
-    try { localStorage.setItem(KEY, mode); } catch { /* sin almacenamiento */ }
-    apply(mode);
-  }
-
-  media.addEventListener('change', () => apply(getMode()));
-
-  document.addEventListener('DOMContentLoaded', () => {
-    apply(getMode());
-    const toggle = document.getElementById('themeToggle');
-    if (toggle) toggle.addEventListener('click', () => setMode(effective(getMode()) === 'dark' ? 'light' : 'dark'));
-    document.querySelectorAll('input[name="themeMode"]').forEach(r => r.addEventListener('change', () => setMode(r.value)));
-
-    // Barra superior compacta al bajar.
-    const onScroll = () => document.body.classList.toggle('is-scrolled', window.scrollY > 110);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-  });
-})();

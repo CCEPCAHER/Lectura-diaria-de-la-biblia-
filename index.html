@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <script>
     // Aplica el tema elegido antes de pintar la página (evita un destello).
-    try { var m = localStorage.getItem('theme-mode'); if (m === 'light' || m === 'dark') document.documentElement.dataset.theme = m; } catch (e) {}
+    try { var m = localStorage.getItem('theme-mode'); if (m === 'light' || m === 'dark') document.documentElement.setAttribute('data-theme', m); } catch (e) {}
   </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="App gratuita para leer la Biblia completa en un año: lectura diaria sugerida, progreso por libro, rachas, metas temáticas y recordatorios. Funciona sin conexión.">
   <meta name="theme-color" content="#0A2342">
 
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:locale" content="es_ES">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.6.2">
 
   <link rel="manifest" href="manifest.json">
 
@@ -42,123 +42,229 @@
 
 <body>
   <script>
-    // Script del menú lateral y tema
-    document.addEventListener('DOMContentLoaded', () => {
-      const menuToggle = document.getElementById('menuToggle');
-      const sideMenu = document.getElementById('sideMenu');
-      const closeMenu = document.getElementById('closeMenu');
+    // Menú lateral, personalización de colores y selector de tema (claro/oscuro)
+    (() => {
+      const KEY = 'theme-mode';
+      const root = document.documentElement;
+      const media = (typeof window.matchMedia === 'function')
+        ? window.matchMedia('(prefers-color-scheme: dark)')
+        : null;
 
-      if (menuToggle && sideMenu && closeMenu) {
-        menuToggle.addEventListener('click', (e) => {
-          e.stopPropagation(); // Evita que el clic se propague al documento y cierre el menú inmediatamente si hay un listener global
-          sideMenu.classList.toggle('open');
-          menuToggle.setAttribute('aria-expanded', sideMenu.classList.contains('open'));
+      const getMode = () => {
+        try { return localStorage.getItem(KEY) || 'auto'; } catch (e) { return 'auto'; }
+      };
+
+      const isSystemDark = () => !!(media && media.matches);
+
+      const effective = (mode) => {
+        if (mode === 'light') return 'light';
+        if (mode === 'dark') return 'dark';
+        return isSystemDark() ? 'dark' : 'light';
+      };
+
+      function updateUI(mode) {
+        const isDark = effective(mode) === 'dark';
+        const toggle = document.getElementById('themeToggle');
+        if (toggle) {
+          toggle.textContent = isDark ? '☀️' : '🌙';
+          const label = isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+          toggle.setAttribute('aria-label', label);
+          toggle.setAttribute('title', label);
+        }
+        document.querySelectorAll('input[name="themeMode"]').forEach(r => {
+          r.checked = (r.value === mode);
         });
+      }
 
-        closeMenu.addEventListener('click', () => {
-          sideMenu.classList.remove('open');
-          menuToggle.setAttribute('aria-expanded', 'false');
-        });
+      function applyThemeMode(mode) {
+        root.classList.add('theme-switching');
+        if (mode === 'light' || mode === 'dark') {
+          root.setAttribute('data-theme', mode);
+        } else {
+          root.removeAttribute('data-theme');
+        }
+        void root.offsetWidth;
+        setTimeout(() => root.classList.remove('theme-switching'), 50);
+        updateUI(mode);
+      }
 
-        // Cerrar el menú si se hace clic en un enlace de anclaje dentro del menú que lleva a la página principal
-        sideMenu.querySelectorAll('nav ul li a').forEach(link => {
-          link.addEventListener('click', (e) => {
-            const href = link.getAttribute('href');
-            if (href && href.startsWith('#')) {
-              // Si el enlace es para una sección dentro del menú, no cerrar
-              // (asumiendo que los IDs internos del menú son para navegación dentro del menú)
-              const targetElement = document.getElementById(href.substring(1));
-              if (targetElement && sideMenu.contains(targetElement)) {
-                 // No cerrar si es un ancla interna al menú (ej. para expandir/colapsar secciones del menú)
-                 // Si quieres que se desplace y luego cierre, podrías usar un setTimeout
+      function setThemeMode(mode) {
+        try { localStorage.setItem(KEY, mode); } catch (e) {}
+        applyThemeMode(mode);
+      }
+
+      // Escuchar cambios de tema del sistema operativo (Safari antiguo usa addListener)
+      const onSystemChange = () => {
+        if (getMode() === 'auto') {
+          applyThemeMode('auto');
+        }
+      };
+
+      if (media) {
+        try {
+          if (typeof media.addEventListener === 'function') {
+            media.addEventListener('change', onSystemChange);
+          } else if (typeof media.addListener === 'function') {
+            media.addListener(onSystemChange);
+          }
+        } catch (e) {}
+      }
+
+      function initApp() {
+        // 1. Menú lateral
+        const menuToggle = document.getElementById('menuToggle');
+        const sideMenu = document.getElementById('sideMenu');
+        const closeMenu = document.getElementById('closeMenu');
+
+        if (menuToggle && sideMenu && closeMenu && !menuToggle._hasMenuListener) {
+          menuToggle._hasMenuListener = true;
+
+          menuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = sideMenu.classList.toggle('open');
+            document.body.classList.toggle('menu-open', isOpen);
+            menuToggle.setAttribute('aria-expanded', String(isOpen));
+          });
+
+          closeMenu.addEventListener('click', () => {
+            sideMenu.classList.remove('open');
+            document.body.classList.remove('menu-open');
+            menuToggle.setAttribute('aria-expanded', 'false');
+          });
+
+          sideMenu.querySelectorAll('nav ul li a').forEach(link => {
+            link.addEventListener('click', () => {
+              const href = link.getAttribute('href');
+              if (href && href.startsWith('#')) {
+                const targetElement = document.getElementById(href.substring(1));
+                if (targetElement && sideMenu.contains(targetElement)) {
+                  // Enlace interno del menú
+                } else {
+                  sideMenu.classList.remove('open');
+                  document.body.classList.remove('menu-open');
+                  menuToggle.setAttribute('aria-expanded', 'false');
+                }
               } else {
-                // Si es un ancla a la página principal o un enlace externo
                 sideMenu.classList.remove('open');
+                document.body.classList.remove('menu-open');
                 menuToggle.setAttribute('aria-expanded', 'false');
               }
-            } else {
-              // Enlace normal (no ancla) o ancla a otra página
+            });
+          });
+
+          document.addEventListener('click', (e) => {
+            if (sideMenu.classList.contains('open') && !sideMenu.contains(e.target) && e.target !== menuToggle) {
               sideMenu.classList.remove('open');
+              document.body.classList.remove('menu-open');
               menuToggle.setAttribute('aria-expanded', 'false');
             }
           });
-        });
+        }
 
-        // Cerrar el menú si se hace clic fuera de él
-        document.addEventListener('click', (e) => {
-          if (sideMenu.classList.contains('open') && !sideMenu.contains(e.target) && e.target !== menuToggle) {
-            sideMenu.classList.remove('open');
-            menuToggle.setAttribute('aria-expanded', 'false');
+        // 2. Colores personalizados
+        function applyCustomTheme(primary, accent) {
+          document.documentElement.style.setProperty('--primary-color', primary);
+          document.documentElement.style.setProperty('--accent-color', accent);
+        }
+
+        const primaryPicker = document.getElementById('primaryColorPicker');
+        const accentPicker = document.getElementById('accentColorPicker');
+        const defaultPrimaryColor = '#0A2342';
+        const defaultAccentColor = '#F4B942';
+
+        const savedPrimary = localStorage.getItem('theme-primary');
+        const savedAccent = localStorage.getItem('theme-accent');
+
+        if (primaryPicker && accentPicker) {
+          if (savedPrimary && savedAccent) {
+            applyCustomTheme(savedPrimary, savedAccent);
+            primaryPicker.value = savedPrimary;
+            accentPicker.value = savedAccent;
+          } else {
+            applyCustomTheme(defaultPrimaryColor, defaultAccentColor);
+            primaryPicker.value = defaultPrimaryColor;
+            accentPicker.value = defaultAccentColor;
+          }
+        }
+
+        const saveThemeButton = document.getElementById('saveThemeButton');
+        if (saveThemeButton && primaryPicker && accentPicker && !saveThemeButton._hasSaveListener) {
+          saveThemeButton._hasSaveListener = true;
+          saveThemeButton.addEventListener('click', () => {
+            const primary = primaryPicker.value;
+            const accent = accentPicker.value;
+            applyCustomTheme(primary, accent);
+            localStorage.setItem('theme-primary', primary);
+            localStorage.setItem('theme-accent', accent);
+          });
+        }
+
+        const resetThemeButton = document.getElementById('resetThemeButton');
+        if (resetThemeButton && primaryPicker && accentPicker && !resetThemeButton._hasResetListener) {
+          resetThemeButton._hasResetListener = true;
+          resetThemeButton.addEventListener('click', () => {
+            applyCustomTheme(defaultPrimaryColor, defaultAccentColor);
+            primaryPicker.value = defaultPrimaryColor;
+            accentPicker.value = defaultAccentColor;
+            localStorage.removeItem('theme-primary');
+            localStorage.removeItem('theme-accent');
+          });
+        }
+
+        document.querySelectorAll('.theme-preset').forEach(btn => {
+          if (!btn._hasPresetListener) {
+            btn._hasPresetListener = true;
+            btn.addEventListener('click', () => {
+              const primary = btn.getAttribute('data-primary');
+              const accent = btn.getAttribute('data-accent');
+              applyCustomTheme(primary, accent);
+              if (primaryPicker) primaryPicker.value = primary;
+              if (accentPicker) accentPicker.value = accent;
+              localStorage.setItem('theme-primary', primary);
+              localStorage.setItem('theme-accent', accent);
+            });
           }
         });
-      }
 
-      // Aplicación de tema
-      function applyCustomTheme(primary, accent) {
-        document.documentElement.style.setProperty('--primary-color', primary);
-        document.documentElement.style.setProperty('--accent-color', accent);
-      }
+        // 3. Tema claro / oscuro (Botón ☀️/🌙 en la cabecera y selector de tema)
+        applyThemeMode(getMode());
 
-      const primaryPicker = document.getElementById('primaryColorPicker');
-      const accentPicker = document.getElementById('accentColorPicker');
-      const defaultPrimaryColor = '#0A2342';
-      const defaultAccentColor = '#F4B942';
-      
-      const savedPrimary = localStorage.getItem('theme-primary');
-      const savedAccent = localStorage.getItem('theme-accent');
+        const toggle = document.getElementById('themeToggle');
+        if (toggle && !toggle._hasThemeListener) {
+          toggle._hasThemeListener = true;
+          toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const cur = effective(getMode());
+            setThemeMode(cur === 'dark' ? 'light' : 'dark');
+          });
+        }
 
-      if (primaryPicker && accentPicker) { // Asegurar que los elementos existen
-        if (savedPrimary && savedAccent) {
-          applyCustomTheme(savedPrimary, savedAccent);
-          primaryPicker.value = savedPrimary;
-          accentPicker.value = savedAccent;
-        } else {
-          applyCustomTheme(defaultPrimaryColor, defaultAccentColor);
-          primaryPicker.value = defaultPrimaryColor;
-          accentPicker.value = defaultAccentColor;
+        document.querySelectorAll('input[name="themeMode"]').forEach(r => {
+          if (!r._hasRadioListener) {
+            r._hasRadioListener = true;
+            r.addEventListener('change', () => setThemeMode(r.value));
+          }
+        });
+
+        // 4. Barra superior compacta al bajar
+        const onScroll = () => document.body.classList.toggle('is-scrolled', window.scrollY > 110);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+
+        // 5. Actualizar el año en el footer
+        const currentYearEl = document.getElementById('currentYearText');
+        if (currentYearEl) {
+          currentYearEl.textContent = new Date().getFullYear().toString();
         }
       }
 
-      const saveThemeButton = document.getElementById('saveThemeButton');
-      if(saveThemeButton && primaryPicker && accentPicker) {
-        saveThemeButton.addEventListener('click', () => {
-          const primary = primaryPicker.value;
-          const accent = accentPicker.value;
-          applyCustomTheme(primary, accent);
-          localStorage.setItem('theme-primary', primary);
-          localStorage.setItem('theme-accent', accent);
-        });
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initApp);
+      } else {
+        initApp();
       }
-
-      const resetThemeButton = document.getElementById('resetThemeButton');
-      if(resetThemeButton && primaryPicker && accentPicker) {
-        resetThemeButton.addEventListener('click', () => {
-          applyCustomTheme(defaultPrimaryColor, defaultAccentColor);
-          primaryPicker.value = defaultPrimaryColor;
-          accentPicker.value = defaultAccentColor;
-          localStorage.removeItem('theme-primary');
-          localStorage.removeItem('theme-accent');
-        });
-      }
-      
-      document.querySelectorAll('.theme-preset').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const primary = btn.getAttribute('data-primary');
-          const accent = btn.getAttribute('data-accent');
-          applyCustomTheme(primary, accent);
-          if(primaryPicker) primaryPicker.value = primary;
-          if(accentPicker) accentPicker.value = accent;
-          localStorage.setItem('theme-primary', primary);
-          localStorage.setItem('theme-accent', accent);
-        });
-      });
-
-      // Actualizar el año en el footer
-      const currentYearEl = document.getElementById('currentYearText');
-      if (currentYearEl) {
-        currentYearEl.textContent = new Date().getFullYear().toString();
-      }
-    });
+    })();
   </script>
 
   <button id="menuToggle" aria-label="Abrir menú de configuración" aria-expanded="false" aria-controls="sideMenu">
@@ -166,7 +272,19 @@
 
   <div class="topbar" aria-hidden="true"><span class="topbar__title">Lectura diaria</span></div>
 
-  <button type="button" id="themeToggle" aria-label="Cambiar a modo oscuro" title="Modo claro / oscuro">🌙</button>
+  <button type="button" id="themeToggle" aria-label="Cambiar modo de tema" title="Modo claro / oscuro">🌙</button>
+  <script>
+    // Inicialización síncrona del icono para evitar que se muestre 🌙 en pantallas con tema oscuro
+    try {
+      var _m = localStorage.getItem('theme-mode') || 'auto';
+      var _isDark = (_m === 'dark' || (_m === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches));
+      var _btn = document.getElementById('themeToggle');
+      if (_btn && _isDark) {
+        _btn.textContent = '☀️';
+        _btn.setAttribute('aria-label', 'Cambiar a modo claro');
+      }
+    } catch (e) {}
+  </script>
 
   <button type="button" id="installAppButton" data-install-button hidden aria-label="Instalar la app">📲 Instalar</button>
 
@@ -551,11 +669,11 @@
     <button type="button" class="intro__skip" id="onboardingSkip">Saltar vídeo</button>
   </dialog>
 
-  <script src="./pwa.js" defer></script>
-  <script src="./script.js" defer></script>
-  <script src="./stats.js" defer></script>
-  <script src="./reminders.js" defer></script>
-  <script src="./sync.js" defer></script>
-  <script src="./onboarding.js" defer></script>
+  <script src="./pwa.js?v=2.6.2" defer></script>
+  <script src="./script.js?v=2.6.2" defer></script>
+  <script src="./stats.js?v=2.6.2" defer></script>
+  <script src="./reminders.js?v=2.6.2" defer></script>
+  <script src="./sync.js?v=2.6.2" defer></script>
+  <script src="./onboarding.js?v=2.6.2" defer></script>
 </body>
 </html>

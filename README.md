@@ -60,7 +60,8 @@ Funciona sin conexión. Se publica en **https://mylectura.mycongre.com/**.
 - Progreso de lectura, estado del plan, rachas, sistemas y versiones.
 - Recordatorios activos, enviados, abiertos y estado del cron.
 
-Al publicar una versión nueva, sube el número `APP_VERSION` de `stats.js` para verlo en «Versiones en uso».
+Al publicar una versión nueva, sube el número `APP_VERSION` de `stats.js` y el `?v=` de los `<script>`/`<link>` de `index.html`
+(así ningún móvil usa una copia vieja de los archivos) y el nombre de `CACHE` en `sw.js`.
 
 ## Probar en local
 

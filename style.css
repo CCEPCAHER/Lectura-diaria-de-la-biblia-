@@ -185,7 +185,7 @@ input[type="color"] { width: 56px; height: 40px; border: 1px solid var(--border)
     radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--accent-color) 35%, transparent) 0%, transparent 55%),
     linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--primary-color) 70%, var(--secondary-color)) 100%);
   color: #fff;
-  padding: 18px 16px 76px;
+  padding: calc(18px + env(safe-area-inset-top, 0px)) 16px 76px;
 }
 .app-header__inner { max-width: 960px; margin: 0 auto; padding: 0 56px; text-align: center; }
 .app-header__date { font-size: 0.9rem; opacity: 0.85; min-height: 1.4em; }
@@ -194,7 +194,10 @@ input[type="color"] { width: 56px; height: 40px; border: 1px solid var(--border)
 .app-header__subtitle { font-size: 0.95rem; opacity: 0.8; margin-top: 2px; }
 
 #menuToggle {
-  position: fixed; top: 14px; left: 14px; z-index: 1001;
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  left: calc(14px + env(safe-area-inset-left, 0px));
+  z-index: 1001;
   width: 44px; height: 44px; min-height: 0; padding: 0;
   border-radius: 14px;
   background: color-mix(in srgb, var(--primary-color) 55%, rgba(255, 255, 255, 0.18));
@@ -202,14 +205,24 @@ input[type="color"] { width: 56px; height: 40px; border: 1px solid var(--border)
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  user-select: none; -webkit-user-select: none;
 }
 #menuToggle:hover { background: var(--primary-color); }
-body:has(#sideMenu.open) #menuToggle { visibility: hidden; }
+body:has(#sideMenu.open) #menuToggle,
+body.menu-open #menuToggle { visibility: hidden; }
 
 #installAppButton {
-  position: fixed; top: 14px; right: 68px; z-index: 1001;
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  right: calc(68px + env(safe-area-inset-right, 0px));
+  z-index: 1001;
   background: var(--accent-color); color: var(--primary-color);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 #installAppButton:hover { background: color-mix(in srgb, var(--accent-color) 85%, #fff); }
 
@@ -424,23 +437,27 @@ body:has(#sideMenu.open) #menuToggle { visibility: hidden; }
   background: var(--surface);
   border-right: 1px solid var(--border);
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.25);
-  padding: 16px 16px 40px;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(40px + env(safe-area-inset-bottom, 0px));
   overflow-y: auto; overscroll-behavior: contain;
   transform: translateX(-105%);
   visibility: hidden;
   transition: transform 0.28s ease, visibility 0s linear 0.28s;
 }
 #sideMenu.open { transform: none; visibility: visible; transition: transform 0.28s ease; }
-body:has(#sideMenu.open)::before {
+body:has(#sideMenu.open)::before,
+body.menu-open::before {
   content: ""; position: fixed; inset: 0; z-index: 999;
   background: rgba(8, 18, 34, 0.45);
   animation: fadeIn 0.2s ease;
 }
 @keyframes fadeIn { from { opacity: 0; } }
 #closeMenu {
-  position: absolute; top: 10px; right: 10px;
+  position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: 10px;
   width: 40px; height: 40px; min-height: 0; padding: 0;
   background: var(--surface-2); color: var(--text-muted); font-size: 1.5rem; line-height: 1;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
 }
 #closeMenu:hover { color: var(--danger-color); background: var(--surface-2); }
 #sideMenu nav ul { list-style: none; display: grid; gap: 2px; margin: 44px 0 8px; }
@@ -762,20 +779,31 @@ body:has(#sideMenu.open)::before {
 
 /* ---------- Botón de tema y barra superior ---------- */
 #themeToggle {
-  position: fixed; top: 14px; right: 14px; z-index: 1001;
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  right: calc(14px + env(safe-area-inset-right, 0px));
+  z-index: 1001;
   width: 44px; height: 44px; min-height: 0; padding: 0;
   border-radius: 14px; font-size: 1.2rem;
   background: color-mix(in srgb, var(--primary-color) 55%, rgba(255, 255, 255, 0.18));
+  color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  user-select: none; -webkit-user-select: none;
 }
 #themeToggle:hover { background: var(--primary-color); }
-body:has(#sideMenu.open) #themeToggle { visibility: hidden; }
+body:has(#sideMenu.open) #themeToggle,
+body.menu-open #themeToggle { visibility: hidden; }
 
 /* Aparece al bajar: el ☰ y el ☀️/🌙 quedan sobre una barra en vez de tapar el contenido */
 .topbar {
-  position: fixed; inset: 0 0 auto 0; z-index: 998; height: 72px;
+  position: fixed; inset: 0 0 auto 0; z-index: 998;
+  height: calc(72px + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
   display: flex; align-items: center; justify-content: center;
   background: color-mix(in srgb, var(--primary-color) 92%, transparent);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
