@@ -510,7 +510,53 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusBlock = daysDelayedTextEl.closest('.suggestion-block--status');
             if (statusBlock) statusBlock.classList.toggle('has-delay', delayToShow > 0);
         }
+        const delayBackfill = document.getElementById('delayBackfillButton');
+        if (delayBackfill) delayBackfill.hidden = !(window.dayDiff > 0);
         publishToday();
+    }
+
+    // Capítulos de una lectura del plan: «Génesis 1-3», «Abdías 1, Jonás 1-4», «Salmos 119 (desde v. 64)»…
+    function chaptersOfPlanEntry(entry) {
+        const chapters = [];
+        String(entry.displayText || '').split(',').map(p => p.trim()).forEach(part => {
+            const m = part.match(/([\w\s\dÁÉÍÓÚáéíóúÑñ]+?)\s*(\d+)(?:-(\d+))?/);
+            if (!m) return;
+            const book = normalizedBibleBooks.find(b => b.name === m[1].trim());
+            if (!book) return;
+            const from = parseInt(m[2]), to = m[3] ? parseInt(m[3]) : from;
+            for (let c = from; c <= to && c <= book.chapters; c++) chapters.push({ book: book.name, chapter: c });
+        });
+        return chapters;
+    }
+
+    // «Ya leí los días anteriores»: marca las lecturas de los días pasados del plan, cada una en su fecha,
+    // para que la racha y el progreso reflejen lo que la persona leyó antes de usar la app (o sin marcarlo).
+    function backfillPastPlanDays() {
+        const start = localStorage.getItem('planStartDate');
+        if (!start) { notify('Primero elige la fecha de inicio del plan en «Mi plan de lectura».'); return; }
+        const startMs = Date.parse(start + 'T00:00:00Z');
+        const pastDays = Math.min(Math.floor((todayAsUTCDate().getTime() - startMs) / DAY_MS), dailyReadingPlan.length);
+        if (pastDays <= 0) { notify('Tu plan empieza hoy: todavía no hay días anteriores que marcar.'); return; }
+        if (!confirm(`¿Marcar como leídas las lecturas de los días 1 a ${pastDays} del plan?\n\nCada una quedará registrada en su día, así tu racha contará esos días. La lectura de hoy la marcas tú al leerla.`)) return;
+        const now = Date.now();
+        let newlyMarked = 0;
+        for (let i = 0; i < pastDays; i++) {
+            const day = utcDateKey(startMs + i * DAY_MS);
+            chaptersOfPlanEntry(dailyReadingPlan[i]).forEach(({ book, chapter }) => {
+                const key = sanitizeKey(book, chapter);
+                if (!readStatus[key]) newlyMarked++;
+                readStatus[key] = true;
+                readDates[key] = day;
+                chapterTimes[key] = now;
+            });
+        }
+        saveState();
+        renderBooks(bookFilter ? bookFilter.value : 'todos', statusFilter ? statusFilter.value : 'todos');
+        updateOverallProgress();
+        updateAllThematicSectionsStatus();
+        displayDailySuggestion();
+        const streaks = computeStreaks();
+        notify(`✅ ${pastDays} días del plan marcados (${newlyMarked} capítulos nuevos). Tu racha: ${streaks.current} ${streaks.current === 1 ? 'día' : 'días'} 🔥`, { type: 'success', duration: 7000 });
     }
 
     // Para reminders.js: plan, fecha de inicio y si la lectura de hoy ya está hecha.
@@ -676,6 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let readInBookCount = 0;
         for (let i = 1; i <= bookData.chapters; i++) { if (readStatus[sanitizeKey(bookName, i)]) readInBookCount++; }
         const bookId = sanitizeKey(bookName, '').substring(4).replace(/_undefined$|_null$|_$/,'');
+        updateMarkAllButton(bookName, readInBookCount === bookData.chapters);
         const progressElement = document.getElementById(`progress_${bookId}`);
         if (progressElement) {
             const percent = bookData.chapters > 0 ? Math.round((readInBookCount / bookData.chapters) * 100) : 0;
@@ -699,6 +746,46 @@ document.addEventListener('DOMContentLoaded', () => {
         updateOverallProgress();
         updateBookProgress(bookName);
         updateAllThematicSectionsStatus();
+    }
+
+    function updateMarkAllButton(bookName, complete) {
+        const bookData = normalizedBibleBooks.find(b => b.name === bookName);
+        if (!bookData) return;
+        if (complete === undefined) {
+            complete = true;
+            for (let i = 1; i <= bookData.chapters; i++) if (!readStatus[sanitizeKey(bookName, i)]) { complete = false; break; }
+        }
+        document.querySelectorAll('.book-mark-all').forEach(btn => {
+            if (btn.dataset.book !== bookName) return;
+            btn.textContent = complete ? '↺ Desmarcar todo el libro' : `✓ Marcar todo ${bookName} como leído`;
+            btn.dataset.complete = complete ? '1' : '';
+        });
+    }
+
+    function toggleWholeBook(bookName) {
+        const bookData = normalizedBibleBooks.find(b => b.name === bookName);
+        if (!bookData) return;
+        let complete = true;
+        for (let i = 1; i <= bookData.chapters; i++) if (!readStatus[sanitizeKey(bookName, i)]) { complete = false; break; }
+        const question = complete
+            ? `¿Desmarcar los ${bookData.chapters} capítulos de ${bookName}?`
+            : `¿Marcar ${bookData.chapters === 1 ? 'el capítulo' : `los ${bookData.chapters} capítulos`} de ${bookName} como leídos hoy?`;
+        if (!confirm(question)) return;
+        let changed = 0;
+        for (let i = 1; i <= bookData.chapters; i++) {
+            const key = sanitizeKey(bookName, i);
+            if (!!readStatus[key] === !complete) continue;
+            setChapterRead(key, !complete);
+            updateChapterButtonUI(bookName, i);
+            changed++;
+        }
+        if (!changed) return;
+        saveState();
+        updateBookProgress(bookName);
+        if (complete) displayDailySuggestion(); else { actualizarUltimaLectura(); announceChaptersRead(changed); }
+        updateOverallProgress();
+        updateAllThematicSectionsStatus();
+        notify(complete ? `${bookName}: capítulos desmarcados.` : `✅ ${bookName} marcado como leído (${changed} ${changed === 1 ? 'capítulo' : 'capítulos'}).`, { type: complete ? 'info' : 'success' });
     }
 
     function toggleBookChapters(bookId, titleElement) {
@@ -797,6 +884,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.addEventListener('click', () => toggleChapterRead(book.name, i));
                 chapterGrid.appendChild(button);
             }
+
+            const bookActions = document.createElement('div');
+            bookActions.className = 'chapters-actions';
+            const markAll = document.createElement('button');
+            markAll.type = 'button';
+            markAll.className = 'button-ghost book-mark-all';
+            markAll.dataset.book = book.name;
+            markAll.addEventListener('click', () => toggleWholeBook(book.name));
+            bookActions.appendChild(markAll);
+            chapterGrid.appendChild(bookActions);
+            updateMarkAllButton(book.name);
             
             if (!hasVisibleChapters && filterStatus !== 'todos') {
                 section.style.display = 'none'; 
@@ -1230,6 +1328,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Al volver a la app (p. ej. el lunes siguiente) se comprueba si cambió la semana.
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && (!weeklyReading || weeklyReading.week !== isoWeekKey())) loadWeeklyReading();
+    });
+
+    ['backfillPlanButton', 'delayBackfillButton'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.addEventListener('click', backfillPastPlanDays);
     });
 
     // sync.js llama a esto tras traer cambios de otro dispositivo.
