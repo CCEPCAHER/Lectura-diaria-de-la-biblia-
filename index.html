@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:locale" content="es_ES">
 
-  <link rel="stylesheet" href="style.css?v=2.7.1">
+  <link rel="stylesheet" href="style.css?v=2.7.2">
 
   <link rel="manifest" href="manifest.json">
 
@@ -404,7 +404,7 @@
         <div class="menu-section-actions">
           <button type="button" id="friendsMenuStart">👥 Empezar con amigos</button>
         </div>
-        <p class="menu-note menu-note--small">Tus amigos solo ven tu apodo, tu racha, si has leído hoy y el % de la Biblia leída.</p>
+        <p class="menu-note menu-note--small">Tus amigos solo ven tu apodo y tu racha.</p>
       </section>
 
       <section id="sync-menu" class="menu-section">
@@ -520,6 +520,7 @@
         <div class="stat-card stat-card--streak daily-suggestion__streak">
           <p class="stat-card__value"><span class="stat-card__icon" aria-hidden="true">🔥</span> <span id="streakText">0</span></p>
           <p class="stat-card__label">Racha · <span id="streakUnit">días</span></p>
+          <button type="button" class="stat-card__action stat-card__action--streak" id="streakBackfillButton" hidden>📅 Ajustar racha al plan</button>
         </div>
         <div class="stat-card stat-card--delay suggestion-block--status">
           <p class="stat-card__value"><span id="daysDelayedText" aria-live="polite">0</span></p>
@@ -565,7 +566,7 @@
           </div>
           <div class="field">
             <label for="backfillPlanButton">¿Ya habías leído los días anteriores?</label>
-            <p class="field__hint">Marca como leídas las lecturas de los días que ya pasaron del plan, cada una en su día. Así tu racha refleja lo que has leído.</p>
+            <p class="field__hint">Marca como leídas las lecturas de los días que ya pasaron del plan para poner tu progreso al día. La racha solo cuenta los días en que marcas tu lectura.</p>
             <button type="button" id="backfillPlanButton" class="button-secondary">✓ Ya leí los días anteriores</button>
           </div>
           <div class="panel__danger">
@@ -609,7 +610,7 @@
         <label class="visually-hidden" for="friendsNickname">Tu apodo</label>
         <input type="text" id="friendsNickname" maxlength="24" autocomplete="nickname" placeholder="Ej.: Frank" enterkeyhint="done">
       </div>
-      <p class="friends-dialog__note">Tus amigos solo verán tu apodo, tu racha, si has leído hoy y el % de la Biblia leída.</p>
+      <p class="friends-dialog__note">Tus amigos solo verán tu apodo y tu racha.</p>
       <div class="friends-dialog__actions">
         <button type="button" class="button-ghost" id="friendsCancel">Ahora no</button>
         <button type="submit" id="friendsConfirm">Empezar</button>
@@ -724,12 +725,12 @@
     <button type="button" class="intro__skip" id="onboardingSkip">Saltar vídeo</button>
   </dialog>
 
-  <script src="./pwa.js?v=2.7.1" defer></script>
-  <script src="./script.js?v=2.7.1" defer></script>
-  <script src="./stats.js?v=2.7.1" defer></script>
-  <script src="./reminders.js?v=2.7.1" defer></script>
-  <script src="./sync.js?v=2.7.1" defer></script>
-  <script src="./friends.js?v=2.7.1" defer></script>
-  <script src="./onboarding.js?v=2.7.1" defer></script>
+  <script src="./pwa.js?v=2.7.2" defer></script>
+  <script src="./script.js?v=2.7.2" defer></script>
+  <script src="./stats.js?v=2.7.2" defer></script>
+  <script src="./reminders.js?v=2.7.2" defer></script>
+  <script src="./sync.js?v=2.7.2" defer></script>
+  <script src="./friends.js?v=2.7.2" defer></script>
+  <script src="./onboarding.js?v=2.7.2" defer></script>
 </body>
 </html>

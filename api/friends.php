@@ -1,6 +1,6 @@
 <?php
 // Amigos sin cuentas: cada perfil tiene un código público (para invitar) y una clave secreta
-// que solo guarda el dispositivo. Los amigos ven el apodo, la racha, si leyó hoy y el % leído.
+// que solo guarda el dispositivo. Los amigos solo ven el apodo y la racha.
 declare(strict_types=1);
 
 require __DIR__ . '/webpush.php';
@@ -9,6 +9,8 @@ const FRIEND_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const MAX_FRIENDS = 100;
 const MAX_CHEERS_PER_DAY = 50;
 const MAX_LOOKUP_MISSES_PER_HOUR = 30;
+// Perfiles autorizados a ajustar su racha a las fechas del plan (excepción puntual: Franklin y Vanessa).
+const STREAK_ADJUST_ALLOWED = ['JL7BR6YF', 'CVE6FVSV', '8AQB99E5'];
 
 header('Cache-Control: no-store');
 header('X-Robots-Tag: noindex');
@@ -77,9 +79,6 @@ function public_friend(array $f, string $today, string $yesterday): array
         'code' => $f['id'],
         'nickname' => $f['nickname'],
         'streak' => $active ? (int)$f['streak'] : 0,
-        'bestStreak' => (int)$f['best_streak'],
-        'percent' => (int)$f['percent'],
-        'readToday' => $f['read_date'] === $today,
     ];
 }
 
@@ -142,7 +141,7 @@ try {
                 $fields[] = 'percent = :percent';
                 $params[':streak'] = max(0, min(36500, (int)($s['streak'] ?? 0)));
                 $params[':best'] = max(0, min(36500, (int)($s['best'] ?? 0)));
-                $params[':percent'] = max(0, min(100, (int)($s['percent'] ?? 0)));
+                $params[':percent'] = 0; // ya no se comparte el % leído
                 if (!empty($s['readToday'])) { $fields[] = 'read_date = :read_date'; $params[':read_date'] = $today; }
             }
             if (array_key_exists('pushEndpoint', $in)) {
@@ -169,7 +168,7 @@ try {
 
             $pdo->prepare('UPDATE friend_profiles SET last_seen = ? WHERE id = ?')->execute([$now, $me['id']]);
             reply(200, [
-                'me' => ['code' => $me['id'], 'nickname' => $me['nickname']],
+                'me' => ['code' => $me['id'], 'nickname' => $me['nickname'], 'canAdjustStreak' => in_array($me['id'], STREAK_ADJUST_ALLOWED, true)],
                 'friends' => $friends,
                 'cheeredToday' => $cheeredToday,
                 'cheers' => array_map(fn($c) => ['code' => $c['from_id'], 'nickname' => $c['nickname']], $cheers),

@@ -922,3 +922,5 @@ body.menu-open .install-banner, body:has(#sideMenu.open) .install-banner { displ
 .chapters-actions { grid-column: 1 / -1; display: flex; justify-content: center; padding-top: 6px; }
 .book-mark-all { min-height: 38px; font-size: 0.88rem; }
 .book-mark-all[data-complete="1"] { color: var(--text-muted); }
+.stat-card__action--streak { color: var(--streak-color); border-color: color-mix(in srgb, var(--streak-color) 45%, transparent); }
+.stat-card__action--streak:hover { background: color-mix(in srgb, var(--streak-color) 10%, transparent); color: var(--streak-color); }

@@ -356,6 +356,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (unitEl) unitEl.textContent = streaks.current === 1 ? 'día' : 'días';
         const block = streakTextEl.closest('.daily-suggestion__streak');
         if (block) block.title = `Mejor racha: ${streaks.best} día(s)`;
+        // Vas al día pero la racha es corta (p. ej. marcaste todo de golpe): se ofrece ajustarla a las fechas del plan.
+        const adjust = document.getElementById('streakBackfillButton');
+        if (adjust) {
+            const start = localStorage.getItem('planStartDate');
+            const pastDays = start ? Math.min(Math.floor((todayAsUTCDate().getTime() - Date.parse(start + 'T00:00:00Z')) / DAY_MS), dailyReadingPlan.length) : 0;
+            const allowed = localStorage.getItem('streakAdjustAllowed') === '1'; // solo perfiles autorizados
+            adjust.hidden = !(allowed && pastDays >= 2 && streaks.current < pastDays && calculateEffectiveDelay() === 0);
+        }
     }
 
     function renderPeriodRows(container, rows, emptyText) {
@@ -529,21 +537,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return chapters;
     }
 
-    // «Ya leí los días anteriores»: marca las lecturas de los días pasados del plan, cada una en su fecha,
-    // para que la racha y el progreso reflejen lo que la persona leyó antes de usar la app (o sin marcarlo).
-    function backfillPastPlanDays() {
+    // «Ya leí los días anteriores»: pone al día el progreso marcando las lecturas de los días pasados del plan.
+    // Se registran HOY, así que no suben la racha (la racha solo cuenta los días en que de verdad se marca).
+    // Solo los perfiles autorizados («Ajustar racha al plan») las registran en la fecha de cada día del plan.
+    function backfillPastPlanDays(usePlanDates = false) {
+        if (usePlanDates && localStorage.getItem('streakAdjustAllowed') !== '1') usePlanDates = false;
         const start = localStorage.getItem('planStartDate');
         if (!start) { notify('Primero elige la fecha de inicio del plan en «Mi plan de lectura».'); return; }
         const startMs = Date.parse(start + 'T00:00:00Z');
         const pastDays = Math.min(Math.floor((todayAsUTCDate().getTime() - startMs) / DAY_MS), dailyReadingPlan.length);
         if (pastDays <= 0) { notify('Tu plan empieza hoy: todavía no hay días anteriores que marcar.'); return; }
-        if (!confirm(`¿Marcar como leídas las lecturas de los días 1 a ${pastDays} del plan?\n\nCada una quedará registrada en su día, así tu racha contará esos días. La lectura de hoy la marcas tú al leerla.`)) return;
+        const question = usePlanDates
+            ? `¿Ajustar tu racha al plan?\n\nLas lecturas de los días 1 a ${pastDays} quedarán registradas cada una en su día. La lectura de hoy la marcas tú al leerla.`
+            : `¿Marcar como leídas las lecturas de los días 1 a ${pastDays} del plan?\n\nTu progreso se pondrá al día. La racha solo cuenta los días en que marcas tu lectura, así que no cambiará.`;
+        if (!confirm(question)) return;
         const now = Date.now();
         let newlyMarked = 0;
         for (let i = 0; i < pastDays; i++) {
-            const day = utcDateKey(startMs + i * DAY_MS);
+            const day = usePlanDates ? utcDateKey(startMs + i * DAY_MS) : localDateKey();
             chaptersOfPlanEntry(dailyReadingPlan[i]).forEach(({ book, chapter }) => {
                 const key = sanitizeKey(book, chapter);
+                if (!usePlanDates && readStatus[key]) return; // lo ya marcado conserva su fecha
                 if (!readStatus[key]) newlyMarked++;
                 readStatus[key] = true;
                 readDates[key] = day;
@@ -556,7 +570,9 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAllThematicSectionsStatus();
         displayDailySuggestion();
         const streaks = computeStreaks();
-        notify(`✅ ${pastDays} días del plan marcados (${newlyMarked} capítulos nuevos). Tu racha: ${streaks.current} ${streaks.current === 1 ? 'día' : 'días'} 🔥`, { type: 'success', duration: 7000 });
+        notify(usePlanDates
+            ? `✅ Racha ajustada al plan: ${streaks.current} ${streaks.current === 1 ? 'día' : 'días'} 🔥`
+            : `✅ ${pastDays} días del plan al día (${newlyMarked} capítulos marcados).`, { type: 'success', duration: 7000 });
     }
 
     // Para reminders.js: plan, fecha de inicio y si la lectura de hoy ya está hecha.
@@ -1332,8 +1348,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ['backfillPlanButton', 'delayBackfillButton'].forEach(id => {
         const btn = document.getElementById(id);
-        if (btn) btn.addEventListener('click', backfillPastPlanDays);
+        if (btn) btn.addEventListener('click', () => backfillPastPlanDays(false));
     });
+    const streakBackfill = document.getElementById('streakBackfillButton');
+    if (streakBackfill) streakBackfill.addEventListener('click', () => backfillPastPlanDays(true));
+    document.addEventListener('lectura:streak-permission', () => updateStreakUI(computeStreaks()));
 
     // sync.js llama a esto tras traer cambios de otro dispositivo.
     window.lecturaApp = {

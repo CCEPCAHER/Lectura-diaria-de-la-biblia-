@@ -38,7 +38,9 @@
   // ---- Publicar mis datos (apodo, racha, % y si leí hoy) ----
   document.addEventListener('lectura:summary', (e) => {
     const s = e.detail;
-    stats = { streak: s.streak || 0, best: s.bestStreak || 0, percent: Math.round((s.chapters || 0) / 1189 * 100), readToday: !!s.readToday };
+    // Solo se comparte la racha (y si hoy se leyó, para saber si sigue viva); nada más.
+    stats = { streak: s.streak || 0, best: s.bestStreak || 0, readToday: !!s.readToday };
+    renderMe(); // tu fila cambia al momento; a tus amigos les llega en unos segundos
     scheduleUpdate();
   });
 
@@ -81,6 +83,8 @@
     try {
       const data = await api('list');
       store.set(CACHE_KEY, JSON.stringify({ friends: data.friends, cheeredToday: data.cheeredToday, day: today() }));
+      if (data.me && data.me.canAdjustStreak) store.set('streakAdjustAllowed', '1'); else store.remove('streakAdjustAllowed');
+      document.dispatchEvent(new CustomEvent('lectura:streak-permission'));
       render();
       (data.cheers || []).forEach((c, i) => setTimeout(() => notify(`👏 ${c.nickname} te anima a seguir con tu lectura 🔥`, { type: 'success', duration: 6000 }), 600 * i));
     } catch (err) {
@@ -91,7 +95,7 @@
 
   function hue(code) { let h = 0; for (const ch of code) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; }
 
-  function friendRow({ code, nickname, streak, percent, readToday }, { isMe = false, cheered = false } = {}) {
+  function friendRow({ code, nickname, streak }, { isMe = false, cheered = false } = {}) {
     const li = document.createElement('li');
     li.className = 'friend' + (isMe ? ' friend--me' : '');
     const avatar = document.createElement('span');
@@ -104,14 +108,9 @@
     name.textContent = isMe ? `${nickname} (tú)` : nickname;
     const meta = document.createElement('span');
     meta.className = 'friend__meta';
-    meta.textContent = `🔥 ${streak} ${streak === 1 ? 'día' : 'días'} · ${percent}% leída`;
-    meta.dataset.today = readToday ? ' · ✓ hoy' : '';
+    meta.textContent = `🔥 ${streak} ${streak === 1 ? 'día' : 'días'} de racha`;
     info.append(name, meta);
-    const todayBadge = document.createElement('span');
-    todayBadge.className = 'friend__today' + (readToday ? ' is-done' : '');
-    todayBadge.textContent = readToday ? '✓ Hoy' : 'Aún no';
-    todayBadge.title = readToday ? 'Ya leyó hoy' : 'Todavía no ha leído hoy';
-    li.append(avatar, info, todayBadge);
+    li.append(avatar, info);
     if (!isMe) {
       const cheer = document.createElement('button');
       cheer.type = 'button';
@@ -136,7 +135,7 @@
     const p = profile();
     const meRow = els.list && els.list.querySelector('.friend--me');
     if (!p || !stats || !meRow) return;
-    meRow.replaceWith(friendRow({ code: p.id, nickname: p.nickname, ...stats, readToday: stats.readToday }, { isMe: true }));
+    meRow.replaceWith(friendRow({ code: p.id, nickname: p.nickname, ...stats }, { isMe: true }));
   }
 
   function render() {
