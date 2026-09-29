@@ -827,3 +827,35 @@ body.is-scrolled #menuToggle, body.is-scrolled #themeToggle { background: rgba(2
 
 /* Al cambiar de tema, los colores cambian de golpe (sin animar cada botón) */
 .theme-switching *, .theme-switching *::before, .theme-switching *::after { transition: none !important; }
+
+/* ---------- Aviso de instalación (si la app no está instalada) ---------- */
+.install-banner {
+  position: fixed; z-index: 1500;
+  left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  max-width: 520px; margin: 0 auto;
+  display: grid; grid-template-columns: auto 1fr; gap: 10px 14px; align-items: center;
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); border-radius: 20px;
+  padding: 14px 46px 14px 14px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+  animation: bannerIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+}
+@keyframes bannerIn { from { opacity: 0; transform: translateY(120%); } }
+.install-banner__icon { width: 54px; height: 54px; border-radius: 14px; box-shadow: var(--shadow-sm); }
+.install-banner__body strong { display: block; font-size: 1rem; color: var(--heading); }
+.install-banner__body p { font-size: 0.88rem; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+.install-banner__steps { margin-top: 6px; padding-left: 20px; display: grid; gap: 4px; font-size: 0.9rem; }
+.install-banner__steps b, .install-banner__body p b { color: var(--text); }
+.ios-share { display: inline-block; vertical-align: -3px; color: var(--secondary-color); }
+.install-banner__actions { grid-column: 1 / -1; display: flex; }
+.install-banner__action { flex: 1; }
+.install-banner__close {
+  position: absolute; top: 6px; right: 6px;
+  width: 36px; height: 36px; min-height: 0; padding: 0;
+  background: transparent; color: var(--text-muted); font-size: 1.4rem; line-height: 1;
+}
+.install-banner__close:hover { background: var(--surface-2); color: var(--text); }
+/* Con el aviso visible: sin botón flotante duplicado y los avisos (toasts) por encima */
+body.has-install-banner #installAppButton { display: none; }
+body.has-install-banner #toastContainer { bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
+body.menu-open .install-banner, body:has(#sideMenu.open) .install-banner { display: none; }

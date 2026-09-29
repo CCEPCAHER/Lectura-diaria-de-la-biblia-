@@ -206,6 +206,7 @@
       pause();
       stopSpeech();
       if (dialog.open) dialog.close();
+      document.dispatchEvent(new CustomEvent('lectura:onboarding-closed'));
     }
 
     playButton.addEventListener('click', () => (playing ? pause() : play()));
@@ -219,7 +220,10 @@
     skipButton.addEventListener('click', showSetup);
     document.getElementById('introReplay').addEventListener('click', startVideo);
     document.getElementById('onboardingNext').addEventListener('click', finish);
-    dialog.addEventListener('cancel', () => { store.set(DONE_KEY, '1'); pause(); stopSpeech(); });
+    dialog.addEventListener('cancel', () => {
+      store.set(DONE_KEY, '1'); pause(); stopSpeech();
+      document.dispatchEvent(new CustomEvent('lectura:onboarding-closed'));
+    });
     document.addEventListener('visibilitychange', () => { if (document.hidden && playing) pause(); });
 
     const replay = document.getElementById('replayTutorialButton');
