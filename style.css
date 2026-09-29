@@ -223,6 +223,32 @@ body:has(#sideMenu.open) #menuToggle { visibility: hidden; }
 .today-card__note { font-size: 0.85rem; font-style: italic; color: var(--text-muted); max-width: 42ch; }
 .today-card__actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 16px; }
 
+/* Lectura de la semana (reunión) */
+.week-card {
+  display: grid; grid-template-columns: auto 1fr; gap: 12px 14px; align-items: center;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 16px; box-shadow: var(--shadow-sm);
+  border-left: 5px solid var(--accent-color);
+}
+.week-card__icon { font-size: 1.8rem; line-height: 1; }
+.week-card__eyebrow { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+.week-card__reading { font-size: 1.35rem; font-weight: 800; color: var(--heading); line-height: 1.2; margin-top: 2px; }
+.week-card__done { display: inline-block; vertical-align: middle; font-size: 0.8rem; font-weight: 700; color: var(--read-color); background: color-mix(in srgb, var(--read-color) 14%, transparent); padding: 2px 10px; border-radius: 999px; margin-left: 4px; }
+.week-card__guide { display: inline-block; margin-top: 4px; font-size: 0.85rem; color: var(--text-muted); }
+.week-card__guide:hover { color: var(--secondary-color); }
+.week-card__actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.week-card__link {
+  display: inline-flex; align-items: center; min-height: 42px; padding: 8px 18px; border-radius: 999px;
+  background: var(--primary-color); color: #fff; font-weight: 700; text-decoration: none;
+}
+.week-card__link:hover { filter: brightness(1.15); }
+@media (prefers-color-scheme: dark) { .week-card__link { background: var(--secondary-color); } }
+.week-card.is-read { border-left-color: var(--read-color); }
+@media (min-width: 720px) {
+  .week-card { grid-template-columns: auto 1fr auto; }
+  .week-card__actions { grid-column: auto; }
+}
+
 /* Tarjetas de progreso */
 .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .stat-card {

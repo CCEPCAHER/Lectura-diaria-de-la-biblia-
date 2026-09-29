@@ -332,6 +332,19 @@
         </div>
       </section>
 
+      <section class="week-card" id="weeklyReadingCard" hidden aria-labelledby="weeklyEyebrow">
+        <span class="week-card__icon" aria-hidden="true">🗓️</span>
+        <div class="week-card__body">
+          <p class="week-card__eyebrow" id="weeklyEyebrow">Lectura de la semana · <span id="weeklyRange"></span></p>
+          <p class="week-card__reading"><span id="weeklyReadingText"></span> <span class="week-card__done" id="weeklyDoneBadge" hidden>✓ Leída</span></p>
+          <a class="week-card__guide" id="weeklyGuideLink" href="#" target="_blank" rel="noopener">Guía de actividades de esta semana</a>
+        </div>
+        <div class="week-card__actions">
+          <a class="week-card__link" id="weeklyReadingLink" href="#" target="_blank" rel="noopener">Ver lectura</a>
+          <button type="button" class="button-ghost" id="weeklyMarkButton">✓ Marcar como leída</button>
+        </div>
+      </section>
+
       <section class="stats-row" aria-label="Tu progreso">
         <div class="stat-card stat-card--progress">
           <div class="progress-ring" id="progressRing" aria-hidden="true"><span id="progressPercent">0%</span></div>

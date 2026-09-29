@@ -665,6 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStreakUI(streaks);
         renderProgressViews();
         publishSummary(streaks);
+        if (typeof renderWeeklyReading === 'function') renderWeeklyReading();
     }
 
     function updateBookProgress(bookName) {
@@ -1118,6 +1119,117 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ---- Lectura de la semana (reunión Vida y Ministerio) ----
+    const WEEKLY_CACHE_KEY = 'weeklyReading';
+    const weeklyEls = {
+        card: document.getElementById('weeklyReadingCard'),
+        range: document.getElementById('weeklyRange'),
+        text: document.getElementById('weeklyReadingText'),
+        badge: document.getElementById('weeklyDoneBadge'),
+        link: document.getElementById('weeklyReadingLink'),
+        guide: document.getElementById('weeklyGuideLink'),
+        mark: document.getElementById('weeklyMarkButton')
+    };
+    let weeklyReading = null; // { week, title, reading, guideUrl, parts: [{ book, start, end }] }
+
+    // Semana ISO (lunes a domingo), igual que la usa el servidor: "2026-40".
+    function isoWeekKey(d = new Date()) {
+        const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+        const week = Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / DAY_MS + 1) / 7);
+        return `${t.getUTCFullYear()}-${String(week).padStart(2, '0')}`;
+    }
+
+    const simplifyName = str => str.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+    // "JEREMÍAS 38, 39" · "JEREMÍAS 42-44" · "1 CRÓNICAS 1-4" · "ABDÍAS; JONÁS 1-4"
+    function parseWeeklyReading(raw) {
+        const parts = [];
+        String(raw || '').split(';').map(p => p.trim()).filter(Boolean).forEach(part => {
+            const m = part.match(/^((?:\d\s*)?[^\d]+?)\s*([\d][\d\s,\-–]*)?$/);
+            if (!m) return;
+            const book = normalizedBibleBooks.find(b => simplifyName(b.name) === simplifyName(m[1]));
+            if (!book) return;
+            const nums = m[2] ? m[2].match(/\d+/g).map(Number) : [1, book.chapters];
+            const start = Math.max(1, Math.min(...nums));
+            const end = Math.min(book.chapters, Math.max(...nums));
+            parts.push({ book: book.name, start, end });
+        });
+        return parts;
+    }
+
+    const formatReadingParts = parts => parts.map(p => `${p.book} ${p.start === p.end ? p.start : `${p.start}-${p.end}`}`).join(', ');
+
+    function weeklyReadingUrl(parts) {
+        const code = name => String(normalizedBibleBooks.findIndex(b => b.name === name) + 1).padStart(2, '0');
+        const first = parts[0], last = parts[parts.length - 1];
+        return `https://www.jw.org/finder?wtlocale=S&bible=${code(first.book)}${padChapterOrVerse(first.start)}001-${code(last.book)}${padChapterOrVerse(last.end)}999`;
+    }
+
+    function isWeeklyReadingDone(parts) {
+        return parts.every(p => {
+            for (let c = p.start; c <= p.end; c++) if (!readStatus[sanitizeKey(p.book, c)]) return false;
+            return true;
+        });
+    }
+
+    function renderWeeklyReading() {
+        if (!weeklyEls.card) return;
+        if (!weeklyReading || weeklyReading.parts.length === 0) { weeklyEls.card.hidden = true; return; }
+        const { parts, title, guideUrl } = weeklyReading;
+        const done = isWeeklyReadingDone(parts);
+        weeklyEls.card.hidden = false;
+        weeklyEls.range.textContent = title ? title.toLowerCase() : '';
+        weeklyEls.text.textContent = formatReadingParts(parts);
+        weeklyEls.link.href = weeklyReadingUrl(parts);
+        weeklyEls.guide.hidden = !guideUrl;
+        if (guideUrl) weeklyEls.guide.href = guideUrl;
+        weeklyEls.badge.hidden = !done;
+        weeklyEls.mark.hidden = done;
+        weeklyEls.card.classList.toggle('is-read', done);
+    }
+
+    function applyWeeklyReading(data) {
+        weeklyReading = data && data.reading ? { ...data, parts: parseWeeklyReading(data.reading) } : null;
+        renderWeeklyReading();
+    }
+
+    // Se pide al servidor una vez por semana; después se usa la copia guardada (también sin conexión).
+    async function loadWeeklyReading() {
+        const week = isoWeekKey();
+        let cached = null;
+        try { cached = JSON.parse(localStorage.getItem(WEEKLY_CACHE_KEY)); } catch (e) { cached = null; }
+        if (cached && cached.week === week) { applyWeeklyReading(cached); return; }
+        try {
+            const res = await fetch(`api/weekly.php?date=${localDateKey()}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            localStorage.setItem(WEEKLY_CACHE_KEY, JSON.stringify(data));
+            applyWeeklyReading(data);
+        } catch (e) {
+            console.warn('Lectura de la semana no disponible:', e);
+            applyWeeklyReading(null); // nunca mostrar la lectura de otra semana
+        }
+    }
+
+    if (weeklyEls.mark) {
+        weeklyEls.mark.addEventListener('click', () => {
+            if (!weeklyReading) return;
+            let marked = 0;
+            weeklyReading.parts.forEach(p => { marked += markChaptersForBook(p.book, p.start, p.end); });
+            if (marked > 0) {
+                saveState(); actualizarUltimaLectura(); updateOverallProgress(); updateAllThematicSectionsStatus();
+                announceChaptersRead(marked);
+            }
+            notify(`✅ ${formatReadingParts(weeklyReading.parts)} marcada como leída`, { type: 'success' });
+        });
+    }
+
+    // Al volver a la app (p. ej. el lunes siguiente) se comprueba si cambió la semana.
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && (!weeklyReading || weeklyReading.week !== isoWeekKey())) loadWeeklyReading();
+    });
+
     // sync.js llama a esto tras traer cambios de otro dispositivo.
     window.lecturaApp = {
         reload() {
@@ -1135,4 +1247,5 @@ document.addEventListener('DOMContentLoaded', () => {
     updateOverallProgress();
     updateAllThematicSectionsStatus(); 
     displayDailySuggestion(); 
+    loadWeeklyReading();
 });

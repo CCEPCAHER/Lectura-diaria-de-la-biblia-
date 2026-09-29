@@ -15,6 +15,7 @@ Funciona sin conexión. Se publica en **https://mylectura.mycongre.com/**.
 | `onboarding.js` | Vídeo de bienvenida animado (7 escenas, subtítulos y narración opcional) y configuración rápida; se repite en Menú → Acerca de |
 | `reminders.js` | Recordatorio diario: pide permiso y suscribe el dispositivo a las notificaciones push |
 | `api/push.php`, `api/webpush.php` | Suscripciones y envío Web Push (claves VAPID propias, sin servicios externos) |
+| `api/weekly.php` | Lectura bíblica de la semana (reunión Vida y Ministerio), tomada de wol.jw.org una vez por semana y guardada en `data/weekly/` |
 | `api/cron.php` | Envía los recordatorios a la hora elegida por cada persona (lo ejecuta un cron) |
 | `sw.js` | Modo sin conexión: red primero, caché como respaldo |
 | `api/collect.php`, `api/db.php` | Recibe las estadísticas y las guarda en SQLite (`data/lectura.sqlite`) |

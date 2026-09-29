@@ -32,7 +32,7 @@ if (-not $ftpHost -or -not $ftpUser -or -not $ftpPass) {
 $allFiles = @(
     ".htaccess", "index.html", "style.css", "pwa.js", "script.js", "stats.js", "reminders.js", "onboarding.js", "sync.js", "sw.js", "manifest.json",
     "icons/icon-192x192.png", "icons/icon-512x512.png",
-    "api/db.php", "api/collect.php", "api/webpush.php", "api/push.php", "api/cron.php", "api/sync.php",
+    "api/db.php", "api/collect.php", "api/webpush.php", "api/push.php", "api/cron.php", "api/sync.php", "api/weekly.php",
     "admin/index.php",
     "data/.htaccess"
 )
