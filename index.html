@@ -3,17 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Aplicación para seguir el progreso de lectura bíblica personal.">
+  <meta name="description" content="App gratuita para leer la Biblia completa en un año: lectura diaria sugerida, progreso por libro, rachas, metas temáticas y recordatorios. Funciona sin conexión.">
+  <meta name="theme-color" content="#0A2342">
 
-  <title>Mi Progreso Bíblico</title>
+  <title>Lectura diaria de la Biblia · Mi progreso bíblico</title>
+
+  <link rel="canonical" href="https://mylectura.mycongre.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mylectura.mycongre.com/">
+  <meta property="og:title" content="Lectura diaria de la Biblia">
+  <meta property="og:description" content="Lee la Biblia completa en un año. Gratis, sin registro y sin conexión.">
+  <meta property="og:image" content="https://mylectura.mycongre.com/icons/icon-512x512.png">
+  <meta property="og:locale" content="es_ES">
 
   <link rel="stylesheet" href="style.css">
 
   <link rel="manifest" href="manifest.json">
 
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Progreso Bíblico">
+  <meta name="apple-mobile-web-app-title" content="Lectura diaria">
 
   <link rel="icon" href="icons/icon-192x192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
@@ -144,6 +154,8 @@
   <button id="menuToggle" aria-label="Abrir menú de configuración" aria-expanded="false" aria-controls="sideMenu">
     &#9776; </button>
 
+  <button type="button" id="installAppButton" data-install-button hidden aria-label="Instalar la app">📲 Instalar</button>
+
   <aside id="sideMenu">
     <button id="closeMenu" aria-label="Cerrar menú">&times;</button>
     <nav>
@@ -154,6 +166,9 @@
         <li><a href="#thematic-reading-goals-menu">🏅 Metas Temáticas</a></li>
         <li><a href="#monthly-reading-view">📊 Progreso Mensual</a></li>
         <li><a href="#annual-reading-view">🗓️ Progreso Anual</a></li>
+        <li><a href="#backup-menu">💾 Copia de seguridad</a></li>
+        <li><a href="#install-menu">📲 Instalar la app</a></li>
+        <li><a href="#about-menu">ℹ️ Acerca de</a></li>
       </ul>
 
       <section id="theme-customizer-menu" class="menu-section">
@@ -213,6 +228,35 @@
           <p>Aquí se mostrará un resumen de tu progreso de lectura para el año actual y anteriores.</p>
           </div>
       </section>
+
+      <section id="backup-menu" class="menu-section">
+        <h2>Copia de seguridad</h2>
+        <p class="menu-note">Tu progreso se guarda solo en este navegador. Descarga una copia para no perderlo o para pasarlo a otro móvil.</p>
+        <div class="menu-section-actions">
+          <button type="button" id="exportBackupButton">Descargar copia</button>
+          <button type="button" id="importBackupButton" class="button-secondary">Restaurar copia</button>
+          <input type="file" id="importBackupInput" accept="application/json,.json" hidden>
+        </div>
+      </section>
+
+      <section id="install-menu" class="menu-section">
+        <h2>Instalar la app</h2>
+        <p class="menu-note" id="installStatusText">Instálala para abrirla desde tu pantalla de inicio.</p>
+        <div class="menu-section-actions">
+          <button type="button" data-install-button hidden>📲 Instalar ahora</button>
+        </div>
+      </section>
+
+      <section id="about-menu" class="menu-section">
+        <h2>Acerca de</h2>
+        <p class="menu-note">Esta app es <strong>gratuita</strong> y no necesita registro. Forma parte de las herramientas de <strong>mycongre.com</strong>.</p>
+        <p><a class="about-link" href="https://mycongre.com/" target="_blank" rel="noopener">Saber más en mycongre.com →</a></p>
+        <label class="stats-toggle">
+          <input type="checkbox" id="statsOptInToggle" checked>
+          <span>Enviar estadísticas anónimas de uso</span>
+        </label>
+        <p class="menu-note menu-note--small">Para mejorar la app se envía un identificador aleatorio de este dispositivo, cuándo la abres, cuánto tiempo la usas y cuántos capítulos marcas. Nunca tu nombre, correo ni IP. Tu progreso no sale de tu dispositivo.</p>
+      </section>
       </nav>
   </aside>
 
@@ -243,6 +287,9 @@
           <h3 class="suggestion-block__title">Estado del Plan</h3>
           <p class="daily-suggestion__delay-indicator">
             Días de retraso: <span id="daysDelayedText" aria-live="polite">0</span>
+          </p>
+          <p class="daily-suggestion__streak">
+            🔥 Racha: <span id="streakText">0</span> <span id="streakUnit">días</span>
           </p>
         </div>
       </div>
@@ -295,71 +342,13 @@
       </main>
 
     <footer>
-      <p>&copy; <span id="currentYearText"></span> FabricaDev</p>
+      <p>&copy; <span id="currentYearText"></span> FabricaDev · App gratuita</p>
+      <p class="footer-more"><a href="https://mycongre.com/" target="_blank" rel="noopener">Saber más en mycongre.com</a></p>
     </footer>
   </div>
 
+  <script src="./pwa.js" defer></script>
   <script src="./script.js" defer></script>
-
-  <script>
-    // Función para descargar ICS (se mantiene igual, parece correcta)
-    function downloadICS({ title, description, startDate, endDate, isAllDay = false }) {
-        function fmt(d, time = false) {
-            const year = d.getUTCFullYear();
-            const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-            const day = String(d.getUTCDate()).padStart(2, '0');
-            if (time) {
-                const hours = String(d.getUTCHours()).padStart(2, '0');
-                const minutes = String(d.getUTCMinutes()).padStart(2, '0');
-                const seconds = String(d.getUTCSeconds()).padStart(2, '0');
-                return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
-            }
-            return `${year}${month}${day}`;
-        }
-
-        const dtStamp = fmt(new Date(), true);
-        let dtStart, dtEnd;
-
-        if (isAllDay) {
-            dtStart = `DTSTART;VALUE=DATE:${fmt(startDate)}`;
-            // Para eventos de todo el día, DTEND suele ser el día siguiente al final real.
-            // Asumiendo que endDate ya está ajustado si es necesario (ej. es el día después del último día del evento)
-            dtEnd = `DTEND;VALUE=DATE:${fmt(endDate)}`;
-        } else {
-            dtStart = `DTSTART:${fmt(startDate, true)}`;
-            dtEnd = `DTEND:${fmt(endDate, true)}`;
-        }
-      
-        const lines = [
-            'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TuApp//LecturaDiaria//ES',
-            'BEGIN:VEVENT', `UID:${Date.now()}@tubiblia.app`, `DTSTAMP:${dtStamp}`,
-            dtStart, dtEnd, `SUMMARY:${title}`,
-            `DESCRIPTION:${description.replace(/\n/g, '\\n')}`, 'END:VEVENT', 'END:VCALENDAR'
-        ];
-        const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${title.replace(/[^\w\s.-]/gi, '').replace(/\s+/g, '_')}.ics`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-
-    // El script para el año ya se movió al primer bloque de script con DOMContentLoaded.
-  </script>
-
-  <script>
-    // Service Worker Registration
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker
-          .register('./sw.js')
-          .then(reg => console.log('Service Worker: Registrado con éxito. Scope:', reg.scope))
-          .catch(err => console.error('Service Worker: Error de Registro:', err));
-      });
-    }
-  </script>
+  <script src="./stats.js" defer></script>
 </body>
 </html>

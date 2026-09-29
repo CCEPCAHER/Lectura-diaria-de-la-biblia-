@@ -1,11 +1,16 @@
 {
+  "id": "./",
   "name": "Lectura diaria de la Biblia",
   "short_name": "Lectura diaria",
-  "description": "Aplicación para el seguimiento diario de la lectura bíblica.",
-  "start_url": ".",
+  "description": "App gratuita para leer la Biblia completa en un año y seguir tu progreso día a día. Funciona sin conexión.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2980b9",
+  "orientation": "portrait-primary",
+  "background_color": "#F0F4F8",
+  "theme_color": "#0A2342",
+  "categories": ["books", "education", "lifestyle"],
   "icons": [
     {
       "src": "icons/icon-192x192.png",

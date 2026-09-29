@@ -690,3 +690,91 @@ footer {
   #sideMenu .thematic-section-title { font-size: var(--font-size-base); }
   #sideMenu .thematic-section-award { font-size: 1.8rem; } 
 }
+
+/* --- Racha --- */
+.daily-suggestion__streak {
+  text-align: center;
+  margin: var(--spacing) 0 auto;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-color);
+  cursor: help;
+}
+.suggestion-block--status .daily-suggestion__delay-indicator { margin: auto 0 0; }
+#streakText { font-weight: var(--font-weight-semibold); color: var(--primary-color); }
+
+/* --- Progreso mensual y anual --- */
+.period-row { margin-bottom: calc(var(--spacing) * 1.25); }
+.period-row__head {
+  display: flex; justify-content: space-between; gap: var(--spacing);
+  font-size: 0.9rem; margin-bottom: calc(var(--spacing) * 0.5);
+}
+.period-row__label { font-weight: var(--font-weight-semibold); color: var(--primary-color); }
+.period-row__value { color: var(--text-light-color); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.period-row__track { height: 10px; background: var(--unread-color); border-radius: 5px; overflow: hidden; }
+.period-row__bar { height: 100%; min-width: 2px; background: var(--read-color); border-radius: 5px; transition: width var(--transition-duration-medium) ease-in-out; }
+.period-empty { font-size: 0.9rem; color: var(--text-light-color); margin-top: var(--spacing); }
+
+/* --- Secciones nuevas del menú --- */
+.menu-note { font-size: 0.9rem; color: var(--text-color); margin-bottom: var(--spacing); }
+.menu-note--small { font-size: 0.8rem; color: var(--text-light-color); }
+.menu-section-actions { display: flex; flex-direction: column; gap: var(--spacing); }
+.menu-section-actions button { width: 100%; margin: 0; }
+.button-secondary { background: var(--card-background-color); color: var(--secondary-color); border: 2px solid var(--secondary-color); }
+.button-secondary:hover { color: #fff; }
+.about-link { color: var(--secondary-color); font-weight: var(--font-weight-semibold); text-decoration: none; }
+.about-link:hover, .about-link:focus { text-decoration: underline; }
+.stats-toggle { display: flex; align-items: center; gap: var(--spacing); margin: calc(var(--spacing) * 1.5) 0 calc(var(--spacing) * 0.5); font-size: 0.9rem; cursor: pointer; }
+.stats-toggle input { width: 18px; height: 18px; accent-color: var(--secondary-color); }
+
+/* --- Botón de instalar --- */
+#installAppButton {
+  position: fixed;
+  top: calc(var(--spacing) * 1.5);
+  right: calc(var(--spacing) * 1.5);
+  z-index: 999;
+  margin: 0;
+  background: var(--primary-color);
+  color: #fff;
+  font-size: 0.9rem;
+  box-shadow: var(--box-shadow-sm);
+}
+#installAppButton[hidden], [data-install-button][hidden] { display: none; }
+
+/* --- Pie --- */
+.footer-more { margin-top: calc(var(--spacing) * 0.5); }
+.footer-more a { color: var(--text-light-color); text-decoration: none; border-bottom: 1px dotted currentColor; }
+.footer-more a:hover, .footer-more a:focus { color: var(--secondary-color); }
+
+/* --- Avisos (toasts) --- */
+#toastContainer {
+  position: fixed; left: 50%; bottom: calc(var(--spacing) * 2); transform: translateX(-50%);
+  z-index: 2000; display: flex; flex-direction: column; gap: var(--spacing);
+  width: min(92vw, 420px); pointer-events: none;
+}
+.toast {
+  pointer-events: auto; cursor: pointer;
+  background: var(--primary-color); color: #fff;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  border-radius: var(--border-radius); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  font-size: 0.95rem; line-height: 1.4; white-space: pre-line;
+  animation: toastIn 0.25s ease-out;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.toast--success { border-left: 5px solid var(--read-color); }
+.toast--error { border-left: 5px solid var(--danger-color); }
+.toast--info { border-left: 5px solid var(--accent-color); }
+.toast--leaving { opacity: 0; transform: translateY(8px); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 700px) {
+  /* En móvil el botón flota abajo a la derecha para no tapar el título */
+  #installAppButton {
+    top: auto; bottom: calc(var(--spacing) * 2); right: calc(var(--spacing) * 2);
+    padding: calc(var(--spacing) * 1.25) calc(var(--spacing) * 2);
+    border-radius: 999px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+  #toastContainer { bottom: calc(var(--spacing) * 9); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

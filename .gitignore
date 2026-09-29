@@ -1,0 +1,4 @@
+# Datos del servidor (estadísticas y contraseña del panel)
+data/*
+!data/.htaccess
+.claude/

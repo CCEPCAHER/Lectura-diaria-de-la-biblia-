@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         createStdPlanEntry("Mateo", 21, 23), createStdPlanEntry("Mateo", 24, 25), createSpecialPlanEntry("Mateo", 26, "Mateo 26"),
         createStdPlanEntry("Mateo", 27, 28),
         createStdPlanEntry("Marcos", 1, 3), createStdPlanEntry("Marcos", 4, 5), createStdPlanEntry("Marcos", 6, 8),
-        createStdPlanEntry("Marcos", 9, 10), createStdPlanEntry("Marcos", 11, 13), createStdPlanEntry("Marcos", 15, 16),
+        createStdPlanEntry("Marcos", 9, 10), createStdPlanEntry("Marcos", 11, 13), createStdPlanEntry("Marcos", 14, 16),
         createStdPlanEntry("Lucas", 1, 2), createStdPlanEntry("Lucas", 3, 5), createStdPlanEntry("Lucas", 6, 7),
         createStdPlanEntry("Lucas", 8, 9), createStdPlanEntry("Lucas", 10, 11), createStdPlanEntry("Lucas", 12, 13),
         createStdPlanEntry("Lucas", 14, 17), createStdPlanEntry("Lucas", 18, 19), createStdPlanEntry("Lucas", 20, 22),
@@ -241,7 +241,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateYearCalendarButton = document.getElementById('generateYearCalendarButton');
 
 
+    const monthlyProgressContainer = document.getElementById('monthlyProgressContainer');
+    const annualProgressContainer = document.getElementById('annualProgressContainer');
+    const streakTextEl = document.getElementById('streakText');
+    const exportBackupButton = document.getElementById('exportBackupButton');
+    const importBackupButton = document.getElementById('importBackupButton');
+    const importBackupInput = document.getElementById('importBackupInput');
+
     let readStatus = {};
+    let readDates = {}; // clave de capítulo -> 'AAAA-MM-DD' (fecha local en que se marcó)
     let awardedSectionsStatus = {};
     let newlyAwardedSections = new Set();
     window.currentSuggestedReading = null;
@@ -262,9 +270,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function sanitizeKey(bookName, chapterNum) { return `key_${bookName.replace(/\s/g, '_')}_${chapterNum}`; }
 
+    const DAY_MS = 1000 * 3600 * 24;
+    function localDateKey(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+    // Hoy (según el reloj local del dispositivo) representado como medianoche UTC, igual que planStartDate.
+    function todayAsUTCDate() { const now = new Date(); return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())); }
+    function utcDateKey(ms) { return new Date(ms).toISOString().slice(0, 10); }
+
+    function setChapterRead(key, isRead) {
+        if (isRead) { readStatus[key] = true; readDates[key] = localDateKey(); }
+        else { delete readStatus[key]; delete readDates[key]; }
+    }
+
     function loadState() {
         const savedReadStatus = localStorage.getItem('bibleReadStatus');
         if (savedReadStatus) { try { readStatus = JSON.parse(savedReadStatus); } catch (e) { console.error("Error parsing bibleReadStatus:", e); readStatus = {}; } }
+        const savedReadDates = localStorage.getItem('bibleReadDates');
+        if (savedReadDates) { try { readDates = JSON.parse(savedReadDates); } catch (e) { console.error("Error parsing bibleReadDates:", e); readDates = {}; } }
 
         const savedPlanStartDate = localStorage.getItem('planStartDate');
         if (savedPlanStartDate && planStartDateInput) {
@@ -289,7 +310,118 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function saveState() {
         localStorage.setItem('bibleReadStatus', JSON.stringify(readStatus));
+        localStorage.setItem('bibleReadDates', JSON.stringify(readDates));
         localStorage.setItem('awardedSectionsStatus', JSON.stringify(awardedSectionsStatus));
+    }
+
+    function computeStreaks() {
+        const days = new Set(Object.entries(readDates).filter(([key]) => readStatus[key]).map(([, day]) => day));
+        if (days.size === 0) return { current: 0, best: 0 };
+        let best = 0, run = 0, prev = null;
+        [...days].sort().forEach(day => {
+            const t = Date.parse(day + 'T00:00:00Z');
+            run = (prev !== null && t - prev === DAY_MS) ? run + 1 : 1;
+            best = Math.max(best, run);
+            prev = t;
+        });
+        // La racha sigue viva si hoy o ayer hubo lectura.
+        const today = todayAsUTCDate().getTime();
+        let t = days.has(utcDateKey(today)) ? today : today - DAY_MS;
+        let current = 0;
+        while (days.has(utcDateKey(t))) { current++; t -= DAY_MS; }
+        return { current, best };
+    }
+
+    function updateStreakUI(streaks) {
+        if (!streakTextEl) return;
+        streakTextEl.textContent = streaks.current;
+        const unitEl = document.getElementById('streakUnit');
+        if (unitEl) unitEl.textContent = streaks.current === 1 ? 'día' : 'días';
+        const block = streakTextEl.closest('.daily-suggestion__streak');
+        if (block) block.title = `Mejor racha: ${streaks.best} día(s)`;
+    }
+
+    function renderPeriodRows(container, rows, emptyText) {
+        container.innerHTML = '';
+        if (rows.length === 0) {
+            const p = document.createElement('p'); p.className = 'period-empty'; p.textContent = emptyText; container.appendChild(p); return;
+        }
+        const max = Math.max(1, ...rows.map(r => r.value));
+        rows.forEach(r => {
+            const row = document.createElement('div'); row.className = 'period-row';
+            const head = document.createElement('div'); head.className = 'period-row__head';
+            const label = document.createElement('span'); label.className = 'period-row__label'; label.textContent = r.label;
+            const value = document.createElement('span'); value.className = 'period-row__value'; value.textContent = r.detail;
+            head.append(label, value);
+            const track = document.createElement('div'); track.className = 'period-row__track';
+            const bar = document.createElement('div'); bar.className = 'period-row__bar'; bar.style.width = `${Math.round((r.value / max) * 100)}%`;
+            track.appendChild(bar);
+            row.append(head, track);
+            container.appendChild(row);
+        });
+    }
+
+    function renderProgressViews() {
+        const byMonth = {}, byYear = {}, daysByMonth = {};
+        let dated = 0;
+        Object.entries(readDates).forEach(([key, day]) => {
+            if (!readStatus[key] || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
+            dated++;
+            const month = day.slice(0, 7), year = day.slice(0, 4);
+            byMonth[month] = (byMonth[month] || 0) + 1;
+            byYear[year] = (byYear[year] || 0) + 1;
+            (daysByMonth[month] = daysByMonth[month] || new Set()).add(day);
+        });
+        const readCount = Object.values(readStatus).filter(v => v === true).length;
+        const undated = readCount - dated;
+        const now = new Date();
+
+        if (monthlyProgressContainer) {
+            const rows = [];
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                const chapters = byMonth[key] || 0;
+                const days = daysByMonth[key] ? daysByMonth[key].size : 0;
+                if (i > 0 && chapters === 0) continue;
+                const monthName = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+                const daysOf = i === 0 ? ` de ${now.getDate()}` : '';
+                rows.push({ label: monthName.charAt(0).toUpperCase() + monthName.slice(1), value: chapters, detail: `${chapters} cap. · ${days}${daysOf} días` });
+            }
+            renderPeriodRows(monthlyProgressContainer, rows, 'Aún no hay lecturas registradas este mes.');
+        }
+
+        if (annualProgressContainer) {
+            const currentYear = String(now.getFullYear());
+            const years = new Set([currentYear, ...Object.keys(byYear)]);
+            const rows = [...years].sort().reverse().map(year => {
+                const chapters = byYear[year] || 0;
+                const percent = Math.round((chapters / totalBibleChapters) * 100);
+                return { label: year, value: chapters, detail: `${chapters} cap. · ${percent}% de la Biblia` };
+            });
+            renderPeriodRows(annualProgressContainer, rows, 'Aún no hay lecturas registradas.');
+            if (undated > 0) {
+                const note = document.createElement('p'); note.className = 'period-empty';
+                note.textContent = `${undated} capítulo(s) marcados antes de que la app guardara fechas no aparecen aquí.`;
+                annualProgressContainer.appendChild(note);
+            }
+        }
+    }
+
+    // Comunica un resumen del progreso (sin datos personales) a stats.js.
+    function publishSummary(streaks) {
+        const readCount = Object.values(readStatus).filter(v => v === true).length;
+        document.dispatchEvent(new CustomEvent('lectura:summary', { detail: {
+            chapters: readCount,
+            plan: localStorage.getItem('planStartDate') ? 1 : 0,
+            delay: calculateEffectiveDelay(),
+            streak: streaks.current,
+            awards: Object.values(awardedSectionsStatus).filter(v => v === true).length
+        } }));
+    }
+
+    function announceChaptersRead(count) {
+        if (count > 0) document.dispatchEvent(new CustomEvent('lectura:read', { detail: { count } }));
     }
 
     function checkThematicSectionCompletion(sectionId) {
@@ -317,9 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 awardedSectionsStatus[section.id] = true;
                 stateChanged = true;
                 newlyAwardedSections.add(section.id);
-                setTimeout(() => { 
-                    alert(`🎉 ¡Felicidades! 🎉\n\nHas completado la sección: "${section.title}"\n\n¡Has ganado el premio ${section.awardEmoji}!`);
-                }, 100);
+                notify(`🎉 ¡Felicidades! Has completado "${section.title}" y ganado el premio ${section.awardEmoji}`, { type: 'success', duration: 7000 });
             } else if (!isCompleted && wasPreviouslyAwarded) {
                 awardedSectionsStatus[section.id] = false;
                 stateChanged = true;
@@ -406,8 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!planStartDateString) return 0;
         let planStartDate;
         try { planStartDate = new Date(planStartDateString + "T00:00:00Z"); if (isNaN(planStartDate.getTime())) return 0; } catch (e) { return 0; }
-        const now = new Date();
-        const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+        const todayUTC = todayAsUTCDate();
         if (todayUTC < planStartDate) return 0;
         const elapsedDaysSinceStart = Math.floor((todayUTC.getTime() - planStartDate.getTime()) / (1000 * 3600 * 24));
         let actualDelay = 0;
@@ -423,7 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayDailySuggestion() {
-        if (currentDateTextEl) currentDateTextEl.textContent = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Madrid' });
+        if (currentDateTextEl) currentDateTextEl.textContent = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
         const planStartDateString = localStorage.getItem('planStartDate');
         if (dailySuggestionMainTextEl) dailySuggestionMainTextEl.innerHTML = ''; 
         if (dailySuggestionOnlineLinkEl) dailySuggestionOnlineLinkEl.style.display = 'none';
@@ -441,8 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dailySuggestionMainTextEl) dailySuggestionMainTextEl.textContent = "Error en la fecha de inicio guardada. Por favor, reestablécela.";
             localStorage.removeItem('planStartDate'); window.dayDiff = 0; actualizarInterfazDiasRetraso(); return;
         }
-        const now = new Date();
-        const todayDateUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+        const todayDateUTC = todayAsUTCDate();
         window.todayUTC = todayDateUTC;
         const elapsedDaysSinceStart = Math.floor((todayDateUTC.getTime() - planStartDate.getTime()) / (1000 * 3600 * 24));
         if (elapsedDaysSinceStart < 0) {
@@ -504,6 +632,10 @@ document.addEventListener('DOMContentLoaded', () => {
             progressBar.setAttribute('aria-valuenow', readCount);
         }
         if (progressTextEl) progressTextEl.textContent = `${percent}% completado (${readCount} de ${totalBibleChapters} capítulos)`;
+        const streaks = computeStreaks();
+        updateStreakUI(streaks);
+        renderProgressViews();
+        publishSummary(streaks);
     }
 
     function updateBookProgress(bookName) {
@@ -521,8 +653,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function toggleChapterRead(bookName, chapterNum) {
         const key = sanitizeKey(bookName, chapterNum);
-        readStatus[key] = !readStatus[key];
-        if (readStatus[key]) actualizarUltimaLectura(); else displayDailySuggestion();
+        const nowRead = !readStatus[key];
+        setChapterRead(key, nowRead);
+        if (nowRead) { actualizarUltimaLectura(); announceChaptersRead(1); } else displayDailySuggestion();
         updateChapterButtonUI(bookName, chapterNum);
         saveState();
         updateOverallProgress();
@@ -674,44 +807,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (setPlanStartDateButton && planStartDateInput) {
         setPlanStartDateButton.addEventListener('click', () => {
             const dateValue = planStartDateInput.value;
-            if (!dateValue || !dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) { alert("Por favor, introduce una fecha válida en formato AAAA-MM-DD."); return; }
-            localStorage.setItem('planStartDate', dateValue); loadState(); displayDailySuggestion(); alert("Fecha de inicio del plan establecida correctamente.");
+            if (!dateValue || !dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) { notify("Por favor, introduce una fecha válida en formato AAAA-MM-DD."); return; }
+            localStorage.setItem('planStartDate', dateValue); loadState(); displayDailySuggestion(); notify("Fecha de inicio del plan establecida correctamente.");
         });
     }
 
     if (syncPlanButton && syncReadingSelect && planStartDateInput) {
         syncPlanButton.addEventListener('click', () => {
             const selectedReadingIndex = parseInt(syncReadingSelect.value);
-            if (isNaN(selectedReadingIndex) || selectedReadingIndex < 0 || selectedReadingIndex >= dailyReadingPlan.length) { alert("Por favor, selecciona una lectura válida del plan para sincronizar."); return; }
+            if (isNaN(selectedReadingIndex) || selectedReadingIndex < 0 || selectedReadingIndex >= dailyReadingPlan.length) { notify("Por favor, selecciona una lectura válida del plan para sincronizar."); return; }
             const today = new Date();
-            const todayUTC = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+            const todayUTC = todayAsUTCDate();
             const newStartDateUTC = new Date(todayUTC);
             newStartDateUTC.setUTCDate(todayUTC.getUTCDate() - selectedReadingIndex);
             const newStartDateString = newStartDateUTC.toISOString().split('T')[0];
             localStorage.setItem('planStartDate', newStartDateString);
             if (planStartDateInput) planStartDateInput.value = newStartDateString; 
-            loadState(); displayDailySuggestion(); alert(`Plan sincronizado. Hoy (${today.toLocaleDateString()}) es el Día ${selectedReadingIndex + 1} del plan.`);
+            loadState(); displayDailySuggestion(); notify(`Plan sincronizado. Hoy (${today.toLocaleDateString()}) es el Día ${selectedReadingIndex + 1} del plan.`);
         });
     }
 
     function markChaptersForBook(bookName, startChapter, endChapter) {
-        let chaptersChanged = false;
+        let chaptersMarked = 0;
         const bookData = normalizedBibleBooks.find(b => b.name === bookName);
-        if (!bookData) { console.warn(`Libro "${bookName}" no encontrado al intentar marcar capítulos.`); return false; }
+        if (!bookData) { console.warn(`Libro "${bookName}" no encontrado al intentar marcar capítulos.`); return 0; }
         for (let i = startChapter; i <= endChapter; i++) {
             if (i >= 1 && i <= bookData.chapters) {
                 const key = sanitizeKey(bookName, i);
-                if (!readStatus[key]) { readStatus[key] = true; updateChapterButtonUI(bookName, i); chaptersChanged = true; }
+                if (!readStatus[key]) { setChapterRead(key, true); updateChapterButtonUI(bookName, i); chaptersMarked++; }
             } else { console.warn(`Capítulo ${i} fuera de rango para el libro ${bookName}.`); }
         }
-        if (chaptersChanged) updateBookProgress(bookName);
-        return chaptersChanged;
+        if (chaptersMarked) updateBookProgress(bookName);
+        return chaptersMarked;
     }
 
     if (markSuggestedAsReadButtonEl) {
         markSuggestedAsReadButtonEl.addEventListener('click', () => {
-            if (!window.currentSuggestedReading) { alert("No hay sugerencia de lectura actual para marcar."); return; }
-            let overallChange = false; const { displayText } = window.currentSuggestedReading;
+            if (!window.currentSuggestedReading) { notify("No hay sugerencia de lectura actual para marcar."); return; }
+            let markedCount = 0; const { displayText } = window.currentSuggestedReading;
             const readingParts = displayText.split(',').map(part => part.trim());
             const regex = /([\w\s\dÁÉÍÓÚáéíóúÑñ]+?)\s*(\d+)(?:-(\d+))?(?:\s*\(.*v\.\s*\d+(?:-\d+)?\))?/;
             readingParts.forEach(partStr => {
@@ -719,21 +852,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (match) {
                     const bookName = match[1].trim(); const startChapter = parseInt(match[2]); const endChapter = match[3] ? parseInt(match[3]) : startChapter;
                     const actualBook = normalizedBibleBooks.find(b => b.name === bookName);
-                    if (actualBook) { if (markChaptersForBook(actualBook.name, startChapter, endChapter)) overallChange = true; }
+                    if (actualBook) { markedCount += markChaptersForBook(actualBook.name, startChapter, endChapter); }
                     else { console.warn(`Libro "${bookName}" no encontrado al procesar: "${partStr}"`); }
                 } else {
                     if (window.currentSuggestedReading.book && window.currentSuggestedReading.startChapter && window.currentSuggestedReading.endChapter) {
                         const bookNameFallback = window.currentSuggestedReading.book.match(/([\w\s\dÁÉÍÓÚáéíóúÑñ]+)/);
                         if (bookNameFallback) {
                             const actualBookFallback = normalizedBibleBooks.find(b => b.name === bookNameFallback[1].trim());
-                            if (actualBookFallback) { if(markChaptersForBook(actualBookFallback.name, window.currentSuggestedReading.startChapter, window.currentSuggestedReading.endChapter)) overallChange = true; }
+                            if (actualBookFallback) { markedCount += markChaptersForBook(actualBookFallback.name, window.currentSuggestedReading.startChapter, window.currentSuggestedReading.endChapter); }
                             else console.warn(`Libro (fallback) "${bookNameFallback[1].trim()}" no hallado.`);
                         } else console.warn(`Formato de libro (fallback) no reconocido: "${window.currentSuggestedReading.book}"`);
                     } else console.warn(`Formato de lectura no reconocido para marcar: "${partStr}" y no hay fallback.`);
                 }
             });
-            if (overallChange) { saveState(); updateOverallProgress(); updateAllThematicSectionsStatus(); actualizarUltimaLectura(); }
-            else { alert(`Los capítulos de la lectura sugerida "${displayText}" ya estaban marcados.`); actualizarUltimaLectura(); }
+            if (markedCount > 0) {
+                saveState(); actualizarUltimaLectura(); updateOverallProgress(); updateAllThematicSectionsStatus();
+                announceChaptersRead(markedCount);
+                notify(`✅ ${displayText} marcado como leído`, { type: 'success' });
+            }
+            else { notify(`Los capítulos de la lectura sugerida "${displayText}" ya estaban marcados.`); actualizarUltimaLectura(); }
         });
     }
     
@@ -749,14 +886,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const calHeader = [
             "BEGIN:VCALENDAR",
             "VERSION:2.0",
-            "PRODID:-//TuApp//PlanBiblicoNONSGML v1.0//ES", // Puedes personalizar esto
+            "PRODID:-//mycongre.com//Lectura diaria de la Biblia//ES",
             "CALSCALE:GREGORIAN"
         ];
         const calFooter = ["END:VCALENDAR"];
         let eventStrings = [];
 
         events.forEach(event => {
-            const uid = `planbiblico-${Date.now()}-${Math.random().toString(36).substring(2, 15)}@ejemplo.com`;
+            const uid = `planbiblico-${Date.now()}-${Math.random().toString(36).substring(2, 15)}@mylectura.mycongre.com`;
             const dtstamp = new Date().toISOString().replace(/[-:.]/g, "").substring(0, 15) + "Z";
             
             // Formato YYYYMMDD para fechas de día completo
@@ -810,7 +947,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateCalendarEventsForPeriod(numberOfDays, filenameSuffix) {
         const planStartDateString = localStorage.getItem('planStartDate');
         if (!planStartDateString) {
-            alert("Por favor, establece primero una fecha de inicio para el plan de lectura.");
+            notify("Por favor, establece primero una fecha de inicio para el plan de lectura.");
             return;
         }
 
@@ -820,7 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
             baseStartDate = new Date(planStartDateString + 'T00:00:00Z');
             if (isNaN(baseStartDate.getTime())) throw new Error("Fecha inválida");
         } catch (e) {
-            alert("La fecha de inicio del plan guardada no es válida. Por favor, reestablécela.");
+            notify("La fecha de inicio del plan guardada no es válida. Por favor, reestablécela.");
             return;
         }
 
@@ -846,14 +983,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const filename = `PlanLecturaBiblica_${filenameSuffix}.ics`;
             downloadICS(eventsForCalendar, filename);
         } else {
-            alert("No hay lecturas en el plan para generar el calendario o la duración solicitada es cero.");
+            notify("No hay lecturas en el plan para generar el calendario o la duración solicitada es cero.");
         }
     }
 
 
     if (addToCalendarButtonEl) {
         addToCalendarButtonEl.onclick = () => { 
-            if (!window.currentSuggestedReading || !window.todayUTC) { alert("No hay sugerencia de lectura o fecha para agregar al calendario."); return; }
+            if (!window.currentSuggestedReading || !window.todayUTC) { notify("No hay sugerencia de lectura o fecha para agregar al calendario."); return; }
             // La función downloadICS ahora maneja la generación y descarga
             const title = `Lectura Bíblica Día ${window.dayOfPlan}: ${window.currentSuggestedReading.displayText}`;
             const description = `Leer según el plan: ${window.currentSuggestedReading.displayText}. Enlace: ${window.currentSuggestedReading.url || 'N/A'}`;
@@ -885,8 +1022,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (resetProgressButton) {
         resetProgressButton.addEventListener('click', () => {
             if (!confirm('¿Estás seguro de que quieres reiniciar todo tu progreso, incluyendo la fecha de inicio del plan y las secciones temáticas? Esta acción no se puede deshacer.')) return;
-            readStatus = {}; awardedSectionsStatus = {}; newlyAwardedSections.clear();
-            localStorage.removeItem('bibleReadStatus'); localStorage.removeItem('awardedSectionsStatus');
+            readStatus = {}; readDates = {}; awardedSectionsStatus = {}; newlyAwardedSections.clear();
+            localStorage.removeItem('bibleReadStatus'); localStorage.removeItem('bibleReadDates'); localStorage.removeItem('awardedSectionsStatus');
             localStorage.removeItem('planStartDate'); localStorage.removeItem('lastReadingDate');
             if (planStartDateInput) planStartDateInput.value = "";
             if (currentPlanStartDateTextEl) currentPlanStartDateTextEl.textContent = "Aún no has establecido una fecha de inicio para tu plan.";
@@ -895,7 +1032,43 @@ document.addEventListener('DOMContentLoaded', () => {
             updateOverallProgress(); updateAllThematicSectionsStatus(); 
             window.currentSuggestedReading = null; window.dayDiff = 0; window.dayOfPlan = 0;
             displayDailySuggestion(); 
-            alert("Todo el progreso, la fecha de inicio del plan y los premios han sido reiniciados.");
+            notify("Todo el progreso, la fecha de inicio del plan y los premios han sido reiniciados.");
+        });
+    }
+
+    // Copia de seguridad: el progreso vive solo en este navegador, así que permitimos exportarlo e importarlo.
+    const BACKUP_KEYS = ['bibleReadStatus', 'bibleReadDates', 'awardedSectionsStatus', 'planStartDate', 'lastReadingDate', 'theme-primary', 'theme-accent'];
+
+    if (exportBackupButton) {
+        exportBackupButton.addEventListener('click', () => {
+            const data = {};
+            BACKUP_KEYS.forEach(k => { const v = localStorage.getItem(k); if (v !== null) data[k] = v; });
+            const backup = { app: 'lectura-diaria', version: 1, exportedAt: new Date().toISOString(), data };
+            downloadFile(`lectura-diaria-copia-${localDateKey()}.json`, JSON.stringify(backup, null, 2), 'application/json');
+            notify('Copia descargada. Guárdala en un lugar seguro.', { type: 'success' });
+        });
+    }
+
+    if (importBackupButton && importBackupInput) {
+        importBackupButton.addEventListener('click', () => importBackupInput.click());
+        importBackupInput.addEventListener('change', async () => {
+            const file = importBackupInput.files && importBackupInput.files[0];
+            importBackupInput.value = '';
+            if (!file) return;
+            try {
+                const backup = JSON.parse(await file.text());
+                if (!backup || backup.app !== 'lectura-diaria' || typeof backup.data !== 'object') throw new Error('Formato no válido');
+                if (!confirm('¿Restaurar esta copia? Se reemplazará el progreso actual de este dispositivo.')) return;
+                BACKUP_KEYS.forEach(k => {
+                    const v = backup.data[k];
+                    if (typeof v === 'string') localStorage.setItem(k, v); else localStorage.removeItem(k);
+                });
+                notify('Copia restaurada. Recargando…', { type: 'success' });
+                setTimeout(() => location.reload(), 800);
+            } catch (e) {
+                console.error('Error al importar copia:', e);
+                notify('No se pudo leer el archivo. Asegúrate de que es una copia de esta app.', { type: 'error' });
+            }
         });
     }
 
