@@ -782,3 +782,44 @@ footer {
 /* El atributo hidden siempre oculta, aunque el elemento tenga un display propio */
 [hidden] { display: none !important; }
 .stats-toggle input:disabled + span { color: var(--text-light-color); }
+
+/* --- Tutorial de bienvenida --- */
+.onboarding {
+  width: min(calc(100% - 32px), 420px);
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 3) calc(var(--spacing) * 2);
+  border: none;
+  border-radius: calc(var(--border-radius) * 1.6);
+  background: var(--card-background-color);
+  color: var(--text-color);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
+}
+.onboarding[open] { animation: onboardingIn 0.25s ease-out; }
+.onboarding::backdrop { background: rgba(10, 35, 66, 0.55); backdrop-filter: blur(2px); }
+@keyframes onboardingIn { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
+.onboarding__step { text-align: center; min-height: 290px; display: flex; flex-direction: column; align-items: center; gap: var(--spacing); }
+.onboarding__icon { font-size: 3.25rem; line-height: 1; margin: var(--spacing) 0; }
+.onboarding__step h2 { border: none; margin: 0; padding: 0; font-size: 1.5rem; outline: none; }
+.onboarding__step p { font-size: 1rem; line-height: 1.5; }
+.onboarding__step p.onboarding__small { font-size: 0.85rem; color: var(--text-light-color); }
+.onboarding__label { font-weight: var(--font-weight-semibold); color: var(--primary-color); margin-top: var(--spacing); }
+.onboarding__input {
+  width: 100%; max-width: 240px; padding: var(--spacing); font-size: 1.05rem; text-align: center;
+  border: 1px solid var(--border-color); border-radius: var(--border-radius);
+}
+.onboarding__list { text-align: left; padding-left: calc(var(--spacing) * 2.5); display: grid; gap: var(--spacing); margin-top: var(--spacing); }
+.onboarding__action { margin-top: var(--spacing); padding: var(--spacing) calc(var(--spacing) * 2.5); }
+.onboarding__action:disabled { background: var(--read-color); cursor: default; }
+.onboarding__skip {
+  position: absolute; top: var(--spacing); right: var(--spacing); margin: 0;
+  background: none; color: var(--text-light-color); font-size: 0.9rem; padding: calc(var(--spacing) * 0.5) var(--spacing);
+}
+.onboarding__skip:hover { background: var(--background-color); color: var(--text-color); }
+.onboarding__footer { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing); margin-top: calc(var(--spacing) * 2); }
+.onboarding__dots { display: flex; gap: 6px; }
+.onboarding__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--unread-color); transition: width 0.2s, background 0.2s; }
+.onboarding__dot.is-active { width: 22px; border-radius: 4px; background: var(--secondary-color); }
+.onboarding__buttons { display: flex; gap: var(--spacing); }
+.onboarding__buttons button { margin: 0; }

@@ -268,6 +268,9 @@
         <h2>Acerca de</h2>
         <p class="menu-note">Esta app es <strong>gratuita</strong> y no necesita registro. Forma parte de las herramientas de <strong>mycongre.com</strong>.</p>
         <p><a class="about-link" href="https://mycongre.com/" target="_blank" rel="noopener">Saber más en mycongre.com →</a></p>
+        <div class="menu-section-actions">
+          <button type="button" id="replayTutorialButton" class="button-secondary">Ver el tutorial</button>
+        </div>
         <label class="stats-toggle">
           <input type="checkbox" id="statsOptInToggle" checked>
           <span>Enviar estadísticas anónimas de uso</span>
@@ -365,9 +368,67 @@
     </footer>
   </div>
 
+  <dialog id="onboarding" class="onboarding" aria-labelledby="onboardingWelcomeTitle">
+    <button type="button" class="onboarding__skip" id="onboardingSkip">Saltar</button>
+
+    <section class="onboarding__step" data-step="welcome">
+      <div class="onboarding__icon" aria-hidden="true">📖</div>
+      <h2 id="onboardingWelcomeTitle" tabindex="-1">¡Bienvenido!</h2>
+      <p>Lee la Biblia completa en un año con una lectura corta cada día.</p>
+      <p class="onboarding__small">Es gratis, sin registro y funciona sin conexión.</p>
+    </section>
+
+    <section class="onboarding__step" data-step="start" hidden>
+      <div class="onboarding__icon" aria-hidden="true">📅</div>
+      <h2 tabindex="-1">¿Cuándo empiezas?</h2>
+      <p>El plan tiene 365 lecturas. Cada día te diremos cuál toca.</p>
+      <label class="onboarding__label" for="onboardingStartDate">Fecha de inicio</label>
+      <input type="date" id="onboardingStartDate" class="onboarding__input">
+      <p class="onboarding__small">Puedes cambiarla cuando quieras en «Gestionar Plan de Lectura».</p>
+    </section>
+
+    <section class="onboarding__step" data-step="how" hidden>
+      <div class="onboarding__icon" aria-hidden="true">✅</div>
+      <h2 tabindex="-1">Así se usa</h2>
+      <ol class="onboarding__list">
+        <li><strong>Ver lectura online</strong> abre el texto de hoy en jw.org.</li>
+        <li>Al terminar, pulsa <strong>Marcar como leído</strong>.</li>
+        <li>También puedes marcar capítulos sueltos tocando su número en cada libro.</li>
+        <li>Lee cada día para mantener tu 🔥 racha y ganar premios por temas.</li>
+      </ol>
+    </section>
+
+    <section class="onboarding__step" data-step="reminder" hidden>
+      <div class="onboarding__icon" aria-hidden="true">🔔</div>
+      <h2 tabindex="-1">¿Te lo recordamos?</h2>
+      <p>Recibe un aviso cada día con tu lectura, aunque la app esté cerrada.</p>
+      <label class="onboarding__label" for="onboardingReminderTime">Hora del aviso</label>
+      <input type="time" id="onboardingReminderTime" class="onboarding__input" value="08:00" step="300">
+      <button type="button" id="onboardingReminderButton" class="onboarding__action">🔔 Activar recordatorio</button>
+      <p class="onboarding__small" id="onboardingReminderNote">Si prefieres, puedes activarlo más tarde desde el menú ☰.</p>
+    </section>
+
+    <section class="onboarding__step" data-step="install" hidden>
+      <div class="onboarding__icon" aria-hidden="true">📲</div>
+      <h2 tabindex="-1">Tenla siempre a mano</h2>
+      <p id="onboardingInstallText">Instálala para abrirla desde tu pantalla de inicio.</p>
+      <button type="button" class="onboarding__action" data-install-button hidden>📲 Instalar la app</button>
+      <p class="onboarding__small">Tu progreso se guarda en este dispositivo. Desde el menú ☰ → Copia de seguridad puedes guardarlo o pasarlo a otro móvil.</p>
+    </section>
+
+    <div class="onboarding__footer">
+      <div class="onboarding__dots" aria-hidden="true"></div>
+      <div class="onboarding__buttons">
+        <button type="button" class="button-secondary" id="onboardingBack" hidden>Atrás</button>
+        <button type="button" id="onboardingNext">Siguiente</button>
+      </div>
+    </div>
+  </dialog>
+
   <script src="./pwa.js" defer></script>
   <script src="./script.js" defer></script>
   <script src="./stats.js" defer></script>
   <script src="./reminders.js" defer></script>
+  <script src="./onboarding.js" defer></script>
 </body>
 </html>

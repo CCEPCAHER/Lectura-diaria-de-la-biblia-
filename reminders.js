@@ -114,6 +114,8 @@
     els.time.disabled = blocked;
     els.test.hidden = !enabled || blocked;
     if (els.promo) els.promo.hidden = enabled || blocked;
+    window.lecturaReminderState = { enabled: enabled && !blocked, blocked, message };
+    document.dispatchEvent(new CustomEvent('lectura:reminder-state', { detail: window.lecturaReminderState }));
   }
 
   async function withBusy(fn) {
