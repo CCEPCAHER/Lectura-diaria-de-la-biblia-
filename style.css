@@ -859,3 +859,58 @@ body.is-scrolled #menuToggle, body.is-scrolled #themeToggle { background: rgba(2
 body.has-install-banner #installAppButton { display: none; }
 body.has-install-banner #toastContainer { bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
 body.menu-open .install-banner, body:has(#sideMenu.open) .install-banner { display: none; }
+
+/* ---------- Amigos ---------- */
+.friends-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-sm); padding: 16px; display: grid; gap: 12px; }
+.friends-card__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.friends-card__head h2 { font-size: 1.1rem; color: var(--heading); }
+.friends-card__head button { min-height: 38px; padding: 6px 14px; font-size: 0.9rem; }
+.friends-intro { display: grid; gap: 10px; justify-items: start; }
+.friends-intro p { color: var(--text-muted); font-size: 0.95rem; }
+.friends-empty { font-size: 0.9rem; color: var(--text-muted); }
+.friends-list { list-style: none; display: grid; gap: 8px; }
+.friends-list:empty { display: none; }
+.friend {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 14px;
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.friend--me { border-style: dashed; }
+.friend__avatar {
+  --hue: 200;
+  width: 42px; height: 42px; flex: none; border-radius: 50%;
+  display: grid; place-items: center;
+  font-weight: 800; font-size: 1.1rem; color: #fff;
+  background: linear-gradient(135deg, hsl(var(--hue) 55% 42%), hsl(calc(var(--hue) + 40) 55% 32%));
+}
+.friend__info { flex: 1; min-width: 0; display: grid; }
+.friend__info strong { color: var(--heading); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.friend__meta { font-size: 0.82rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.friend__today { flex: none; font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); }
+.friend__today.is-done { color: var(--read-color); background: color-mix(in srgb, var(--read-color) 12%, transparent); border-color: transparent; }
+.friend__cheer { flex: none; width: 44px; height: 44px; min-height: 0; padding: 0; font-size: 1.25rem; background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+.friend__cheer:hover:not(:disabled) { background: color-mix(in srgb, var(--accent-color) 25%, var(--surface)); color: var(--text); transform: scale(1.06); }
+.friend__cheer:disabled { font-size: 0.95rem; opacity: 0.7; }
+.friend__more { flex: none; width: 32px; height: 44px; min-height: 0; padding: 0; background: transparent; color: var(--text-muted); font-size: 1.2rem; }
+.friend__more:hover { background: var(--surface); color: var(--text); }
+@media (max-width: 420px) {
+  .friend { gap: 8px; padding: 10px; }
+  .friend__avatar { width: 36px; height: 36px; font-size: 1rem; }
+  .friend__today { display: none; }
+  .friend__meta::after { content: attr(data-today); }
+}
+
+.friends-dialog {
+  width: min(calc(100% - 32px), 400px); margin: auto; padding: 26px 22px 20px;
+  border: none; border-radius: 24px; background: var(--surface); color: var(--text);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35); text-align: center;
+}
+.friends-dialog::backdrop { background: rgba(8, 18, 34, 0.6); backdrop-filter: blur(3px); }
+.friends-dialog form { display: grid; gap: 12px; }
+.friends-dialog__icon { font-size: 2.6rem; line-height: 1; }
+.friends-dialog h2 { font-size: 1.3rem; color: var(--heading); }
+.friends-dialog p { color: var(--text-muted); font-size: 0.95rem; }
+.friends-dialog input { text-align: center; font-size: 1.1rem; }
+.friends-dialog__note { font-size: 0.8rem !important; }
+.friends-dialog__actions { display: flex; gap: 8px; }
+.friends-dialog__actions button { flex: 1; }

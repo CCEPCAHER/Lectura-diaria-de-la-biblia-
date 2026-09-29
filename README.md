@@ -12,6 +12,7 @@ Funciona sin conexión. Se publica en **https://mylectura.mycongre.com/**.
 | `pwa.js` | Avisos, registro del Service Worker y botón «Instalar» |
 | `stats.js` | Estadísticas anónimas de uso → `api/collect.php` (se pueden desactivar en Menú → Acerca de) |
 | `sync.js`, `api/sync.php` | Sincronización entre dispositivos con un código; cifrado de extremo a extremo (el servidor no puede leer el progreso) |
+| `friends.js`, `api/friends.php` | Amigos sin cuentas: apodo, enlace de invitación, rachas de amigos y botón «👏 Animar» (con notificación si tienen el recordatorio activo) |
 | `onboarding.js` | Vídeo de bienvenida animado (7 escenas, subtítulos y narración opcional) y configuración rápida; se repite en Menú → Acerca de |
 | `reminders.js` | Recordatorio diario: pide permiso y suscribe el dispositivo a las notificaciones push |
 | `api/push.php`, `api/webpush.php` | Suscripciones y envío Web Push (claves VAPID propias, sin servicios externos) |

@@ -82,6 +82,33 @@ function migrate(PDO $pdo): void
             misses INTEGER NOT NULL DEFAULT 0,
             PRIMARY KEY (client, hour)
         );
+        CREATE TABLE IF NOT EXISTS friend_profiles (
+            id TEXT PRIMARY KEY,
+            secret_hash TEXT NOT NULL,
+            nickname TEXT NOT NULL,
+            streak INTEGER NOT NULL DEFAULT 0,
+            best_streak INTEGER NOT NULL DEFAULT 0,
+            percent INTEGER NOT NULL DEFAULT 0,
+            read_date TEXT,
+            push_endpoint TEXT,
+            created TEXT NOT NULL,
+            last_seen TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS friendships (
+            a TEXT NOT NULL,
+            b TEXT NOT NULL,
+            created TEXT NOT NULL,
+            PRIMARY KEY (a, b)
+        );
+        CREATE TABLE IF NOT EXISTS cheers (
+            from_id TEXT NOT NULL,
+            to_id TEXT NOT NULL,
+            day TEXT NOT NULL,
+            created TEXT NOT NULL,
+            seen INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (from_id, to_id, day)
+        );
+        CREATE INDEX IF NOT EXISTS idx_cheers_to ON cheers(to_id, seen);
         CREATE TABLE IF NOT EXISTS push_log (
             day TEXT PRIMARY KEY,
             sent INTEGER NOT NULL DEFAULT 0,

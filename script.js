@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let t = days.has(utcDateKey(today)) ? today : today - DAY_MS;
         let current = 0;
         while (days.has(utcDateKey(t))) { current++; t -= DAY_MS; }
-        return { current, best };
+        return { current, best, readToday: days.has(utcDateKey(today)) };
     }
 
     function updateStreakUI(streaks) {
@@ -433,6 +433,8 @@ document.addEventListener('DOMContentLoaded', () => {
             plan: localStorage.getItem('planStartDate') ? 1 : 0,
             delay: calculateEffectiveDelay(),
             streak: streaks.current,
+            bestStreak: streaks.best,
+            readToday: !!streaks.readToday,
             awards: Object.values(awardedSectionsStatus).filter(v => v === true).length
         } }));
     }

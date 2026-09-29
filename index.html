@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:locale" content="es_ES">
 
-  <link rel="stylesheet" href="style.css?v=2.6.3">
+  <link rel="stylesheet" href="style.css?v=2.7.0">
 
   <link rel="manifest" href="manifest.json">
 
@@ -299,6 +299,7 @@
         <li><a href="#thematic-reading-goals-menu">🏅 Metas Temáticas</a></li>
         <li><a href="#monthly-reading-view">📊 Progreso Mensual</a></li>
         <li><a href="#annual-reading-view">🗓️ Progreso Anual</a></li>
+        <li><a href="#friends-menu">👥 Amigos</a></li>
         <li><a href="#sync-menu">🔄 Sincronizar dispositivos</a></li>
         <li><a href="#backup-menu">💾 Copia de seguridad</a></li>
         <li><a href="#install-menu">📲 Instalar la app</a></li>
@@ -386,6 +387,24 @@
         <div id="annualProgressContainer">
           <p>Aquí se mostrará un resumen de tu progreso de lectura para el año actual y anteriores.</p>
           </div>
+      </section>
+
+      <section id="friends-menu" class="menu-section">
+        <h2>Amigos</h2>
+        <p class="menu-note" id="friendsMenuStatus">Lee junto a tus amigos: veréis vuestras rachas y podréis animaros cada día.</p>
+        <div id="friendsMenuProfile" hidden>
+          <p class="menu-note menu-note--small">Tu código de amigo:</p>
+          <p class="sync-code" id="friendsMyCode">····-····</p>
+          <div class="menu-section-actions">
+            <button type="button" id="friendsMenuInvite">➕ Invitar amigos</button>
+            <button type="button" id="friendsMenuRename" class="button-secondary">Cambiar apodo</button>
+            <button type="button" id="friendsMenuDelete" class="button-secondary">Borrar mi perfil de amigos</button>
+          </div>
+        </div>
+        <div class="menu-section-actions">
+          <button type="button" id="friendsMenuStart">👥 Empezar con amigos</button>
+        </div>
+        <p class="menu-note menu-note--small">Tus amigos solo ven tu apodo, tu racha, si has leído hoy y el % de la Biblia leída.</p>
       </section>
 
       <section id="sync-menu" class="menu-section">
@@ -508,6 +527,19 @@
         </div>
       </section>
 
+      <section class="friends-card" id="friendsCard" aria-labelledby="friendsTitle">
+        <div class="friends-card__head">
+          <h2 id="friendsTitle">👥 Amigos</h2>
+          <button type="button" class="button-ghost" id="friendsInviteButton" hidden>➕ Invitar</button>
+        </div>
+        <div class="friends-intro" id="friendsIntro">
+          <p>Lee junto a tus amigos: veréis vuestras rachas y podréis animaros cada día. Sin cuentas, solo un apodo.</p>
+          <button type="button" id="friendsStartButton">👥 Empezar</button>
+        </div>
+        <ul class="friends-list" id="friendsList"></ul>
+        <p class="friends-empty" id="friendsEmpty" hidden>Aún no tienes amigos aquí. Pulsa «➕ Invitar» y comparte tu enlace por WhatsApp.</p>
+      </section>
+
       <details class="panel" id="plan-management">
         <summary class="panel__summary">
           <span class="panel__title">⚙️ Mi plan de lectura</span>
@@ -561,6 +593,23 @@
       <p class="footer-more"><a href="https://mycongre.com/" target="_blank" rel="noopener">Saber más en mycongre.com</a></p>
     </footer>
   </div>
+
+  <dialog id="friendsDialog" class="friends-dialog" aria-labelledby="friendsDialogTitle">
+    <form id="friendsForm">
+      <div class="friends-dialog__icon" aria-hidden="true">👥</div>
+      <h2 id="friendsDialogTitle">Lee con tus amigos</h2>
+      <p id="friendsDialogText">Elige cómo te verán tus amigos: tu nombre o un apodo.</p>
+      <div id="friendsNicknameWrap">
+        <label class="visually-hidden" for="friendsNickname">Tu apodo</label>
+        <input type="text" id="friendsNickname" maxlength="24" autocomplete="nickname" placeholder="Ej.: Frank" enterkeyhint="done">
+      </div>
+      <p class="friends-dialog__note">Tus amigos solo verán tu apodo, tu racha, si has leído hoy y el % de la Biblia leída.</p>
+      <div class="friends-dialog__actions">
+        <button type="button" class="button-ghost" id="friendsCancel">Ahora no</button>
+        <button type="submit" id="friendsConfirm">Empezar</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog id="onboarding" class="intro" aria-label="Vídeo de bienvenida">
     <div class="intro__player" id="introPlayer">
@@ -669,11 +718,12 @@
     <button type="button" class="intro__skip" id="onboardingSkip">Saltar vídeo</button>
   </dialog>
 
-  <script src="./pwa.js?v=2.6.3" defer></script>
-  <script src="./script.js?v=2.6.3" defer></script>
-  <script src="./stats.js?v=2.6.3" defer></script>
-  <script src="./reminders.js?v=2.6.3" defer></script>
-  <script src="./sync.js?v=2.6.3" defer></script>
-  <script src="./onboarding.js?v=2.6.3" defer></script>
+  <script src="./pwa.js?v=2.7.0" defer></script>
+  <script src="./script.js?v=2.7.0" defer></script>
+  <script src="./stats.js?v=2.7.0" defer></script>
+  <script src="./reminders.js?v=2.7.0" defer></script>
+  <script src="./sync.js?v=2.7.0" defer></script>
+  <script src="./friends.js?v=2.7.0" defer></script>
+  <script src="./onboarding.js?v=2.7.0" defer></script>
 </body>
 </html>

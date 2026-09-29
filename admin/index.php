@@ -436,6 +436,7 @@ $syncStats = $q('SELECT COUNT(*) AS total, COALESCE(SUM(CASE WHEN updated >= ? T
 $weekKey = date('o-W');
 $weeklyFile = DATA_DIR . "/weekly/$weekKey.json";
 $weeklyInfo = is_file($weeklyFile) ? json_decode((string)file_get_contents($weeklyFile), true) : null;
+$friendStats = $q('SELECT (SELECT COUNT(*) FROM friend_profiles) AS profiles, (SELECT COUNT(*) FROM friendships) / 2 AS links, (SELECT COUNT(*) FROM cheers WHERE day >= ?) AS cheers', [$since(7)])[0];
 $cron = cron_state();
 $cronStale = !$cron['lastRun'] || time() - strtotime($cron['lastRun']) > 30 * 60;
 $cronPath = realpath(__DIR__ . '/../api/cron.php') ?: __DIR__ . '/../api/cron.php';
@@ -660,7 +661,7 @@ ob_start(); ?>
     </section>
   </div>
 
-  <p class="section-title">🔔 Recordatorios y sincronización</p>
+  <p class="section-title">🔔 Recordatorios, amigos y sincronización</p>
   <section class="card">
     <?php if ($cronStale): ?>
       <p class="msg err" style="margin-bottom:12px">El envío automático no se ha ejecutado en los últimos 30 minutos<?= $cron['lastRun'] ? ' (última vez: ' . h(date('d/m/Y H:i', strtotime($cron['lastRun']))) . ')' : '' ?>. Configura el cron (ver abajo) para que los avisos lleguen.</p>
@@ -671,6 +672,8 @@ ob_start(); ?>
       <div class="mini"><div class="value"><?= nf($pushWeek['clicked']) ?></div><div class="label">Abiertos (7 días) · <?= pct((int)$pushWeek['clicked'], (int)$pushWeek['sent']) ?></div></div>
       <div class="mini"><div class="value" style="font-size:1rem"><?= $reminderTimes ? h(implode(' · ', array_map(fn($r) => $r['remind_time'], $reminderTimes))) : '—' ?></div><div class="label">Horas más elegidas</div></div>
       <div class="mini"><div class="value" style="font-size:1rem"><?= !empty($weeklyInfo['reading']) ? '📅 ' . h(mb_convert_case(mb_strtolower($weeklyInfo['reading']), MB_CASE_TITLE)) : '⚠️ Sin datos' ?></div><div class="label">Lectura de esta semana <?= !empty($weeklyInfo['reading']) ? '· obtenida de wol.jw.org' : '· aún nadie la ha consultado o wol.jw.org no respondió' ?></div></div>
+      <div class="mini"><div class="value">👥 <?= nf($friendStats['profiles']) ?></div><div class="label">Perfiles de amigos · <?= nf($friendStats['links']) ?> amistades</div></div>
+      <div class="mini"><div class="value">👏 <?= nf($friendStats['cheers']) ?></div><div class="label">Ánimos enviados (7 días)</div></div>
       <div class="mini"><div class="value">🔄 <?= nf($syncStats['total']) ?></div><div class="label">Códigos de sincronización · <?= nf($syncStats['active']) ?> usados en 30 días</div></div>
     </div>
     <details>

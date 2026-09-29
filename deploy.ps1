@@ -30,9 +30,9 @@ if (-not $ftpHost -or -not $ftpUser -or -not $ftpPass) {
 
 # data/ solo lleva su .htaccess: la base de datos y la contraseña se crean en el servidor.
 $allFiles = @(
-    ".htaccess", "index.html", "style.css", "pwa.js", "script.js", "stats.js", "reminders.js", "onboarding.js", "sync.js", "sw.js", "manifest.json",
+    ".htaccess", "index.html", "style.css", "pwa.js", "script.js", "stats.js", "reminders.js", "onboarding.js", "sync.js", "friends.js", "sw.js", "manifest.json",
     "icons/icon-192x192.png", "icons/icon-512x512.png", "og-image.jpg",
-    "api/db.php", "api/collect.php", "api/webpush.php", "api/push.php", "api/cron.php", "api/sync.php", "api/weekly.php",
+    "api/db.php", "api/collect.php", "api/webpush.php", "api/push.php", "api/cron.php", "api/sync.php", "api/weekly.php", "api/friends.php",
     "admin/index.php",
     "data/.htaccess"
 )

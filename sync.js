@@ -75,7 +75,8 @@
       times: readJSON('syncChapterTimes'),
       awards: readJSON('awardedSectionsStatus'),
       plan: { value: store.get('planStartDate') || '', t: Number(store.get('planStartDateUpdatedAt')) || 0 },
-      lastReadingDate: store.get('lastReadingDate') || ''
+      lastReadingDate: store.get('lastReadingDate') || '',
+      friend: (() => { try { return JSON.parse(store.get('friendProfile')) || null; } catch { return null; } })()
     };
   }
 
@@ -87,6 +88,7 @@
     if (state.plan.value) store.set('planStartDate', state.plan.value); else store.remove('planStartDate');
     store.set('planStartDateUpdatedAt', String(state.plan.t || 0));
     if (state.lastReadingDate) store.set('lastReadingDate', state.lastReadingDate);
+    if (state.friend && state.friend.id && state.friend.secret) store.set('friendProfile', JSON.stringify(state.friend));
   }
 
   // Cada capítulo: gana el cambio más reciente (marcar o desmarcar). Sin fecha de cambio, se suma lo leído.
@@ -112,6 +114,7 @@
     });
     if (b.plan.t > a.plan.t || (b.plan.t === a.plan.t && !a.plan.value && b.plan.value)) out.plan = b.plan;
     out.lastReadingDate = [a.lastReadingDate, b.lastReadingDate].filter(Boolean).sort().pop() || '';
+    out.friend = a.friend || b.friend || null; // el primer perfil de amigos que exista se usa en todos los dispositivos
     return out;
   }
 
@@ -150,6 +153,7 @@
         writeLocal(merged);
         if (window.lecturaApp) window.lecturaApp.reload();
         applyingRemote = false;
+        document.dispatchEvent(new CustomEvent('lectura:synced'));
       }
       if (remoteState && same(merged, remoteState)) return;
 
