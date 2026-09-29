@@ -2,3 +2,6 @@
 data/*
 !data/.htaccess
 .claude/
+
+# Credenciales FTP locales
+deploy.secrets.ps1

@@ -6,8 +6,8 @@
 #   .\deploy.ps1 index.html          -> sube solo ese archivo
 #   .\deploy.ps1 script.js style.css -> sube varios archivos
 #
-# Credenciales (variables de entorno; si no existen usa las de biblia.mycongre.com):
-#   LECTURA_FTP_HOST, LECTURA_FTP_USER, LECTURA_FTP_PASS
+# Credenciales: deploy.secrets.ps1 junto a este script (define $ftpHost, $ftpUser, $ftpPass; está en .gitignore)
+# o variables de entorno LECTURA_FTP_HOST/USER/PASS (si no existen, usa las BIBLIA_FTP_*).
 #   LECTURA_FTP_BASE  (opcional) carpeta remota, por defecto /domains/mylectura.mycongre.com/public_html
 
 param(
@@ -15,9 +15,12 @@ param(
     [string[]]$Files
 )
 
-$ftpHost = if ($env:LECTURA_FTP_HOST) { $env:LECTURA_FTP_HOST } else { $env:BIBLIA_FTP_HOST }
-$ftpUser = if ($env:LECTURA_FTP_USER) { $env:LECTURA_FTP_USER } else { $env:BIBLIA_FTP_USER }
-$ftpPass = if ($env:LECTURA_FTP_PASS) { $env:LECTURA_FTP_PASS } else { $env:BIBLIA_FTP_PASS }
+$secretsFile = Join-Path $(if ($PSScriptRoot) { $PSScriptRoot } else { Get-Location }) "deploy.secrets.ps1"
+if (Test-Path $secretsFile) { . $secretsFile }
+
+if (-not $ftpHost) { $ftpHost = if ($env:LECTURA_FTP_HOST) { $env:LECTURA_FTP_HOST } else { $env:BIBLIA_FTP_HOST } }
+if (-not $ftpUser) { $ftpUser = if ($env:LECTURA_FTP_USER) { $env:LECTURA_FTP_USER } else { $env:BIBLIA_FTP_USER } }
+if (-not $ftpPass) { $ftpPass = if ($env:LECTURA_FTP_PASS) { $env:LECTURA_FTP_PASS } else { $env:BIBLIA_FTP_PASS } }
 $remoteBase = if ($env:LECTURA_FTP_BASE) { $env:LECTURA_FTP_BASE } else { "/domains/mylectura.mycongre.com/public_html" }
 
 if (-not $ftpHost -or -not $ftpUser -or -not $ftpPass) {

@@ -10,7 +10,7 @@ DirectoryIndex index.html index.php
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
   # Nunca servir archivos internos
   RewriteRule ^(data|\.git|\.claude)(/|$) - [F,L]
-  RewriteRule ^(deploy\.ps1|README\.md|\.gitignore)$ - [F,L]
+  RewriteRule ^(deploy\.ps1|deploy\.secrets\.ps1|README\.md|\.gitignore)$ - [F,L]
 </IfModule>
 
 <IfModule mod_headers.c>
