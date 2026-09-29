@@ -167,6 +167,7 @@
         <li><a href="#thematic-reading-goals-menu">🏅 Metas Temáticas</a></li>
         <li><a href="#monthly-reading-view">📊 Progreso Mensual</a></li>
         <li><a href="#annual-reading-view">🗓️ Progreso Anual</a></li>
+        <li><a href="#sync-menu">🔄 Sincronizar dispositivos</a></li>
         <li><a href="#backup-menu">💾 Copia de seguridad</a></li>
         <li><a href="#install-menu">📲 Instalar la app</a></li>
         <li><a href="#about-menu">ℹ️ Acerca de</a></li>
@@ -244,6 +245,33 @@
         <div id="annualProgressContainer">
           <p>Aquí se mostrará un resumen de tu progreso de lectura para el año actual y anteriores.</p>
           </div>
+      </section>
+
+      <section id="sync-menu" class="menu-section">
+        <h2>Sincronizar dispositivos</h2>
+        <p class="menu-note" id="syncStatusText">Usa tu progreso en el móvil, la tablet y el ordenador. Sin cuentas: solo un código.</p>
+
+        <div id="syncUnlinked">
+          <div class="menu-section-actions">
+            <button type="button" id="syncCreateButton">Crear código de sincronización</button>
+          </div>
+          <div class="field-group sync-link">
+            <label for="syncCodeInput">¿Ya tienes un código?</label>
+            <input type="text" id="syncCodeInput" class="sync-code-input" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="14" inputmode="text">
+            <button type="button" id="syncLinkButton" class="button-secondary">Vincular este dispositivo</button>
+          </div>
+        </div>
+
+        <div id="syncLinked" hidden>
+          <p class="menu-note menu-note--small">Tu código (escríbelo en tus otros dispositivos):</p>
+          <p class="sync-code" id="syncCodeText">····-····-····</p>
+          <div class="menu-section-actions">
+            <button type="button" id="syncNowButton">Sincronizar ahora</button>
+            <button type="button" id="syncCopyButton" class="button-secondary">Copiar código</button>
+            <button type="button" id="syncUnlinkButton" class="button-secondary">Desvincular este dispositivo</button>
+          </div>
+        </div>
+        <p class="menu-note menu-note--small">🔒 Tu progreso viaja cifrado: ni siquiera el servidor puede leerlo. Quien tenga el código podrá verlo y cambiarlo, así que no lo compartas.</p>
       </section>
 
       <section id="backup-menu" class="menu-section">
@@ -413,7 +441,7 @@
       <h2 tabindex="-1">Tenla siempre a mano</h2>
       <p id="onboardingInstallText">Instálala para abrirla desde tu pantalla de inicio.</p>
       <button type="button" class="onboarding__action" data-install-button hidden>📲 Instalar la app</button>
-      <p class="onboarding__small">Tu progreso se guarda en este dispositivo. Desde el menú ☰ → Copia de seguridad puedes guardarlo o pasarlo a otro móvil.</p>
+      <p class="onboarding__small">¿Usas varios dispositivos? En el menú ☰ → Sincronizar dispositivos puedes tener tu progreso en todos.</p>
     </section>
 
     <div class="onboarding__footer">
@@ -429,6 +457,7 @@
   <script src="./script.js" defer></script>
   <script src="./stats.js" defer></script>
   <script src="./reminders.js" defer></script>
+  <script src="./sync.js" defer></script>
   <script src="./onboarding.js" defer></script>
 </body>
 </html>

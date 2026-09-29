@@ -69,6 +69,19 @@ function migrate(PDO $pdo): void
             last_test TEXT,
             failures INTEGER NOT NULL DEFAULT 0
         );
+        CREATE TABLE IF NOT EXISTS sync_spaces (
+            id TEXT PRIMARY KEY,
+            data TEXT NOT NULL,
+            version INTEGER NOT NULL,
+            created TEXT NOT NULL,
+            updated TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS sync_misses (
+            client TEXT NOT NULL,
+            hour TEXT NOT NULL,
+            misses INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (client, hour)
+        );
         CREATE TABLE IF NOT EXISTS push_log (
             day TEXT PRIMARY KEY,
             sent INTEGER NOT NULL DEFAULT 0,

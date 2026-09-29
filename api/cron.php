@@ -72,6 +72,9 @@ foreach ($pdo->query('SELECT * FROM push_subscriptions')->fetchAll() as $sub) {
     }
 }
 
+// Códigos de sincronización sin usar en más de 400 días.
+$pdo->prepare('DELETE FROM sync_spaces WHERE updated < ?')->execute([date('Y-m-d H:i:s', strtotime('-400 days'))]);
+
 $result = "enviados=$sent fallidos=$failed eliminados=$removed sin_enviar=$skipped";
 $state = cron_state();
 $state['lastRun'] = date('Y-m-d H:i:s');

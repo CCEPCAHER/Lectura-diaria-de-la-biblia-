@@ -250,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let readStatus = {};
     let readDates = {}; // clave de capítulo -> 'AAAA-MM-DD' (fecha local en que se marcó)
+    let chapterTimes = {}; // clave de capítulo -> ms del último cambio (marcar o desmarcar)
     let awardedSectionsStatus = {};
     let newlyAwardedSections = new Set();
     window.currentSuggestedReading = null;
@@ -279,13 +280,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function setChapterRead(key, isRead) {
         if (isRead) { readStatus[key] = true; readDates[key] = localDateKey(); }
         else { delete readStatus[key]; delete readDates[key]; }
+        chapterTimes[key] = Date.now(); // para la sincronización: gana el cambio más reciente
+    }
+
+    // Guarda la fecha de inicio (o la borra) recordando cuándo cambió, para sincronizar entre dispositivos.
+    function storePlanStartDate(value) {
+        if (value) localStorage.setItem('planStartDate', value); else localStorage.removeItem('planStartDate');
+        localStorage.setItem('planStartDateUpdatedAt', String(Date.now()));
+        document.dispatchEvent(new CustomEvent('lectura:changed'));
     }
 
     function loadState() {
+        readStatus = {}; readDates = {}; chapterTimes = {}; awardedSectionsStatus = {};
         const savedReadStatus = localStorage.getItem('bibleReadStatus');
         if (savedReadStatus) { try { readStatus = JSON.parse(savedReadStatus); } catch (e) { console.error("Error parsing bibleReadStatus:", e); readStatus = {}; } }
         const savedReadDates = localStorage.getItem('bibleReadDates');
         if (savedReadDates) { try { readDates = JSON.parse(savedReadDates); } catch (e) { console.error("Error parsing bibleReadDates:", e); readDates = {}; } }
+        const savedTimes = localStorage.getItem('syncChapterTimes');
+        if (savedTimes) { try { chapterTimes = JSON.parse(savedTimes); } catch (e) { chapterTimes = {}; } }
 
         const savedPlanStartDate = localStorage.getItem('planStartDate');
         if (savedPlanStartDate && planStartDateInput) {
@@ -300,8 +312,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentPlanStartDateTextEl) currentPlanStartDateTextEl.textContent = "Fecha de inicio guardada inválida. Por favor, reestablécela.";
                 localStorage.removeItem('planStartDate');
             }
-        } else if (currentPlanStartDateTextEl) {
-            currentPlanStartDateTextEl.textContent = "Aún no has establecido una fecha de inicio para tu plan.";
+        } else {
+            if (planStartDateInput) planStartDateInput.value = '';
+            if (currentPlanStartDateTextEl) currentPlanStartDateTextEl.textContent = "Aún no has establecido una fecha de inicio para tu plan.";
         }
 
         const savedAwards = localStorage.getItem('awardedSectionsStatus');
@@ -312,6 +325,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('bibleReadStatus', JSON.stringify(readStatus));
         localStorage.setItem('bibleReadDates', JSON.stringify(readDates));
         localStorage.setItem('awardedSectionsStatus', JSON.stringify(awardedSectionsStatus));
+        localStorage.setItem('syncChapterTimes', JSON.stringify(chapterTimes));
+        document.dispatchEvent(new CustomEvent('lectura:changed'));
     }
 
     function computeStreaks() {
@@ -816,7 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setPlanStartDateButton.addEventListener('click', () => {
             const dateValue = planStartDateInput.value;
             if (!dateValue || !dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) { notify("Por favor, introduce una fecha válida en formato AAAA-MM-DD."); return; }
-            localStorage.setItem('planStartDate', dateValue); loadState(); displayDailySuggestion(); notify("Fecha de inicio del plan establecida correctamente.");
+            storePlanStartDate(dateValue); loadState(); displayDailySuggestion(); notify("Fecha de inicio del plan establecida correctamente.");
         });
     }
 
@@ -829,7 +844,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const newStartDateUTC = new Date(todayUTC);
             newStartDateUTC.setUTCDate(todayUTC.getUTCDate() - selectedReadingIndex);
             const newStartDateString = newStartDateUTC.toISOString().split('T')[0];
-            localStorage.setItem('planStartDate', newStartDateString);
+            storePlanStartDate(newStartDateString);
             if (planStartDateInput) planStartDateInput.value = newStartDateString; 
             loadState(); displayDailySuggestion(); notify(`Plan sincronizado. Hoy (${today.toLocaleDateString()}) es el Día ${selectedReadingIndex + 1} del plan.`);
         });
@@ -1030,9 +1045,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (resetProgressButton) {
         resetProgressButton.addEventListener('click', () => {
             if (!confirm('¿Estás seguro de que quieres reiniciar todo tu progreso, incluyendo la fecha de inicio del plan y las secciones temáticas? Esta acción no se puede deshacer.')) return;
+            // Se deja constancia de cada capítulo desmarcado para que la sincronización no lo recupere.
+            Object.keys(readStatus).forEach(key => { chapterTimes[key] = Date.now(); });
             readStatus = {}; readDates = {}; awardedSectionsStatus = {}; newlyAwardedSections.clear();
             localStorage.removeItem('bibleReadStatus'); localStorage.removeItem('bibleReadDates'); localStorage.removeItem('awardedSectionsStatus');
-            localStorage.removeItem('planStartDate'); localStorage.removeItem('lastReadingDate');
+            storePlanStartDate(''); localStorage.removeItem('lastReadingDate');
             if (planStartDateInput) planStartDateInput.value = "";
             if (currentPlanStartDateTextEl) currentPlanStartDateTextEl.textContent = "Aún no has establecido una fecha de inicio para tu plan.";
             saveState(); 
@@ -1045,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Copia de seguridad: el progreso vive solo en este navegador, así que permitimos exportarlo e importarlo.
-    const BACKUP_KEYS = ['bibleReadStatus', 'bibleReadDates', 'awardedSectionsStatus', 'planStartDate', 'lastReadingDate', 'theme-primary', 'theme-accent'];
+    const BACKUP_KEYS = ['bibleReadStatus', 'bibleReadDates', 'syncChapterTimes', 'awardedSectionsStatus', 'planStartDate', 'planStartDateUpdatedAt', 'lastReadingDate', 'theme-primary', 'theme-accent'];
 
     if (exportBackupButton) {
         exportBackupButton.addEventListener('click', () => {
@@ -1079,6 +1096,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // sync.js llama a esto tras traer cambios de otro dispositivo.
+    window.lecturaApp = {
+        reload() {
+            loadState();
+            renderBooks(bookFilter ? bookFilter.value : 'todos', statusFilter ? statusFilter.value : 'todos');
+            updateOverallProgress();
+            updateAllThematicSectionsStatus();
+            displayDailySuggestion();
+        }
+    };
 
     loadState();
     populateFiltersAndSyncOptions();

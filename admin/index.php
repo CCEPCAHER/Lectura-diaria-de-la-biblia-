@@ -352,6 +352,7 @@ $plan = $q('SELECT COALESCE(SUM(plan_started), 0) AS started,
 $reminders = $q('SELECT COUNT(*) AS subs, COUNT(DISTINCT device_id) AS devices FROM push_subscriptions')[0];
 $pushWeek = $q('SELECT COALESCE(SUM(sent), 0) AS sent, COALESCE(SUM(failed), 0) AS failed, COALESCE(SUM(clicked), 0) AS clicked FROM push_log WHERE day >= ?', [$since(7)])[0];
 $reminderTimes = $q('SELECT remind_time, COUNT(*) AS n FROM push_subscriptions GROUP BY remind_time ORDER BY n DESC LIMIT 5');
+$syncStats = $q('SELECT COUNT(*) AS total, COALESCE(SUM(CASE WHEN updated >= ? THEN 1 ELSE 0 END), 0) AS active FROM sync_spaces', [$since(30)])[0];
 $cron = cron_state();
 $cronStale = !$cron['lastRun'] || time() - strtotime($cron['lastRun']) > 30 * 60;
 $cronPath = realpath(__DIR__ . '/../api/cron.php') ?: __DIR__ . '/../api/cron.php';
@@ -530,7 +531,7 @@ ob_start(); ?>
   </div>
 
   <section class="card">
-    <h2>🔔 Recordatorios diarios</h2>
+    <h2>🔔 Recordatorios y 🔄 sincronización</h2>
     <?php if ($cronStale): ?>
       <p class="msg err" style="margin-bottom:12px">El envío automático no se ha ejecutado en los últimos 30 minutos<?= $cron['lastRun'] ? ' (última vez: ' . h(date('d/m/Y H:i', strtotime($cron['lastRun']))) . ')' : '' ?>. Configura el cron (ver abajo) para que los avisos lleguen.</p>
     <?php endif; ?>
@@ -538,6 +539,7 @@ ob_start(); ?>
       <div class="kpi"><div class="label">Activos</div><div class="value"><?= nf($reminders['subs']) ?></div><div class="note"><?= pct((int)$reminders['devices'], $total) ?> de las personas</div></div>
       <div class="kpi"><div class="label">Enviados (7 días)</div><div class="value"><?= nf($pushWeek['sent']) ?></div><div class="note"><?= nf($pushWeek['failed']) ?> fallidos</div></div>
       <div class="kpi"><div class="label">Abiertos (7 días)</div><div class="value"><?= nf($pushWeek['clicked']) ?></div><div class="note"><?= pct((int)$pushWeek['clicked'], (int)$pushWeek['sent']) ?> de los enviados</div></div>
+      <div class="kpi"><div class="label">Códigos de sincronización</div><div class="value"><?= nf($syncStats['total']) ?></div><div class="note"><?= nf($syncStats['active']) ?> usados en 30 días</div></div>
       <div class="kpi"><div class="label">Horas más elegidas</div><div class="value" style="font-size:1.1rem"><?= $reminderTimes ? h(implode(' · ', array_map(fn($r) => $r['remind_time'], $reminderTimes))) : '—' ?></div></div>
     </div>
     <details>
