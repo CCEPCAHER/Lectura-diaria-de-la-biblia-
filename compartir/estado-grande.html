@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Estado grande · Lectura diaria de la Biblia</title>
+<link rel="stylesheet" href="estilo.css">
+<style>
+  body { width: 1080px; height: 1920px; }
+  .wrap { position: relative; height: 100%; padding: 78px 56px 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+  .badge { display: inline-flex; align-items: center; gap: 14px; background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.25); border-radius: 999px; padding: 12px 30px 12px 14px; font-size: 32px; font-weight: 800; letter-spacing: .02em; }
+  .badge img { width: 58px; height: 58px; border-radius: 26%; }
+
+  .headline { font-size: 118px; margin-top: 34px; line-height: .96; }
+  .headline em { display: inline-block; background: linear-gradient(90deg, #F4B942, #FFD978); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { font-size: 44px; margin-top: 22px; font-weight: 600; }
+  .sub b { color: #FFD978; }
+
+  .stage { position: relative; margin-top: 34px; width: 100%; display: flex; justify-content: center; }
+  .glow { position: absolute; width: 900px; height: 900px; left: 50%; top: 40px; transform: translateX(-50%); background: radial-gradient(closest-side, rgba(244,185,66,.38), rgba(43,181,148,.18) 55%, transparent 75%); filter: blur(10px); }
+  .phone { position: relative; width: 640px; zoom: 0.94; transform: rotate(-3deg); }
+  .notif { top: 20px; }
+  .notif b { font-size: 25px; }
+  .notif small { font-size: 21px; }
+  .m-header { padding-top: 150px; padding-bottom: 90px; }
+
+  .sticker { position: absolute; z-index: 3; background: #fff; color: #0A2342; border-radius: 28px; padding: 18px 26px; font-weight: 800; box-shadow: 0 24px 50px rgba(0,0,0,.35); text-align: left; line-height: 1.1; }
+  .sticker small { display: block; font-size: 22px; color: #5B6475; font-weight: 700; }
+  .sticker--friends { left: 4px; top: 128px; transform: rotate(-6deg); font-size: 29px; padding: 14px 22px; display: flex; align-items: center; gap: 12px; }
+  .sticker--friends .clap { font-size: 42px; }
+  .sticker--friends small { font-size: 20px; }
+  .m-stat b { white-space: nowrap; }
+
+  .chips { justify-content: center; margin-top: 34px; flex-wrap: nowrap; }
+  .chip { font-size: 31px; padding: 12px 24px; }
+
+  .cta { margin-top: 36px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .cta__btn { display: inline-flex; align-items: center; gap: 18px; background: linear-gradient(180deg, #FFD36B, #F4B942); color: #0A2342; font-size: 58px; font-weight: 900; letter-spacing: -.02em; border-radius: 999px; padding: 26px 56px; box-shadow: 0 0 0 10px rgba(244,185,66,.22), 0 26px 50px rgba(0,0,0,.35); }
+  .cta__url { font-size: 40px; font-weight: 800; letter-spacing: -.01em; }
+  .cta__free { font-size: 30px; font-weight: 700; opacity: .85; }
+  .arrows { margin-top: 2px; display: flex; flex-direction: column; align-items: center; line-height: .5; }
+  .arrows i { display: block; width: 46px; height: 46px; border-right: 10px solid #F4B942; border-bottom: 10px solid #F4B942; transform: rotate(45deg); border-radius: 6px; }
+  .arrows i + i { opacity: .55; margin-top: -8px; }
+  .arrows i + i + i { opacity: .25; }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="wrap">
+  <span class="badge"><img src="../icons/icon-512x512.png" alt="">Lectura diaria de la Biblia · Gratis</span>
+
+  <h1 class="headline">¿Te animas a leer <em>toda la Biblia?</em></h1>
+  <p class="sub">Solo <b>unos minutos al día</b> 📖 ¡Leamos juntos!</p>
+
+  <div class="stage">
+    <div class="glow"></div>
+    <div class="phone">
+      <div class="screen">
+        <div class="notif"><span class="ico">🔔</span><div><b>📖 Día 1: Génesis 1-3</b><small>Toca para abrir tu lectura de hoy</small></div></div>
+        <div class="m-header"><small>Hoy</small><b>Lectura diaria</b></div>
+        <div class="m-body">
+          <div class="m-card">
+            <p class="m-eyebrow">📖 Lectura de hoy</p>
+            <span class="m-day">Día 1</span>
+            <p class="m-reading">Génesis 1-3</p>
+            <span class="m-btn">📖 Ver lectura</span><span class="m-btn m-btn--ok">✓ Leído</span>
+          </div>
+          <div class="m-stats">
+            <div class="m-stat"><div class="m-ring" style="background: conic-gradient(#1A7564 15%, #E4E9F0 0)"><span>15%</span></div><div><small>Biblia leída</small><b>180 cap.</b></div></div>
+            <div class="m-stat"><span class="fire">🔥</span><div><b>55 días</b><small>de racha</small></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sticker sticker--friends"><span class="clap">👏</span><div>Lee con amigos<small>y animaos cada día</small></div></div>
+  </div>
+
+  <div class="chips">
+    <span class="chip">🔔 Recordatorio</span>
+    <span class="chip">🚶 A tu ritmo</span>
+    <span class="chip">🗓️ Lectura semanal</span>
+  </div>
+
+  <div class="cta">
+    <span class="cta__btn">👇 Toca el enlace</span>
+    <span class="cta__url">mylectura.mycongre.com</span>
+    <div class="arrows" aria-hidden="true"><i></i><i></i><i></i></div>
+  </div>
+</div>
+</body>
+</html>
