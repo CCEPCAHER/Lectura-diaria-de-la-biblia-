@@ -74,7 +74,10 @@
       dates: readJSON('bibleReadDates'),
       times: readJSON('syncChapterTimes'),
       awards: readJSON('awardedSectionsStatus'),
-      plan: { value: store.get('planStartDate') || '', t: Number(store.get('planStartDateUpdatedAt')) || 0 },
+      plan: {
+        value: store.get('planStartDate') || '', t: Number(store.get('planStartDateUpdatedAt')) || 0,
+        mode: store.get('planMode') || 'dates', catchUp: store.get('catchUpPlan') || ''
+      },
       lastReadingDate: store.get('lastReadingDate') || '',
       friend: (() => { try { return JSON.parse(store.get('friendProfile')) || null; } catch { return null; } })()
     };
@@ -87,6 +90,9 @@
     store.set('awardedSectionsStatus', JSON.stringify(state.awards));
     if (state.plan.value) store.set('planStartDate', state.plan.value); else store.remove('planStartDate');
     store.set('planStartDateUpdatedAt', String(state.plan.t || 0));
+    // Modo de lectura y reparto de lo atrasado (las versiones anteriores no los envían).
+    if (state.plan.mode === 'pace' || state.plan.mode === 'dates') store.set('planMode', state.plan.mode);
+    if ('catchUp' in state.plan) { if (state.plan.catchUp) store.set('catchUpPlan', state.plan.catchUp); else store.remove('catchUpPlan'); }
     if (state.lastReadingDate) store.set('lastReadingDate', state.lastReadingDate);
     if (state.friend && state.friend.id && state.friend.secret) store.set('friendProfile', JSON.stringify(state.friend));
   }

@@ -286,6 +286,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Guarda la fecha de inicio (o la borra) recordando cuándo cambió, para sincronizar entre dispositivos.
     function storePlanStartDate(value) {
         if (value) localStorage.setItem('planStartDate', value); else localStorage.removeItem('planStartDate');
+        localStorage.removeItem('catchUpPlan'); // con otra fecha de inicio, lo atrasado cambia
+        localStorage.setItem('planStartDateUpdatedAt', String(Date.now()));
+        document.dispatchEvent(new CustomEvent('lectura:changed'));
+    }
+
+    // Modo de lectura: «Con fechas» (un año, con retraso) o «A mi ritmo» (siempre la siguiente lectura sin leer).
+    // Se sincroniza junto con la fecha de inicio (misma marca de tiempo).
+    const isPaceMode = () => localStorage.getItem('planMode') === 'pace';
+    function storePlanMode(mode) {
+        localStorage.setItem('planMode', mode === 'pace' ? 'pace' : 'dates');
+        localStorage.removeItem('catchUpPlan');
+        localStorage.setItem('planStartDateUpdatedAt', String(Date.now()));
+        document.dispatchEvent(new CustomEvent('lectura:changed'));
+    }
+
+    // «Ponerme al día» repartiendo lo atrasado: { start: 'AAAA-MM-DD', days, total }.
+    function readCatchUpPlan() {
+        try {
+            const plan = JSON.parse(localStorage.getItem('catchUpPlan'));
+            return plan && /^\d{4}-\d{2}-\d{2}$/.test(plan.start) && plan.days > 0 && plan.total > 0 ? plan : null;
+        } catch (e) { return null; }
+    }
+    function storeCatchUpPlan(plan) {
+        if (plan) localStorage.setItem('catchUpPlan', JSON.stringify(plan)); else localStorage.removeItem('catchUpPlan');
         localStorage.setItem('planStartDateUpdatedAt', String(Date.now()));
         document.dispatchEvent(new CustomEvent('lectura:changed'));
     }
@@ -317,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentPlanStartDateTextEl) currentPlanStartDateTextEl.textContent = "Elige la fecha de inicio";
         }
         const planPanel = document.getElementById('plan-management');
-        if (planPanel) planPanel.open = !localStorage.getItem('planStartDate');
+        if (planPanel) planPanel.open = !localStorage.getItem('planStartDate') && !isPaceMode();
 
         const savedAwards = localStorage.getItem('awardedSectionsStatus');
         if (savedAwards) { try { awardedSectionsStatus = JSON.parse(savedAwards); } catch (e) { console.error("Error parsing awardedSectionsStatus:", e); awardedSectionsStatus = {}; } }
@@ -362,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const start = localStorage.getItem('planStartDate');
             const pastDays = start ? Math.min(Math.floor((todayAsUTCDate().getTime() - Date.parse(start + 'T00:00:00Z')) / DAY_MS), dailyReadingPlan.length) : 0;
             const allowed = localStorage.getItem('streakAdjustAllowed') === '1'; // solo perfiles autorizados
-            adjust.hidden = !(allowed && pastDays >= 2 && streaks.current < pastDays && calculateEffectiveDelay() === 0);
+            adjust.hidden = isPaceMode() || !(allowed && pastDays >= 2 && streaks.current < pastDays && calculateEffectiveDelay() === 0);
         }
     }
 
@@ -511,16 +535,161 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function actualizarInterfazDiasRetraso() {
+        const pace = isPaceMode();
         if (daysDelayedTextEl) {
             const delayToShow = window.dayDiff !== undefined ? window.dayDiff : 0;
-            daysDelayedTextEl.textContent = delayToShow;
-            daysDelayedTextEl.classList.toggle('has-delay', delayToShow > 0);
             const statusBlock = daysDelayedTextEl.closest('.suggestion-block--status');
-            if (statusBlock) statusBlock.classList.toggle('has-delay', delayToShow > 0);
+            if (pace) {
+                const estimate = estimatePaceFinish();
+                daysDelayedTextEl.textContent = estimate.value;
+                const label = document.getElementById('paceLabel');
+                if (label) label.textContent = estimate.label;
+                if (statusBlock) statusBlock.title = estimate.title;
+            } else {
+                daysDelayedTextEl.textContent = delayToShow;
+                if (statusBlock) statusBlock.title = '';
+            }
+            daysDelayedTextEl.classList.toggle('has-delay', !pace && delayToShow > 0);
+            if (statusBlock) {
+                statusBlock.classList.toggle('has-delay', !pace && delayToShow > 0);
+                statusBlock.classList.toggle('is-pace', pace);
+            }
         }
         const delayBackfill = document.getElementById('delayBackfillButton');
-        if (delayBackfill) delayBackfill.hidden = !(window.dayDiff > 0);
+        if (delayBackfill) delayBackfill.hidden = pace || !(window.dayDiff > 0);
+        const catchUpOpen = document.getElementById('catchUpOpenButton');
+        if (catchUpOpen) catchUpOpen.hidden = pace || !(window.dayDiff > 0) || !!readCatchUpPlan();
+        renderCatchUp();
+        renderPlanMode();
         publishToday();
+    }
+
+    const formatDay = (ms, opts = { day: 'numeric', month: 'long' }) => new Date(ms).toLocaleDateString('es-ES', { timeZone: 'UTC', ...opts });
+
+    // Días del plan que ya pasaron (la lectura de hoy aún no cuenta como atrasada).
+    function pastPlanDays() {
+        const start = localStorage.getItem('planStartDate');
+        if (!start) return 0;
+        const elapsed = Math.floor((todayAsUTCDate().getTime() - Date.parse(start + 'T00:00:00Z')) / DAY_MS);
+        return Math.max(0, Math.min(elapsed, dailyReadingPlan.length));
+    }
+    function pendingPastIndices() {
+        const out = [];
+        for (let i = 0, n = pastPlanDays(); i < n; i++) if (!isDailyPlanEntryRead(dailyReadingPlan[i])) out.push(i);
+        return out;
+    }
+    const firstUnreadPlanIndex = () => dailyReadingPlan.findIndex(entry => !isDailyPlanEntryRead(entry));
+
+    // «A mi ritmo»: fecha estimada de fin según los capítulos de los últimos días.
+    // Lo marcado de golpe en un solo día (p. ej. libros ya leídos) cuenta como mucho 12 capítulos.
+    function estimatePaceFinish() {
+        const readCount = Object.values(readStatus).filter(v => v === true).length;
+        const remaining = totalBibleChapters - readCount;
+        if (remaining <= 0) return { value: '🎉', label: '¡Biblia completa!', title: '' };
+        const perDay = {};
+        Object.entries(readDates).forEach(([key, day]) => { if (readStatus[key]) perDay[day] = (perDay[day] || 0) + 1; });
+        const days = Object.keys(perDay).sort();
+        const empty = { value: '—', label: 'Fin estimado', title: 'Marca tus lecturas y calcularemos cuándo terminarás la Biblia a tu ritmo.' };
+        if (!days.length) return empty;
+        const today = todayAsUTCDate().getTime();
+        const sinceFirst = Math.floor((today - Date.parse(days[0] + 'T00:00:00Z')) / DAY_MS) + 1;
+        const windowDays = Math.max(7, Math.min(30, sinceFirst));
+        let chapters = 0;
+        for (let i = 0; i < windowDays; i++) chapters += Math.min(perDay[utcDateKey(today - i * DAY_MS)] || 0, 12);
+        if (!chapters) return empty;
+        const rate = chapters / windowDays;
+        const finish = today + Math.ceil(remaining / rate) * DAY_MS;
+        return {
+            value: formatDay(finish, { month: 'short', year: 'numeric' }),
+            label: 'Fin estimado',
+            title: `A tu ritmo de los últimos ${windowDays} días (unos ${rate.toFixed(1).replace('.', ',')} capítulos al día) terminarías la Biblia el ${formatDay(finish, { day: 'numeric', month: 'long', year: 'numeric' })}.`
+        };
+    }
+
+    // Lecturas atrasadas que tocan hoy según el reparto elegido en «Ponerme al día».
+    function catchUpForToday() {
+        const plan = readCatchUpPlan();
+        if (!plan || isPaceMode() || !localStorage.getItem('planStartDate')) return null;
+        const pending = pendingPastIndices();
+        const startMs = Date.parse(plan.start + 'T00:00:00Z');
+        const day = Math.max(0, Math.floor((todayAsUTCDate().getTime() - startMs) / DAY_MS));
+        const perDay = Math.ceil(plan.total / plan.days);
+        const allowedLeft = Math.max(0, plan.total - perDay * (day + 1)); // lo que puede quedar pendiente al acabar hoy
+        const count = Math.max(0, pending.length - allowedLeft);
+        return { pending, today: pending.slice(0, count), end: startMs + (plan.days - 1) * DAY_MS };
+    }
+
+    let catchUpItems = [];
+    function renderCatchUp() {
+        const box = document.getElementById('catchUpBox');
+        if (!box) return;
+        const info = catchUpForToday();
+        if (info && !info.pending.length) {
+            storeCatchUpPlan(null);
+            notify('🎉 ¡Te has puesto al día! Ya no tienes lecturas atrasadas.', { type: 'success', duration: 7000 });
+        }
+        if (!info || !info.pending.length) { box.hidden = true; catchUpItems = []; return; }
+        box.hidden = false;
+        catchUpItems = info.today.map(i => dailyReadingPlan[i]);
+        const list = document.getElementById('catchUpList');
+        list.innerHTML = '';
+        catchUpItems.forEach(entry => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.textContent = entry.displayText;
+            if (entry.url && entry.url !== '#ERROR') { a.href = entry.url; a.target = '_blank'; a.rel = 'noopener'; }
+            li.appendChild(a); list.appendChild(li);
+        });
+        const n = info.pending.length;
+        box.querySelector('.catchup__title').hidden = !catchUpItems.length;
+        list.hidden = !catchUpItems.length;
+        document.getElementById('catchUpMarkButton').hidden = !catchUpItems.length;
+        const done = document.getElementById('catchUpDone');
+        done.hidden = !!catchUpItems.length;
+        done.textContent = '✓ Hoy ya recuperaste tu parte. ¡Bien hecho!';
+        const late = todayAsUTCDate().getTime() > info.end;
+        document.getElementById('catchUpMeta').textContent = `Quedan ${n} ${n === 1 ? 'lectura atrasada' : 'lecturas atrasadas'}` +
+            (late ? '.' : ` · estarás al día el ${formatDay(info.end, { weekday: 'long', day: 'numeric', month: 'long' })}.`);
+    }
+
+    // Selector de modo, textos del panel y cabecera según el modo.
+    function renderPlanMode() {
+        const pace = isPaceMode();
+        document.querySelectorAll('input[name="planMode"]').forEach(r => { r.checked = r.value === (pace ? 'pace' : 'dates'); });
+        const fields = document.getElementById('planDatesFields');
+        if (fields) fields.hidden = pace;
+        const hint = document.getElementById('planModeHint');
+        if (hint) hint.textContent = pace ? 'Cada vez te toca la siguiente lectura del plan que aún no has leído. Sin fechas ni lecturas atrasadas; tu racha y tus amigos siguen igual.' : '';
+        const subtitle = document.getElementById('appSubtitle');
+        if (subtitle) subtitle.textContent = pace ? 'La Biblia completa, a tu ritmo' : 'La Biblia completa en un año';
+        const eyebrow = document.getElementById('todayTitle');
+        if (eyebrow) eyebrow.textContent = !pace ? '📖 Lectura de hoy' : (computeStreaks().readToday ? '✅ Hoy ya leíste · ¿Seguimos?' : '📖 Tu siguiente lectura');
+        if (currentPlanStartDateTextEl) {
+            const start = localStorage.getItem('planStartDate');
+            currentPlanStartDateTextEl.textContent = pace
+                ? (window.currentSuggestedReading ? `🚶 A mi ritmo · lectura ${window.dayOfPlan} de ${dailyReadingPlan.length}` : '🚶 A mi ritmo')
+                : (start && !isNaN(Date.parse(start + 'T00:00:00Z')) ? `Empezó el ${formatDay(Date.parse(start + 'T00:00:00Z'), { day: 'numeric', month: 'long', year: 'numeric' })}` : 'Elige la fecha de inicio');
+        }
+    }
+
+    // El plan con fechas pasa a continuar en la lectura «index» como si hoy fuera ese día.
+    function startPlanAt(index) {
+        const newStart = utcDateKey(todayAsUTCDate().getTime() - index * DAY_MS);
+        storePlanStartDate(newStart);
+        if (planStartDateInput) planStartDateInput.value = newStart;
+        loadState(); displayDailySuggestion();
+    }
+
+    function displayPaceSuggestion() {
+        window.dayDiff = 0;
+        const index = firstUnreadPlanIndex();
+        if (index === -1) {
+            if (dailySuggestionMainTextEl) dailySuggestionMainTextEl.textContent = '🎉 ¡Felicidades! Has leído todas las lecturas del plan.';
+        } else {
+            window.dayOfPlan = index + 1;
+            showSuggestedReading(dailyReadingPlan[index], `Lectura ${index + 1} de ${dailyReadingPlan.length}`);
+        }
+        actualizarInterfazDiasRetraso();
     }
 
     // Capítulos de una lectura del plan: «Génesis 1-3», «Abdías 1, Jonás 1-4», «Salmos 119 (desde v. 64)»…
@@ -580,8 +749,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.dispatchEvent(new CustomEvent('lectura:today', { detail: {
             start: localStorage.getItem('planStartDate'),
             plan: dailyReadingPlan.map(entry => entry.displayText),
-            todayRead: window.currentSuggestedReading ? isDailyPlanEntryRead(window.currentSuggestedReading) : false,
-            date: localDateKey()
+            todayRead: isPaceMode() ? !!computeStreaks().readToday : (window.currentSuggestedReading ? isDailyPlanEntryRead(window.currentSuggestedReading) : false),
+            date: localDateKey(),
+            mode: isPaceMode() ? 'pace' : 'dates',
+            next: isPaceMode() && window.currentSuggestedReading ? { day: window.dayOfPlan, text: window.currentSuggestedReading.displayText } : null
         } }));
     }
 
@@ -624,6 +795,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function calculateEffectiveDelay() {
+        if (isPaceMode()) return 0;
         const planStartDateString = localStorage.getItem('planStartDate');
         if (!planStartDateString) return 0;
         let planStartDate;
@@ -640,6 +812,29 @@ document.addEventListener('DOMContentLoaded', () => {
         return pendingReadings;
     }
 
+    // Muestra una lectura del plan en la tarjeta de hoy, con su enlace y botones.
+    function showSuggestedReading(entry, label) {
+        window.currentSuggestedReading = entry;
+        if (dailySuggestionMainTextEl) {
+            const dayDisplay = document.createElement('span'); dayDisplay.className = 'suggested-reading__day'; dayDisplay.textContent = label;
+            const scriptureDisplay = document.createElement('span'); scriptureDisplay.className = 'suggested-reading__scripture'; scriptureDisplay.textContent = window.currentSuggestedReading.displayText;
+            dailySuggestionMainTextEl.appendChild(dayDisplay); dailySuggestionMainTextEl.appendChild(document.createElement('br')); dailySuggestionMainTextEl.appendChild(scriptureDisplay);
+        }
+        if (window.currentSuggestedReading.url && window.currentSuggestedReading.url !== '#ERROR') {
+            if (dailySuggestionOnlineLinkEl) { dailySuggestionOnlineLinkEl.href = window.currentSuggestedReading.url; dailySuggestionOnlineLinkEl.style.display = 'inline-block'; }
+            if (markSuggestedAsReadButtonEl) markSuggestedAsReadButtonEl.style.display = 'inline-block';
+            if (addToCalendarButtonEl) addToCalendarButtonEl.style.display = 'inline-block';
+        } else if (window.currentSuggestedReading.url === '#ERROR' && dailySuggestionMainTextEl) {
+            const errorMsg = document.createElement('p'); errorMsg.style.color = 'var(--danger-color, red)'; errorMsg.style.fontSize = '0.9em'; errorMsg.textContent = 'Error al generar el enlace para esta lectura.';
+            dailySuggestionMainTextEl.appendChild(errorMsg);
+        }
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (jwAppSuggestionNoteEl) {
+            if (isAndroid) { jwAppSuggestionNoteEl.textContent = 'Si tienes la aplicación JW Library instalada, considera abrir la lectura manualmente allí para una mejor experiencia.'; jwAppSuggestionNoteEl.style.display = 'block'; }
+            else { jwAppSuggestionNoteEl.style.display = 'none'; }
+        }
+    }
+
     function displayDailySuggestion() {
         if (currentDateTextEl) currentDateTextEl.textContent = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
         const planStartDateString = localStorage.getItem('planStartDate');
@@ -649,6 +844,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (addToCalendarButtonEl) addToCalendarButtonEl.style.display = 'none';
         if (jwAppSuggestionNoteEl) jwAppSuggestionNoteEl.style.display = 'none';
         window.currentSuggestedReading = null; window.todayUTC = null; window.dayOfPlan = 0;
+        if (isPaceMode()) { displayPaceSuggestion(); return; }
         if (!planStartDateString) {
             if (dailySuggestionMainTextEl) dailySuggestionMainTextEl.textContent = "Elige en «Mi plan de lectura» la fecha en que empiezas y aquí verás la lectura de cada día.";
             window.dayDiff = 0; actualizarInterfazDiasRetraso(); return;
@@ -671,25 +867,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentReadingIndex = elapsedDaysSinceStart;
             if (dailyReadingPlan.length === 0) { if (dailySuggestionMainTextEl) dailySuggestionMainTextEl.textContent = "No hay un plan de lectura diario definido."; }
             else if (currentReadingIndex >= 0 && currentReadingIndex < dailyReadingPlan.length) {
-                window.currentSuggestedReading = dailyReadingPlan[currentReadingIndex];
-                if (dailySuggestionMainTextEl) {
-                    const dayDisplay = document.createElement('span'); dayDisplay.className = 'suggested-reading__day'; dayDisplay.textContent = `Día ${window.dayOfPlan}`;
-                    const scriptureDisplay = document.createElement('span'); scriptureDisplay.className = 'suggested-reading__scripture'; scriptureDisplay.textContent = window.currentSuggestedReading.displayText;
-                    dailySuggestionMainTextEl.appendChild(dayDisplay); dailySuggestionMainTextEl.appendChild(document.createElement('br')); dailySuggestionMainTextEl.appendChild(scriptureDisplay);
-                }
-                if (window.currentSuggestedReading.url && window.currentSuggestedReading.url !== '#ERROR') {
-                    if (dailySuggestionOnlineLinkEl) { dailySuggestionOnlineLinkEl.href = window.currentSuggestedReading.url; dailySuggestionOnlineLinkEl.style.display = 'inline-block'; }
-                    if (markSuggestedAsReadButtonEl) markSuggestedAsReadButtonEl.style.display = 'inline-block';
-                    if (addToCalendarButtonEl) addToCalendarButtonEl.style.display = 'inline-block';
-                } else if (window.currentSuggestedReading.url === '#ERROR' && dailySuggestionMainTextEl) {
-                    const errorMsg = document.createElement('p'); errorMsg.style.color = 'var(--danger-color, red)'; errorMsg.style.fontSize = '0.9em'; errorMsg.textContent = 'Error al generar el enlace para esta lectura.';
-                    dailySuggestionMainTextEl.appendChild(errorMsg);
-                }
-                const isAndroid = /Android/i.test(navigator.userAgent);
-                if (jwAppSuggestionNoteEl) {
-                    if (isAndroid) { jwAppSuggestionNoteEl.textContent = 'Si tienes la aplicación JW Library instalada, considera abrir la lectura manualmente allí para una mejor experiencia.'; jwAppSuggestionNoteEl.style.display = 'block'; }
-                    else { jwAppSuggestionNoteEl.style.display = 'none'; }
-                }
+                showSuggestedReading(dailyReadingPlan[currentReadingIndex], `Día ${window.dayOfPlan}`);
             } else { if (dailySuggestionMainTextEl) dailySuggestionMainTextEl.textContent = "¡Felicidades! Has completado todas las lecturas del plan o estás más allá de su duración."; }
             window.dayDiff = calculateEffectiveDelay(); 
         }
@@ -1200,7 +1378,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Copia de seguridad: el progreso vive solo en este navegador, así que permitimos exportarlo e importarlo.
-    const BACKUP_KEYS = ['bibleReadStatus', 'bibleReadDates', 'syncChapterTimes', 'awardedSectionsStatus', 'planStartDate', 'planStartDateUpdatedAt', 'lastReadingDate', 'theme-primary', 'theme-accent'];
+    const BACKUP_KEYS = ['bibleReadStatus', 'bibleReadDates', 'syncChapterTimes', 'awardedSectionsStatus', 'planStartDate', 'planStartDateUpdatedAt', 'planMode', 'catchUpPlan', 'lastReadingDate', 'theme-primary', 'theme-accent'];
 
     if (exportBackupButton) {
         exportBackupButton.addEventListener('click', () => {
@@ -1350,6 +1528,105 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.getElementById(id);
         if (btn) btn.addEventListener('click', () => backfillPastPlanDays(false));
     });
+    document.querySelectorAll('input[name="planMode"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (!radio.checked) return;
+            if (radio.value === 'pace') {
+                storePlanMode('pace');
+                displayDailySuggestion();
+                notify('🚶 Modo «A mi ritmo»: te toca siempre la siguiente lectura sin leer, sin fechas ni retraso.', { type: 'success', duration: 6000 });
+                return;
+            }
+            storePlanMode('dates');
+            const next = firstUnreadPlanIndex();
+            if (next > 0 && confirm(`¿Continuar el plan con fechas desde tu siguiente lectura (Día ${next + 1}: ${dailyReadingPlan[next].displayText})?\n\nAsí empiezas sin lecturas atrasadas. Si eliges «Cancelar», se mantiene tu fecha de inicio.`)) {
+                startPlanAt(next);
+                notify(`📅 Plan con fechas: hoy es el Día ${next + 1}.`, { type: 'success' });
+                return;
+            }
+            displayDailySuggestion();
+            if (!localStorage.getItem('planStartDate')) notify('📅 Elige la fecha en que empiezas el plan.');
+        });
+    });
+
+    const catchUpDialog = document.getElementById('catchUpDialog');
+    let catchUpPending = [];
+    function catchUpSpread() {
+        const n = catchUpPending.length;
+        const days = Number(document.getElementById('catchUpDays').value) || 14;
+        const perDay = Math.ceil(n / days);
+        return { n, perDay, days: Math.ceil(n / perDay) };
+    }
+    function renderCatchUpSpread() {
+        const { perDay, days } = catchUpSpread();
+        const end = todayAsUTCDate().getTime() + (days - 1) * DAY_MS;
+        document.getElementById('catchUpSpreadDetail').textContent =
+            `${perDay === 1 ? '1 lectura extra' : `${perDay} lecturas extra`} al día · al día el ${formatDay(end, { weekday: 'long', day: 'numeric', month: 'long' })}`;
+    }
+    function openCatchUpDialog() {
+        catchUpPending = pendingPastIndices();
+        const n = catchUpPending.length;
+        if (!n || !catchUpDialog) return;
+        document.getElementById('catchUpDialogText').textContent = `Llevas ${n} ${n === 1 ? 'lectura atrasada' : 'lecturas atrasadas'}. Elige cómo ponerte al día:`;
+        renderCatchUpSpread();
+        const first = catchUpPending[0];
+        const shift = pastPlanDays() - first;
+        document.getElementById('catchUpShiftText').textContent =
+            `El plan sigue en el Día ${first + 1} (${dailyReadingPlan[first].displayText}) como si fuera hoy. Sin lecturas atrasadas, pero terminarás ${shift === 1 ? '1 día' : `${shift} días`} más tarde.`;
+        catchUpDialog.showModal();
+    }
+    const catchUpOpenButton = document.getElementById('catchUpOpenButton');
+    if (catchUpOpenButton) catchUpOpenButton.addEventListener('click', openCatchUpDialog);
+    if (catchUpDialog) {
+        document.getElementById('catchUpDays').addEventListener('change', renderCatchUpSpread);
+        document.getElementById('catchUpSpreadButton').addEventListener('click', () => {
+            const { n, perDay, days } = catchUpSpread();
+            storeCatchUpPlan({ start: localDateKey(), days, total: n });
+            catchUpDialog.close();
+            displayDailySuggestion();
+            notify(`🗓️ Cada día verás ${perDay === 1 ? '1 lectura atrasada' : `${perDay} lecturas atrasadas`} para recuperar. ¡Tú puedes!`, { type: 'success', duration: 6000 });
+            const box = document.getElementById('catchUpBox');
+            if (box && !box.hidden) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        document.getElementById('catchUpShiftButton').addEventListener('click', () => {
+            const first = catchUpPending[0];
+            catchUpDialog.close();
+            if (first === undefined) return;
+            startPlanAt(first);
+            notify(`✅ Seguimos desde el Día ${first + 1}. ¡Sin lecturas atrasadas!`, { type: 'success', duration: 6000 });
+        });
+        document.getElementById('catchUpPaceButton').addEventListener('click', () => {
+            catchUpDialog.close();
+            storePlanMode('pace');
+            displayDailySuggestion();
+            notify('🚶 Modo «A mi ritmo»: te toca siempre la siguiente lectura sin leer. Puedes volver al plan con fechas en «Mi plan de lectura».', { type: 'success', duration: 7000 });
+        });
+    }
+
+    const catchUpMarkButton = document.getElementById('catchUpMarkButton');
+    if (catchUpMarkButton) catchUpMarkButton.addEventListener('click', () => {
+        let marked = 0;
+        catchUpItems.forEach(entry => chaptersOfPlanEntry(entry).forEach(({ book, chapter }) => {
+            const key = sanitizeKey(book, chapter);
+            if (readStatus[key]) return;
+            setChapterRead(key, true);
+            marked++;
+        }));
+        const text = catchUpItems.map(e => e.displayText).join(', ');
+        if (!marked) { displayDailySuggestion(); return; }
+        saveState();
+        renderBooks(bookFilter ? bookFilter.value : 'todos', statusFilter ? statusFilter.value : 'todos');
+        actualizarUltimaLectura(); updateOverallProgress(); updateAllThematicSectionsStatus();
+        announceChaptersRead(marked);
+        notify(`✅ ${text} ${catchUpItems.length > 1 ? 'marcadas como leídas' : 'marcado como leído'}`, { type: 'success' });
+    });
+    const catchUpCancelButton = document.getElementById('catchUpCancelButton');
+    if (catchUpCancelButton) catchUpCancelButton.addEventListener('click', () => {
+        if (!confirm('¿Dejar de repartir las lecturas atrasadas? Seguirán contando como atrasadas.')) return;
+        storeCatchUpPlan(null);
+        displayDailySuggestion();
+    });
+
     const streakBackfill = document.getElementById('streakBackfillButton');
     if (streakBackfill) streakBackfill.addEventListener('click', () => backfillPastPlanDays(true));
     document.addEventListener('lectura:streak-permission', () => updateStreakUI(computeStreaks()));

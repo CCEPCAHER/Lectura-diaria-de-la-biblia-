@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:locale" content="es_ES">
 
-  <link rel="stylesheet" href="style.css?v=2.7.4">
+  <link rel="stylesheet" href="style.css?v=2.8.0">
 
   <link rel="manifest" href="manifest.json">
 
@@ -484,7 +484,7 @@
       <div class="app-header__inner">
         <p class="app-header__date" id="currentDateText">&nbsp;</p>
         <h1 class="app-header__title">Lectura diaria</h1>
-        <p class="app-header__subtitle">La Biblia completa en un año</p>
+        <p class="app-header__subtitle" id="appSubtitle">La Biblia completa en un año</p>
       </div>
     </header>
 
@@ -500,6 +500,16 @@
           <button type="button" class="button-success" id="markSuggestedAsReadButton" style="display: none;">✓ Marcar como leído</button>
           <button type="button" class="button-ghost" id="addToCalendarButton" style="display: none;">📅 Añadir al calendario</button>
           <button type="button" class="button-ghost" id="reminderPromoButton" hidden>🔔 Recordármelo cada día</button>
+        </div>
+        <div class="catchup" id="catchUpBox" hidden>
+          <p class="catchup__title">🗓️ Para ponerte al día, hoy también:</p>
+          <ul class="catchup__list" id="catchUpList"></ul>
+          <p class="catchup__done" id="catchUpDone" hidden></p>
+          <p class="catchup__meta" id="catchUpMeta"></p>
+          <div class="catchup__actions">
+            <button type="button" class="button-ghost" id="catchUpMarkButton">✓ Marcar como leídas</button>
+            <button type="button" class="catchup__cancel" id="catchUpCancelButton">Dejar de recuperar</button>
+          </div>
         </div>
       </section>
 
@@ -535,8 +545,11 @@
         </div>
         <div class="stat-card stat-card--delay suggestion-block--status">
           <p class="stat-card__value"><span id="daysDelayedText" aria-live="polite">0</span></p>
-          <p class="stat-card__label"><span class="when-late">Lecturas atrasadas</span><span class="when-ok">✓ Vas al día</span></p>
-          <button type="button" class="stat-card__action" id="delayBackfillButton" hidden>✓ Ya las leí</button>
+          <p class="stat-card__label"><span class="when-late">Lecturas atrasadas</span><span class="when-ok">✓ Vas al día</span><span class="when-pace" id="paceLabel">Fin estimado</span></p>
+          <div class="stat-card__actions">
+            <button type="button" class="stat-card__action" id="catchUpOpenButton" hidden>🗓️ Ponerme al día</button>
+            <button type="button" class="stat-card__action" id="delayBackfillButton" hidden>✓ Ya las leí</button>
+          </div>
         </div>
       </section>
 
@@ -560,6 +573,15 @@
         </summary>
         <div class="panel__body">
           <div class="field">
+            <span class="field__label" id="planModeLabel">Modo de lectura</span>
+            <div class="plan-modes" role="radiogroup" aria-labelledby="planModeLabel">
+              <label class="plan-mode"><input type="radio" name="planMode" value="dates"><span><b>📅 Con fechas</b><small>Un año, una lectura cada día</small></span></label>
+              <label class="plan-mode"><input type="radio" name="planMode" value="pace"><span><b>🚶 A mi ritmo</b><small>Sin fechas ni retraso</small></span></label>
+            </div>
+            <p class="field__hint" id="planModeHint"></p>
+          </div>
+          <div class="plan-dates-fields" id="planDatesFields">
+          <div class="field">
             <label for="planStartDateInput">Fecha de inicio</label>
             <div class="field__row">
               <input type="date" id="planStartDateInput">
@@ -579,6 +601,7 @@
             <label for="backfillPlanButton">¿Ya habías leído los días anteriores?</label>
             <p class="field__hint">Marca como leídas las lecturas de los días que ya pasaron del plan para poner tu progreso al día. La racha solo cuenta los días en que marcas tu lectura.</p>
             <button type="button" id="backfillPlanButton" class="button-secondary">✓ Ya leí los días anteriores</button>
+          </div>
           </div>
           <div class="panel__danger">
             <button type="button" id="resetProgress" class="button-danger">Reiniciar todo el progreso</button>
@@ -625,6 +648,41 @@
       <div class="friends-dialog__actions">
         <button type="button" class="button-ghost" id="friendsCancel">Ahora no</button>
         <button type="submit" id="friendsConfirm">Empezar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="catchUpDialog" class="friends-dialog catchup-dialog" aria-labelledby="catchUpDialogTitle">
+    <form method="dialog">
+      <div class="friends-dialog__icon" aria-hidden="true">🗓️</div>
+      <h2 id="catchUpDialogTitle">Ponte al día</h2>
+      <p id="catchUpDialogText"></p>
+      <div class="catchup-option">
+        <h3>Repartir lo atrasado</h3>
+        <p>Cada día, además de la lectura del día, recuperas unas pocas atrasadas.</p>
+        <div class="field__row">
+          <label class="visually-hidden" for="catchUpDays">Días para ponerte al día</label>
+          <select id="catchUpDays">
+            <option value="7">En 1 semana</option>
+            <option value="14" selected>En 2 semanas</option>
+            <option value="30">En 1 mes</option>
+          </select>
+          <button type="button" id="catchUpSpreadButton">Repartir</button>
+        </div>
+        <p class="catchup-option__detail" id="catchUpSpreadDetail"></p>
+      </div>
+      <div class="catchup-option">
+        <h3>Seguir desde donde voy</h3>
+        <p id="catchUpShiftText"></p>
+        <button type="button" class="button-secondary" id="catchUpShiftButton">Seguir desde ahí</button>
+      </div>
+      <div class="catchup-option">
+        <h3>Leer a mi ritmo</h3>
+        <p>Sin fechas ni retraso: cada vez te toca la siguiente lectura sin leer.</p>
+        <button type="button" class="button-secondary" id="catchUpPaceButton">🚶 Cambiar a «A mi ritmo»</button>
+      </div>
+      <div class="friends-dialog__actions">
+        <button type="submit" class="button-ghost" value="cancel">Ahora no</button>
       </div>
     </form>
   </dialog>
@@ -736,12 +794,12 @@
     <button type="button" class="intro__skip" id="onboardingSkip">Saltar vídeo</button>
   </dialog>
 
-  <script src="./pwa.js?v=2.7.4" defer></script>
-  <script src="./script.js?v=2.7.4" defer></script>
-  <script src="./stats.js?v=2.7.4" defer></script>
-  <script src="./reminders.js?v=2.7.4" defer></script>
-  <script src="./sync.js?v=2.7.4" defer></script>
-  <script src="./friends.js?v=2.7.4" defer></script>
-  <script src="./onboarding.js?v=2.7.4" defer></script>
+  <script src="./pwa.js?v=2.8.0" defer></script>
+  <script src="./script.js?v=2.8.0" defer></script>
+  <script src="./stats.js?v=2.8.0" defer></script>
+  <script src="./reminders.js?v=2.8.0" defer></script>
+  <script src="./sync.js?v=2.8.0" defer></script>
+  <script src="./friends.js?v=2.8.0" defer></script>
+  <script src="./onboarding.js?v=2.8.0" defer></script>
 </body>
 </html>

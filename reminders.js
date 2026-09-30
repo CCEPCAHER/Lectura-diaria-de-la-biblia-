@@ -56,7 +56,7 @@
   async function saveStateForServiceWorker(detail) {
     if (!('caches' in window)) return;
     const cache = await caches.open(STATE_CACHE);
-    await cache.put(STATE_URL, new Response(JSON.stringify({ start: detail.start, plan: detail.plan }), { headers: { 'Content-Type': 'application/json' } }));
+    await cache.put(STATE_URL, new Response(JSON.stringify({ start: detail.start, plan: detail.plan, mode: detail.mode, next: detail.next }), { headers: { 'Content-Type': 'application/json' } }));
   }
 
   // Si ya leyó hoy, avisamos al servidor para no mandarle el recordatorio.

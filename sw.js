@@ -1,6 +1,6 @@
 // Red primero y caché como respaldo: con conexión siempre llega la última versión publicada,
 // sin conexión la app sigue funcionando con lo último que se guardó.
-const CACHE = 'lectura-diaria-v16';
+const CACHE = 'lectura-diaria-v17';
 const STATE_CACHE = 'lectura-diaria-estado'; // plan y fecha de inicio que deja reminders.js
 const ASSETS = [
   './',
@@ -60,6 +60,8 @@ async function todaysReading() {
     const res = await caches.match(scopeUrl('__estado-recordatorio.json'), { cacheName: STATE_CACHE });
     if (!res) return null;
     const state = await res.json();
+    // «A mi ritmo»: la siguiente lectura sin leer que dejó la app.
+    if (state.mode === 'pace') return state.next && state.next.text ? { day: state.next.day, text: state.next.text, pace: true } : null;
     if (!state.start || !Array.isArray(state.plan)) return null;
     const now = new Date();
     const index = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.parse(state.start + 'T00:00:00Z')) / 86400000);
@@ -83,7 +85,7 @@ self.addEventListener('push', event => {
     } else if (!data.test && !data.kind) {
       const reading = await todaysReading();
       if (reading) {
-        title = `📖 Día ${reading.day}: ${reading.text}`;
+        title = reading.pace ? `📖 Te toca: ${reading.text}` : `📖 Día ${reading.day}: ${reading.text}`;
         body = 'Toca para abrir tu lectura de hoy.';
       }
     }
